@@ -42,7 +42,7 @@ function CheckoutPage() {
   const districtRef = useRef<HTMLInputElement>(null);
   const wardRef = useRef<HTMLInputElement>(null);
 
-  const GOONG_API_KEY = 'fQXEea6MuBVL4e6IouYHzhJkJ8AY8QPoPb9mEKDL';
+  const GOONG_API_KEY = import.meta.env.VITE_GOONG_MAPS_API_KEY;
   const sessionToken = crypto.randomUUID();
 
   useEffect(() => {
