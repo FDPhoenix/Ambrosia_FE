@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 import { toast, ToastContainer } from 'react-toastify';
-import '../css/PageCss/CheckoutPage.module.css';
 
 interface CartItem {
   _id: string;
@@ -42,7 +41,8 @@ function CheckoutPage() {
   const districtRef = useRef<HTMLInputElement>(null);
   const wardRef = useRef<HTMLInputElement>(null);
 
-  const GOONG_API_KEY = 'fQXEea6MuBVL4e6IouYHzhJkJ8AY8QPoPb9mEKDL';
+  const GOONG_API_KEY = import.meta.env.VITE_GOONG_MAPS_API_KEY;
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
   const sessionToken = crypto.randomUUID();
 
   useEffect(() => {
@@ -52,7 +52,7 @@ function CheckoutPage() {
           const decoded: any = jwtDecode(token);
           const userId = decoded.id;
 
-          const response = await fetch(`http://localhost:3000/cart/${userId}`, {
+          const response = await fetch(`${backendApiUrl}/cart/${userId}`, {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -69,7 +69,7 @@ function CheckoutPage() {
     const loadUserProfile = async () => {
       if (token) {
         try {
-          const response = await fetch(`http://localhost:3000/user/profile`, {
+          const response = await fetch(`${backendApiUrl}/user/profile`, {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -164,7 +164,7 @@ function CheckoutPage() {
     try {
       const currentUserId = jwtDecode<any>(token).id;
 
-      const response = await fetch(`http://localhost:3000/vouchers/code/${voucherCode}`, {
+      const response = await fetch(`${backendApiUrl}/vouchers/code/${voucherCode}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -242,7 +242,7 @@ function CheckoutPage() {
     try {
       setIsLoading(true);
 
-      const checkoutResponse = await fetch('http://localhost:3000/payment/checkout', {
+      const checkoutResponse = await fetch(`${backendApiUrl}/payment/checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -262,7 +262,7 @@ function CheckoutPage() {
       Cookies.set('bookingId', bookingId, { expires: 1, path: '/' });
 
       const orderId = checkoutDataResponse.orderId;
-      const vnpayResponse = await fetch(`http://localhost:3000/payment/vnpay-create?orderId=${orderId}`, {
+      const vnpayResponse = await fetch(`${backendApiUrl}/payment/vnpay-create?orderId=${orderId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -412,7 +412,7 @@ function CheckoutPage() {
 
       <div className="w-full pl-4 pt-4 lg:pt-12 bg-white pr-4 lg:w-[45%] xl:pr-56 md:pr-10 lg:pl-[4%] lg:bg-gray-50 shadow-[-1px_0_0_#e1e1e1]">
         <h3 className="text-lg mb-2 lg:hidden">Order summary</h3>
-        <div className="w-full max-h-80 overflow-y-auto border-b border-gray-300 pb-2 checkoutProduct">
+        <div className="w-full max-h-80 overflow-y-auto border-b border-gray-300 pb-2">
           {checkoutProduct.map((item) => (
             <div className="w-full flex justify-between py-3 relative" key={item._id}>
               <div className="w-3/4 flex">

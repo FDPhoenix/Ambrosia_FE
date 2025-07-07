@@ -13,7 +13,8 @@ function DishContent() {
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [editLoading, setEditLoading] = useState(false)
+  const [editLoading, setEditLoading] = useState(false);
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   const [editDish, setEditDish] = useState({
     _id: "",
@@ -32,7 +33,7 @@ function DishContent() {
   });
 
   const fetchDishes = () => {
-    fetch("http://localhost:3000/dishes/admin/all", {
+    fetch(`${backendApiUrl}/dishes/admin/all`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -50,7 +51,7 @@ function DishContent() {
   };
 
   const fetchCategory = () => {
-    fetch("http://localhost:3000/category/all", {
+    fetch(`${backendApiUrl}/category/all`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${Cookies.get("token")}`,
@@ -72,7 +73,7 @@ function DishContent() {
     const dishToUpdate = dishes.find(dish => dish._id === id);
     const updatedStatus = !dishToUpdate.isAvailable;
 
-    fetch(`http://localhost:3000/dishes/hide/${id}`, {
+    fetch(`${backendApiUrl}/dishes/hide/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -142,7 +143,7 @@ function DishContent() {
     formData.append('price', newDish.price);
     formData.append('image', selectedFile);
 
-    fetch("http://localhost:3000/dishes/add", {
+    fetch(`${backendApiUrl}/dishes/add`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${Cookies.get("token")}`
@@ -210,7 +211,7 @@ function DishContent() {
       formData.append('image', selectedFile);
     }
 
-    fetch(`http://localhost:3000/dishes/update/${editDish._id}`, {
+    fetch(`${backendApiUrl}/dishes/update/${editDish._id}`, {
       method: "PUT",
       headers: {
         "Authorization": `Bearer ${Cookies.get("token")}`

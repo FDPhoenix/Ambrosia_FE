@@ -16,6 +16,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const [cart, setCart] = useState<any[]>([])
   const token = Cookies.get('token');
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const loadCart = async () => {
@@ -24,7 +25,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
           const decoded: any = jwtDecode(token);
           const userId = decoded.id;
 
-          const response = await fetch(`http://localhost:3000/cart/${userId}`, {
+          const response = await fetch(`${backendApiUrl}/cart/${userId}`, {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -59,7 +60,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   const removeFromCart = async (cartItemId: any) => {
     if (token) {
       try {
-        const response = await fetch(`http://localhost:3000/cart/remove/${cartItemId}`, {
+        const response = await fetch(`${backendApiUrl}/cart/remove/${cartItemId}`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -85,7 +86,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
 
     if (token) {
       try {
-        const response = await fetch("http://localhost:3000/cart/update", {
+        const response = await fetch(`${backendApiUrl}/cart/update`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -162,7 +163,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                 <div className="flex justify-between mt-3">
                   <div className="flex items-center gap-2">
                     <button className="w-[25px] h-[25px] border-none cursor-pointer" onClick={() => updateQuantity(item._id, "decrease")}>-</button>
-                    <input type="number" value={item.quantity} className="w-6 text-center appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"/>
+                    <input type="number" value={item.quantity} className="w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"/>
                     <button className="w-[25px] h-[25px] border-none cursor-pointer" onClick={() => updateQuantity(item._id, "increase")}>+</button>
                   </div>
                   <p className="font-bold text-red-600">{item.price.toLocaleString()}₫</p>

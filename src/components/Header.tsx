@@ -27,6 +27,7 @@ function Header({ fixed = false, onCartToggle }: HeaderProps) {
   const navigate = useNavigate();
   const dropdownRefMobile = useRef<HTMLDivElement>(null);
   const dropdownRefDesktop = useRef<HTMLDivElement>(null);
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   const handleSearch = (e: { preventDefault: () => void }) => {
     e.preventDefault();
