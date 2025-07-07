@@ -1,0 +1,8 @@
+.checkoutProduct::-webkit-scrollbar {
+    width: 4px;
+}
+
+.checkoutProduct::-webkit-scrollbar-thumb {
+    background-color: #A2845E;
+    border-radius: 50px;
+}
