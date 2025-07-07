@@ -117,11 +117,10 @@ useEffect(() => {
 
         <div className="flex items-center gap-2">
           <button
-            className="relative rounded-full p-2 border border-black"
-            onClick={onCartToggle}
-
+            className="relative rounded-full p-2"
+            onClick={() => navigate("/cart")}
           >
-            <BsFillBagFill className="text-black w-5 h-5" />
+            <BsFillBagFill className="text-black w-6 h-6" />
           </button>
 
           {userToken ? (

@@ -8,7 +8,6 @@ import {
   faTimes,
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
-import styles from "../css/orderHistory.module.css";
 import Cookies from "js-cookie";
 
 interface Dish {
@@ -115,13 +114,13 @@ export default function OrderHistory() {
   const openFeedbackModal = (dish: Dish) => {
     setSelectedDish(dish);
     setFeedbackModalOpen(true);
-    setSelectedOrder(null); // Hide order modal when opening feedback
+    setSelectedOrder(null);
   };
 
   const closeModal = () => {
     if (feedbackModalOpen) {
       setFeedbackModalOpen(false);
-      setSelectedOrder(selectedOrder); // Show order modal again when closing feedback
+      setSelectedOrder(selectedOrder);
     } else {
       setSelectedOrder(null);
       setFeedbackModalOpen(false);
@@ -173,109 +172,106 @@ export default function OrderHistory() {
 
   if (error) {
     return (
-      <div className={styles.alertDanger}>
-        <FontAwesomeIcon icon={faExclamationCircle} className={styles.icon} />
+      <div className="bg-red-100 text-red-800 p-4 rounded-md flex items-center gap-2">
+        <FontAwesomeIcon icon={faExclamationCircle} />
         {error}
       </div>
     );
   }
 
   return (
-    <div className={styles.container}>
+    <div className="max-w-6xl mx-auto p-5 font-sans min-h-[350px]">
       {orders.length > 0 ? (
         <div>
-          <h2 className={styles.heading}>
-            <FontAwesomeIcon icon={faBox} className={styles.icon} />
+          <h2 className="text-3xl text-gray-800 mb-5 flex items-center gap-2">
+            <FontAwesomeIcon icon={faBox} />
             Order History
           </h2>
-          <table className={styles.orderTable}>
+          <table className="w-full border-collapse bg-white shadow-md rounded-lg overflow-hidden">
             <thead>
               <tr>
-                <th>
-                  <FontAwesomeIcon icon={faBox} className={styles.icon} />
+                <th className="p-4 text-left bg-[#A2845E] text-white font-bold">
+                  <FontAwesomeIcon icon={faBox} className="mr-2" />
                   Order ID
                 </th>
-                <th>
-                  <FontAwesomeIcon icon={faClock} className={styles.icon} />
+                <th className="p-4 text-left bg-[#A2845E] text-white font-bold">
+                  <FontAwesomeIcon icon={faClock} className="mr-2" />
                   Date
                 </th>
-                <th>Payment Status</th>
-                <th>
-                  <FontAwesomeIcon icon={faCoins} className={styles.icon} />
+                <th className="p-4 text-left bg-[#A2845E] text-white font-bold">Payment Status</th>
+                <th className="p-4 text-left bg-[#A2845E] text-white font-bold">
+                  <FontAwesomeIcon icon={faCoins} className="mr-2" />
                   Total Amount
                 </th>
               </tr>
             </thead>
             <tbody>
               {orders.map((order) => (
-                <tr key={order._id} onClick={() => openOrderDetail(order)}>
-                  <td>{order._id.slice(-6)}</td>
-                  <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                <tr key={order._id} onClick={() => openOrderDetail(order)} className="hover:bg-gray-100 cursor-pointer">
+                  <td className="p-4 border-b border-gray-200">{order._id.slice(-6)}</td>
+                  <td className="p-4 border-b border-gray-200">{new Date(order.createdAt).toLocaleDateString()}</td>
                   <td
-                    className={
-                      order.paymentStatus === "Success"
-                        ? styles.paidStatus
-                        : styles.unpaidStatus
-                    }
+                    className={`p-4 border-b border-gray-200 font-bold ${order.paymentStatus === "Success" ? "text-green-600" : "text-orange-600"
+                      }`}
                   >
                     {order.paymentStatus}
                   </td>
-                  <td>{order.totalAmount.toLocaleString()} VND</td>
+                  <td className="p-4 border-b border-gray-200">{order.totalAmount.toLocaleString()} VND</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
           {selectedOrder && (
-            <div className={styles.modalOverlay} onClick={closeModal}>
-              <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                <button className={styles.closeBtn} onClick={closeModal}>
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[1000]" onClick={closeModal}>
+              <div className="bg-white p-5 rounded-lg w-full max-w-4xl max-h-[80vh] overflow-y-auto relative shadow-lg" onClick={(e) => e.stopPropagation()}>
+                <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl" onClick={closeModal}>
                   <FontAwesomeIcon icon={faTimes} />
                 </button>
-                <h3>🧾 Order Details</h3>
+                <h3 className="mb-4 text-xl">🧾 Order Details</h3>
 
-                <p className={styles.mb5}>
-                  <strong>Order ID:</strong>{selectedOrder._id}
+                <p className="mb-1">
+                  <strong>Order ID:</strong> {selectedOrder._id}
                 </p>
 
-                <p className={styles.mb5}>
+                <p className="mb-1">
                   <strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleDateString()}
                 </p>
 
-                <p className={styles.mb5}>
+                <p className="mb-1">
                   <strong>Total Amount:</strong> {selectedOrder.totalAmount.toLocaleString()} VND
                 </p>
 
-                <p className={styles.mb5}>
+                <p className="mb-1">
                   <strong>Payment Status:</strong> {selectedOrder.paymentStatus}
                 </p>
 
-                <p className={styles.mb5}>
+                <p className="mb-1">
                   <strong>Payment Method:</strong> {selectedOrder.paymentMethod}
                 </p>
                 {selectedOrder.bookingId && (
                   <>
-                    <p className={styles.mb5}>
+                    <p className="mb-1">
                       <strong>Order Type:</strong> {selectedOrder.bookingId.orderType}
                     </p>
-                    <p className={styles.mb5}>
+                    <p className="mb-1">
                       <strong>Booking Date:</strong>{" "}
                       {new Date(selectedOrder.bookingId.bookingDate).toLocaleDateString()}
                     </p>
-                    <p style={{ marginBottom: '15px' }}>
+                    <p className="mb-4">
                       <strong>Booking Status:</strong> {selectedOrder.bookingId.status}
                     </p>
                   </>
                 )}
 
-                <table className={styles.orderTable}>
+                <table className="w-full border-collapse bg-white shadow-md rounded-lg">
                   <thead>
                     <tr>
-                      <th>Dish Name</th>
-                      <th>Quantity</th>
-                      <th>Price</th>
-                      <th>Subtotal</th>
-                      <th>Feedback</th>
+                      <th className="p-4 text-left bg-[#A2845E] text-white font-bold">Dish Name</th>
+                      <th className="p-4 text-left bg-[#A2845E] text-white font-bold">Quantity</th>
+                      <th className="p-4 text-left bg-[#A2845E] text-white font-bold">Price</th>
+                      <th className="p-4 text-left bg-[#A2845E] text-white font-bold">Subtotal</th>
+                      <th className="p-4 text-left bg-[#A2845E] text-white font-bold">Feedback</th>
                     </tr>
                   </thead>
 
@@ -287,13 +283,13 @@ export default function OrderHistory() {
 
                       return (
                         <tr key={item._id}>
-                          <td>{item.dishId.name}</td>
-                          <td style={{ textAlign: "center" }}>{quantity}</td>
-                          <td>{price.toLocaleString()} VND</td>
-                          <td>{subtotal.toLocaleString()} VND</td>
-                          <td>
+                          <td className="p-4 border-b border-gray-200">{item.dishId.name}</td>
+                          <td className="p-4 border-b border-gray-200 text-center">{quantity}</td>
+                          <td className="p-4 border-b border-gray-200">{price.toLocaleString()} VND</td>
+                          <td className="p-4 border-b border-gray-200">{subtotal.toLocaleString()} VND</td>
+                          <td className="p-4 border-b border-gray-200">
                             <button
-                              className={styles.btn}
+                              className="px-2 py-1 bg-[#A2845E] text-white rounded-md hover:bg-amber-800"
                               onClick={() => openFeedbackModal(item.dishId)}
                             >
                               Feedback
@@ -308,41 +304,41 @@ export default function OrderHistory() {
             </div>
           )}
 
-          {/* Feedback Modal */}
           {feedbackModalOpen && (
-            <div className={styles.modalOverlay} onClick={closeModal}>
-              <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                <button className={styles.closeBtn} onClick={closeModal}>
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[1000]" onClick={closeModal}>
+              <div className="bg-white p-5 rounded-lg w-full max-w-4xl relative shadow-lg" onClick={(e) => e.stopPropagation()}>
+                <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl" onClick={closeModal}>
                   <FontAwesomeIcon icon={faTimes} />
                 </button>
                 <div>
-                  <label className={styles.feedbackLabel}>Rating:</label>
-                  <div className={styles.starRating}>
+                  <label className="font-bold text-gray-800 mb-1 block">Rating:</label>
+                  <div className="flex gap-1 mb-4">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <FontAwesomeIcon
                         key={star}
                         icon={faStar}
-                        className={
-                          star <= rating ? styles.selectedStar : styles.unselectedStar
-                        }
+                        className={`text-2xl cursor-pointer hover:scale-110 transition-transform ${star <= rating ? "text-yellow-400" : "text-gray-300"
+                          }`}
                         onClick={() => setRating(star)}
                       />
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className={styles.feedbackLabel}>Comment:</label>
+                  <label className="font-bold text-gray-800 mb-1 block">Comment:</label>
                   <textarea
-                    className={styles.feedbackTextarea}
+                    className="w-full min-h-[100px] p-2 border border-gray-300 rounded-md resize-y mb-4"
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     placeholder="Enter your comment..."
                   />
                 </div>
                 {feedbackError && (
-                  <div className={styles.alertDanger}>{feedbackError}</div>
+                  <div className="bg-red-100 text-red-800 p-4 rounded-md flex items-center gap-2 mb-4">
+                    {feedbackError}
+                  </div>
                 )}
-                <button className={styles.btn} onClick={handleFeedbackSubmit}>
+                <button className="px-4 py-2 bg-[#A2845E] text-white rounded-md hover:bg-amber-800" onClick={handleFeedbackSubmit}>
                   Submit Feedback
                 </button>
               </div>
@@ -350,7 +346,7 @@ export default function OrderHistory() {
           )}
         </div>
       ) : (
-        <div className={styles.noOrder}>
+        <div className="flex justify-center items-center mt-32">
           <p>There are no order record in history</p>
         </div>
       )}

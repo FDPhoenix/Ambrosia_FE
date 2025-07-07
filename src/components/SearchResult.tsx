@@ -117,7 +117,7 @@ function SearchResult() {
     };
 
     return (
-        <div className="w-full xl:px-16 py-12 min-h-[323px] bg-[#EFF4F8]">
+        <div className="w-full px-4 xl:px-16 py-12 min-h-[323px] bg-[#EFF4F8]">
             <div className="result">
                 <h2 className="mb-8 text-2xl">Searching result for "{name || 'all'}"</h2>
 
@@ -148,17 +148,17 @@ function SearchResult() {
 
 
                 {results.length > 0 ? (
-                    <div className="grid grid-cols-5 gap-14 mb-4">
+                    <div className="grid grid-cols-2 gap-7 md:grid-cols-4 md:gap-10 xl:grid-cols-5 xl:gap-14 mb-4">
                         {results.map((item) => (
                             <div key={item._id} className="no-underline text-black">
                                 <div key={item._id} className="no-underline text-black">
                                     <div className="bg-[#ECE6DF] p-2 border border-[#ECE6DF] shadow-[4px_4px_#acacac] mb-4">
                                         <Link to={`/dish/${item._id}`} className="cursor-pointer">
                                             <div className="mb-1">
-                                                <img className="w-[215px] h-[215px]" src={item.imageUrl} alt={item.name} />
+                                                <img className="w-full h-[160px] md:h-[215px] object-cover" src={item.imageUrl} alt={item.name} />
                                             </div>
-                                            <div className="w-[215px] text-center whitespace-nowrap overflow-hidden text-ellipsis">
-                                                <p className="text-lg font-bold mb-2">{item.name}</p>
+                                            <div className="w-full xl:w-[215px] text-center">
+                                                <p className="text-lg font-bold mb-2 truncate">{item.name}</p>
                                                 <p className="text-xl text-[#d83a3a] font-bold">{item.price.toLocaleString()}₫</p>
                                             </div>
                                         </Link>

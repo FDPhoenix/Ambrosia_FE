@@ -5,9 +5,9 @@ import {
   faCalendarCheck,
   faInfoCircle,
   faExclamationCircle,
+  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import Cookies from "js-cookie";
-import styles from "../css/BookingHistory.module.css";
 
 interface Booking {
   _id: string;
@@ -120,48 +120,47 @@ export default function BookingHistory() {
 
   if (error) {
     return (
-      <div className={styles.alertDanger}>
-        <FontAwesomeIcon icon={faExclamationCircle} className={styles.icon} />
+      <div className="bg-red-100 text-red-800 p-4 rounded-md flex items-center gap-2">
+        <FontAwesomeIcon icon={faExclamationCircle} className="mr-2" />
         {error}
       </div>
     );
   }
 
   return (
-    <div className={styles.container}>
+    <div className="max-w-6xl mx-auto p-5 font-sans min-h-[350px]">
       {bookings.length > 0 ? (
         <div>
-          <h2 className={styles.heading}>
-            <FontAwesomeIcon icon={faCalendarCheck} className={styles.icon} />
+          <h2 className="text-3xl text-gray-800 mb-5 flex items-center gap-2">
+            <FontAwesomeIcon icon={faCalendarCheck} className="mr-2" />
             Booking History
           </h2>
-          <table className={styles.orderTable}>
+          <table className="w-full border-collapse bg-white shadow-md rounded-lg overflow-hidden">
             <thead>
               <tr>
-                <th>Booking ID</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Status</th>
-                <th>Table Number</th>
+                <th className="p-4 text-left bg-[#A2845E] text-white font-bold">Booking ID</th>
+                <th className="p-4 text-left bg-[#A2845E] text-white font-bold">Date</th>
+                <th className="p-4 text-left bg-[#A2845E] text-white font-bold">Time</th>
+                <th className="p-4 text-left bg-[#A2845E] text-white font-bold">Status</th>
+                <th className="p-4 text-left bg-[#A2845E] text-white font-bold">Table Number</th>
               </tr>
             </thead>
             <tbody>
               {bookings
                 .filter(booking => booking.startTime != null && booking.endTime != null)
                 .map((booking) => (
-                  <tr key={booking._id} onClick={() => handleRowClick(booking._id)}>
-                    <td>{booking._id.slice(-6)}</td>
-                    <td>{new Date(booking.bookingDate).toLocaleDateString()}</td>
-                    <td>{`${booking.startTime} - ${booking.endTime}`}</td>
-                    <td>
+                  <tr key={booking._id} onClick={() => handleRowClick(booking._id)} className="hover:bg-gray-100 cursor-pointer">
+                    <td className="p-4 border-b border-gray-200">{booking._id.slice(-6)}</td>
+                    <td className="p-4 border-b border-gray-200">{new Date(booking.bookingDate).toLocaleDateString()}</td>
+                    <td className="p-4 border-b border-gray-200">{`${booking.startTime} - ${booking.endTime}`}</td>
+                    <td className={`p-4 border-b border-gray-200 ${booking.status === "confirmed" ? "text-green-600" : "text-yellow-500"}`}>
                       <FontAwesomeIcon
                         icon={faInfoCircle}
-                        className={`${styles.icon} ${booking.status === "confirmed" ? "text-success" : "text-warning"
-                          }`}
+                        className="mr-2"
                       />
                       {booking.status}
                     </td>
-                    <td>
+                    <td className="p-4 border-b border-gray-200">
                       {booking.tableId
                         ? `${booking.tableId.tableNumber} (Capacity: ${booking.tableId.capacity})`
                         : "No table"}
@@ -172,45 +171,54 @@ export default function BookingHistory() {
           </table>
 
           {selectedBooking && (
-            <div className={styles.modalOverlay} onClick={handleOverlayClick}>
-              <div className={styles.modalContent}>
-                <h3>🧾 Booking Details</h3>
-                <p className={styles.mb5}>
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[1000]" onClick={handleOverlayClick}>
+              <div className="bg-white p-5 rounded-lg w-full max-w-4xl max-h-[80vh] overflow-y-auto relative shadow-lg">
+                <h3 className="mb-4 text-xl">🧾 Booking Details</h3>
+
+                <button
+                  className="absolute top-4 right-5 text-gray-500 hover:text-gray-800"
+                  onClick={closeModal}
+                >
+                  <FontAwesomeIcon icon={faTimes} className="text-xl"/>
+                </button>
+
+                <p className="mb-1">
                   <strong>Booking Date:</strong>{" "}
                   {new Date(selectedBooking.bookingDate).toLocaleDateString()}
                 </p>
 
-                <p className={styles.mb5}>
+                <p className="mb-1">
                   <strong>Time:</strong> {selectedBooking.startTime} - {selectedBooking.endTime}
                 </p>
 
-                <p className={styles.mb5}>
+                <p className="mb-1">
                   <strong>Status:</strong> {selectedBooking.status}
                 </p>
 
-                <p className={styles.mb5}>
+                <p className="mb-1">
                   <strong>Notes:</strong> {selectedBooking.notes || "None"}
                 </p>
 
-                <p style={{ marginBottom: '15px' }}>
+                <p className="mb-4">
                   <strong>Contact Phone:</strong> {selectedBooking.contactPhone}
                 </p>
-                <table className={styles.orderTable}>
+
+                <table className="w-full border-collapse bg-white shadow-md rounded-lg">
                   <thead>
                     <tr>
-                      <th>Dish Name</th>
-                      <th>Price</th>
-                      <th>Description</th>
-                      <th>Quantity</th>
+                      <th className="w-3/6 p-4 text-center bg-[#A2845E] text-white font-bold">Dish Name</th>
+                      <th className="w-1/6 p-4 text-center bg-[#A2845E] text-white font-bold">Quantity</th>
+                      {/* <th className="p-4 text-left bg-[#A2845E] text-white font-bold">Description</th> */}
+                      <th className="w-2/6 p-4 text-center bg-[#A2845E] text-white font-bold">Price</th>
                     </tr>
                   </thead>
                   <tbody>
                     {selectedBooking.bookingDishes.map((dish, index) => (
                       <tr key={index}>
-                        <td>{dish.dishId.name}</td>
-                        <td style={{ width: '130px' }}>{dish.dishId.price.toLocaleString()} VND</td>
-                        <td>{dish.dishId.description}</td>
-                        <td style={{ textAlign: 'center' }}>{dish.quantity}</td>
+                        <td className="p-4 border-b border-gray-200 text-black text-center">{dish.dishId.name}</td>
+                        <td className="p-4 border-b border-gray-200 text-black text-center">{dish.quantity}</td>
+                        {/* <td className="p-4 border-b border-gray-200 text-black">{dish.dishId.description}</td> */}
+                        <td className="p-4 border-b border-gray-200 text-black text-center">{dish.dishId.price.toLocaleString()} VND</td>
                       </tr>
                     ))}
                   </tbody>
@@ -220,7 +228,7 @@ export default function BookingHistory() {
           )}
         </div>
       ) : (
-        <div className={styles.noBooking}>
+        <div className="flex justify-center items-center mt-32">
           <p>There are no booking record in history</p>
         </div>
       )}
