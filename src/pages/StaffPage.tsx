@@ -6,7 +6,7 @@ import Cookies from "js-cookie";
 import { FiMenu } from "react-icons/fi";
 import { BiUserPlus } from "react-icons/bi";
 
-import StaffReservation from "../assets/StaffReservation.png";
+import StaffReservation from "../assets/staffreservation.png";
 import IngredientIcon from "../assets/ingredient.png";
 import FeedbackIcon from "../assets/feedback.png";
 import OrderIcon from "../assets/checklist.png";
