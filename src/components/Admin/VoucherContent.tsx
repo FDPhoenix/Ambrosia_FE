@@ -9,6 +9,8 @@ function VoucherContent() {
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editVoucher, setEditVoucher] = useState<any | null>(null);
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
+
   const [formData, setFormData] = useState({
     code: '',
     discount: '',
@@ -16,9 +18,8 @@ function VoucherContent() {
     isUsed: false,
   });
 
-
   const fetchVoucher = () => {
-    fetch("http://localhost:3000/vouchers")
+    fetch(`${backendApiUrl}/vouchers`)
       .then((res) => res.json())
       .then((response) => {
         if (response.success) {
@@ -58,8 +59,8 @@ function VoucherContent() {
 
     const method = editVoucher ? 'PUT' : 'POST';
     const url = editVoucher
-      ? `http://localhost:3000/vouchers/${editVoucher._id}`
-      : 'http://localhost:3000/vouchers';
+      ? `${backendApiUrl}/vouchers/${editVoucher._id}`
+      : `${backendApiUrl}/vouchers`;
 
     if (!formData.code || !formData.discount || !formData.expiresAt) {
       toast.error("Mising required field")

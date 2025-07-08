@@ -2,12 +2,15 @@ import { Minus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from 'react-bootstrap'
 import Cookies from 'js-cookie'
-
+import { useNavigate } from 'react-router'
+import { toast } from 'react-toastify'
+import { jwtDecode } from 'jwt-decode'
 
 function MobileCart() {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState<any[]>([]);
   const token = Cookies.get('token');
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -16,7 +19,7 @@ function MobileCart() {
           const decoded: any = jwtDecode(token);
           const userId = decoded.id;
 
-          const response = await fetch(`http://localhost:3000/cart/${userId}`, {
+          const response = await fetch(`${backendApiUrl}/cart/${userId}`, {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -54,7 +57,7 @@ function MobileCart() {
 
     if (token) {
       try {
-        const response = await fetch(`http://localhost:3000/cart/remove/${cartItemId}`, {
+        const response = await fetch(`${backendApiUrl}/cart/remove/${cartItemId}`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -80,7 +83,7 @@ function MobileCart() {
 
     if (token) {
       try {
-        const response = await fetch("http://localhost:3000/cart/update", {
+        const response = await fetch(`${backendApiUrl}/cart/update`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -155,7 +158,7 @@ function MobileCart() {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-8">
                         <div className="flex items-center gap-3 border border-gray-300 rounded-lg px-2 py-1">
                           <button className="w-[25px] h-[25px] border-none cursor-pointer" onClick={() => updateQuantity(item._id, "decrease")}><Minus className='w-3 mx-auto'/></button>
-                          <input type="number" value={item.quantity} className="w-6 text-center appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                          <input type="number" value={item.quantity} className="w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                           <button className="w-[25px] h-[25px] border-none cursor-pointer" onClick={() => updateQuantity(item._id, "increase")}>+</button>
                         </div>
 
@@ -211,8 +214,5 @@ function MobileCart() {
     </div>
   )
 }
-import { useNavigate } from 'react-router'
-import { toast } from 'react-toastify'
-import { jwtDecode } from 'jwt-decode'
 
 export default MobileCart

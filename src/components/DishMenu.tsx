@@ -13,13 +13,14 @@ function DishMenu() {
   const [totalPages, setTotalPages] = useState(1);
   const [, setCart] = useState([]);
   const navigate = useNavigate();
-  const token = Cookies.get('token')
+  const token = Cookies.get('token');
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const storedCart = localStorage.getItem('cart');
     setCart(storedCart ? JSON.parse(storedCart) : []);
 
-    fetch("http://localhost:3000/category/all")
+    fetch(`${backendApiUrl}/category/all`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -39,7 +40,7 @@ function DishMenu() {
   const fetchDishes = async (selectedCategory: string, page = 1) => {
     try {
       const query = selectedCategory ? `?categoryId=${selectedCategory}` : `all?page=${page}&limit=12`;
-      const response = await fetch(`http://localhost:3000/dishes/${query}`);
+      const response = await fetch(`${backendApiUrl}/dishes/${query}`);
       const data = await response.json();
 
       console.log('Fetched data successful:', data);
@@ -65,7 +66,7 @@ function DishMenu() {
         const decoded: any = jwtDecode(token);
         const userId = decoded.id;
 
-        const response = await fetch('http://localhost:3000/cart', {
+        const response = await fetch(`${backendApiUrl}/cart`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -15,9 +15,10 @@ function SearchResult() {
     const name = params.get("name");
     const token = cookies.get("token");
     const [, setCart] = useState([]);
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
     const fetchCategories = () => {
-        fetch("http://localhost:3000/category/all")
+        fetch(`${backendApiUrl}/category/all`)
             .then((res) => res.json())
             .then((data) => {
                 if (data.success) {
@@ -44,7 +45,7 @@ function SearchResult() {
         if (name) query.append("name", name);
         if (category) query.append("categoryId", category);
 
-        fetch(`http://localhost:3000/dishes?${query.toString()}`)
+        fetch(`${backendApiUrl}/dishes?${query.toString()}`)
             .then((res) => res.json())
             .then((data) => {
                 if (data.success) {
@@ -69,7 +70,7 @@ function SearchResult() {
                 const decoded: any = jwtDecode(token);
                 const userId = decoded.id;
 
-                const response = await fetch('http://localhost:3000/cart', {
+                const response = await fetch(`${backendApiUrl}/cart`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
