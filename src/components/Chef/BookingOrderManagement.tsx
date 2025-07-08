@@ -41,6 +41,7 @@ const BookingOrderManagement = () => {
         searchText: "",
     });
     const [noResultsFound, setNoResultsFound] = useState(false);
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
     useEffect(() => {
         fetchTables();
@@ -48,7 +49,7 @@ const BookingOrderManagement = () => {
 
     const fetchTables = async () => {
         try {
-            const response = await axios.get("http://localhost:3000/reservation/staff");
+            const response = await axios.get(`${backendApiUrl}/reservation/staff`);
 
             setBookings(response.data);
         } catch (error) {
@@ -78,7 +79,7 @@ const BookingOrderManagement = () => {
             if (filters.status) queryParams.append("status", filters.status);
             if (filters.searchText.trim() !== "") queryParams.append("searchText", filters.searchText.trim());
 
-            const response = await axios.get(`http://localhost:3000/reservation/filters?${queryParams.toString()}`);
+            const response = await axios.get(`${backendApiUrl}/reservation/filters?${queryParams.toString()}`);
 
             if (response.data.length === 0) {
                 setBookings([]);
