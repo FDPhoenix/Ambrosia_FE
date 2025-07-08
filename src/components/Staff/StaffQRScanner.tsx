@@ -358,7 +358,7 @@ export default function StaffQRScanner() {
 
 
                         <div className="">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                                 <h4 className="text-base font-semibold text-gray-700 whitespace-nowrap">Ordered Dishes</h4>
 
                                 {bookingInfo.dishes.length > 0 ? (
