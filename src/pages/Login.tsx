@@ -32,7 +32,7 @@ const Login = () => {
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [lockoutTime, setLockoutTime] = useState(0);
   const token = getCookie("token");
-
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || '${backendApiUrl}';
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const successMessage = urlParams.get("success");
@@ -89,7 +89,7 @@ const Login = () => {
   const onVerifyOtp = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
     try {
-      const response = await axios.post(`http://localhost:3000/auth/verify-otp`, {
+      const response = await axios.post(`${backendApiUrl}/auth/verify-otp`, {
         email,
         otp,
       });
@@ -106,11 +106,11 @@ const Login = () => {
   };
 
   const handleLoginGoogle = () => {
-    window.location.href = "http://localhost:3000/login/google";
+    window.location.href = `${backendApiUrl}/login/google`;
   };
 
   const handleLoginFacebook = () => {
-    window.location.href = "http://localhost:3000/facebook";
+    window.location.href = `${backendApiUrl}/facebook`;
   };
 
   const validateInputs = () => {
@@ -152,7 +152,7 @@ const Login = () => {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:3000/auth/login", {
+      const response = await fetch(`${backendApiUrl}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

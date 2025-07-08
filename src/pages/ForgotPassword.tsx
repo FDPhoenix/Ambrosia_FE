@@ -15,7 +15,7 @@ const ForgotPassword = () => {
   const [otpTimer, setOtpTimer] = useState(300);
   const [resendCount, setResendCount] = useState(0); // 👈 giới hạn gửi lại OTP
   const navigate = useNavigate();
-
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || '${backendApiUrl}';
   useEffect(() => {
     let interval: any;
     if (step === 2 && otpTimer > 0) {
@@ -36,7 +36,7 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:3000/auth/forgot-password', { email });
+      const response = await axios.post(`${backendApiUrl}/auth/forgot-password`, { email });
       if (response.data.message === "Your account is banned. Cannot reset password.") {
         toast.error("Your account has been banned. Please contact support.");
       } else if (response.data.success) {
@@ -63,7 +63,7 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:3000/auth/forgot-password', { email });
+      const response = await axios.post(`${backendApiUrl}/auth/forgot-password`, { email });
       if (response.data.success) {
         toast.success('OTP resent to your email.');
         setOtp('');
@@ -83,7 +83,7 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:3000/auth/verify-otp', { email, otp });
+      const response = await axios.post(`${backendApiUrl}/auth/verify-otp`, { email, otp });
       if (response.data.success) {
         toast.success(response.data.message || 'OTP verified successfully.');
         setStep(3);
@@ -101,7 +101,7 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:3000/auth/reset-password', { email, newPassword });
+      const response = await axios.post(`${backendApiUrl}/auth/reset-password`, { email, newPassword });
       if (response.data.success) {
         toast.success(response.data.message || 'Password reset successfully.');
         setTimeout(() => navigate('/login'), 3000);
