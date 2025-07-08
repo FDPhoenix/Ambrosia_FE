@@ -30,7 +30,7 @@ const SelectDishes: React.FC<SelectDishesProps> = ({ bookingId, onOrderTypeChang
     const [showDishModal, setShowDishModal] = useState(false);
     const [, setErrorMessage] = useState("");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
-
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
     // const navigate = useNavigate();
     const effectiveBookingId = bookingId || Cookies.get("bookingId");
 
@@ -41,7 +41,7 @@ const SelectDishes: React.FC<SelectDishesProps> = ({ bookingId, onOrderTypeChang
     useEffect(() => {
         const fetchDishes = async () => {
             try {
-                const response = await axios.get("http://localhost:3000/bookings/get-dishes");
+                const response = await axios.get(`${backendApiUrl}/bookings/get-dishes`);
                 setDishes(response.data.data);
             } catch (error) {
                 setErrorMessage("Error retrieving dish list.");
@@ -51,7 +51,7 @@ const SelectDishes: React.FC<SelectDishesProps> = ({ bookingId, onOrderTypeChang
         const fetchBookingDetails = async () => {
             if (!effectiveBookingId) return;
             try {
-                const response = await axios.get(`http://localhost:3000/bookings/${effectiveBookingId}`);
+                const response = await axios.get(`${backendApiUrl}/bookings/${effectiveBookingId}`);
                 const bookingData = response.data;
                 setSelectedDishes(bookingData.dishes || []);
                 setOrderType(bookingData.orderType || "order-at-restaurant");
@@ -101,7 +101,7 @@ const SelectDishes: React.FC<SelectDishesProps> = ({ bookingId, onOrderTypeChang
                 quantity: dish.quantity
             }));
 
-            await axios.put(`http://localhost:3000/bookings/${effectiveBookingId}/add-dishes`, {
+            await axios.put(`${backendApiUrl}/bookings/${effectiveBookingId}/add-dishes`, {
                 dishes: orderType === "pre-order" ? formattedDishes : [],
                 orderType
             });

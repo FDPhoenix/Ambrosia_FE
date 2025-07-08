@@ -11,6 +11,7 @@ interface AddNoteProps {
 const AddNote: React.FC<AddNoteProps> = ({ bookingId, openReviewBookingModal }) => {
     const [notes, setNotes] = useState<string>("");
     const [errorMessage] = useState<string>("");
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
     const handleSubmit = async () => {
         const effectiveBookingId = bookingId || Cookies.get("bookingId");
@@ -26,7 +27,7 @@ const AddNote: React.FC<AddNoteProps> = ({ bookingId, openReviewBookingModal }) 
         }
 
         try {
-            await axios.put(`http://localhost:3000/bookings/${effectiveBookingId}/update-note`, { notes });
+            await axios.put(`${backendApiUrl}/bookings/${effectiveBookingId}/update-note`, { notes });
             openReviewBookingModal(effectiveBookingId);
         } catch (error) {
             console.error("Error submitting note:", error);

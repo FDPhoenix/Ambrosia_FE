@@ -33,7 +33,7 @@ function IngredientContent() {
   const [filterType, setFilterType] = useState<string>('');
   const [loading, setLoading] = useState(true); // Add loading state
   const [error, setError] = useState<string | null>(null);
-
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || '${backendApiUrl}';
   const [ingredientData, setIngredientData] = useState<IngredientData>({
     name: '',
     status: 'Available',
@@ -50,7 +50,7 @@ function IngredientContent() {
 
   const fetchDishes = async () => {
     try {
-      const response = await fetch('http://localhost:3000/dishes/all?page=1&limit=10000');
+      const response = await fetch(`${backendApiUrl}/dishes/all?page=1&limit=10000`);
       if (!response.ok) throw new Error('Failed to fetch dishes');
       const data = await response.json();
       setDishes(data.dishes || []);
@@ -65,8 +65,8 @@ function IngredientContent() {
     setError(null);
     try {
       const url = type
-        ? `http://localhost:3000/ingredients/filter/type?type=${encodeURIComponent(type)}`
-        : 'http://localhost:3000/ingredients';
+        ? `${backendApiUrl}/ingredients/filter/type?type=${encodeURIComponent(type)}`
+        : `${backendApiUrl}/ingredients`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch ingredients');
       const data = await response.json();
@@ -126,8 +126,8 @@ function IngredientContent() {
 
     try {
       const url = isEditing
-        ? `http://localhost:3000/ingredients/update/${editIngredientId}`
-        : 'http://localhost:3000/ingredients/add';
+        ? `${backendApiUrl}/ingredients/update/${editIngredientId}`
+        : `${backendApiUrl}/ingredients/add`;
       const method = isEditing ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -184,7 +184,7 @@ function IngredientContent() {
 
   const handleHideIngredient = async (ingredientId: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/ingredients/hide/${ingredientId}`, {
+      const response = await fetch(`${backendApiUrl}/ingredients/hide/${ingredientId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
       });
