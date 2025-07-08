@@ -42,6 +42,7 @@ export default function StaffQRScanner() {
     const qrScannerRef = useRef<QrScanner | null>(null);
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [isDishModalOpen, setIsDishModalOpen] = useState(false);
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
     useEffect(() => {
         if (mode === "camera" && !bookingInfo && videoRef.current) {
@@ -79,7 +80,7 @@ export default function StaffQRScanner() {
             setBookingInfo(null);
 
             const res = await axios.get<{ success: boolean; booking: Booking }>(
-                `http://localhost:3000/api/employees/verify-booking/${bookingId}`
+                `${backendApiUrl}/api/employees/verify-booking/${bookingId}`
             );
 
             if (res.data && res.data.success) {
