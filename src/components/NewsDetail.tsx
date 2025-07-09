@@ -2,6 +2,8 @@ import type React from "react";
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 
+const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
+
 function NewsDetail() {
     const [news, setNews] = useState<any[]>([]);
     const [category, setCategory] = useState<string>("");
@@ -10,7 +12,9 @@ function NewsDetail() {
     const fetchNews = useCallback(async () => {
         setIsLoading(true);
         try {
-            const url = category ? `http://localhost:3000/news?category=${category}` : "http://localhost:3000/news";
+            const url = category
+                ? `${backendApiUrl}/news?category=${category}`
+                : `${backendApiUrl}/news`;
             const response = await axios.get(url);
             setNews(response.data.news);
         } catch (error) {
@@ -55,11 +59,9 @@ function NewsDetail() {
     return (
         <div className="w-full bg-[#EFF4F8]">
             <div className="max-w-[1350px] mx-auto px-4 pt-24 sm:pt-28 pb-12">
-
                 <div className="text-center mb-8">
                     <h2 className="text-3xl font-semibold text-gray-800">Ambrosia News</h2>
                     <p className="text-gray-600">Stay updated with the latest promotions, events, and restaurant news</p>
-
                 </div>
 
                 <div className="mb-8 text-right">
@@ -128,7 +130,6 @@ function NewsDetail() {
                                     <p className="text-gray-700 leading-relaxed">{item.content}</p>
                                 </div>
                             </div>
-
                         ))}
                     </div>
                 )}
