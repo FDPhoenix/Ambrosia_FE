@@ -137,9 +137,47 @@ function OrderContent() {
                   <td className="p-3 border-b whitespace-nowrap">{order._id}</td>
                   <td className="p-3 border-b whitespace-nowrap">{order.userId?.email || "N/A"}</td>
                   <td className="p-3 border-b whitespace-nowrap">{order.paymentMethod}</td>
-                  <td className="p-3 border-b whitespace-nowrap">{order.paymentStatus}</td>
-                  <td className="p-3 border-b whitespace-nowrap">{order.totalAmount.toLocaleString()} VND</td>
-                  <td className="p-3 border-b whitespace-nowrap">{new Date(order.createdAt).toLocaleDateString()}</td>
+                  <td className="p-3 border-b whitespace-nowrap">
+                    {order.paymentStatus === "Deposited" ? (
+                      <select
+                        value={order.paymentStatus}
+                        onChange={(e) => handleChangeStatus(order._id, e.target.value)}
+                        className="px-2 py-1 border rounded"
+                      >
+                        <option value="Deposited">Deposited</option>
+                        <option value="Success">Success</option>
+                      </select>
+                    ) : (
+                      <span
+                        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold mx-auto ${order.paymentStatus === "Success"
+                          ? "bg-green-100 text-green-800"
+                          : order.paymentStatus === "Failure"
+                            ? "bg-red-100 text-red-700"
+                            : order.paymentStatus === "Expired"
+                              ? "bg-orange-100 text-orange-700"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                      >
+                        <span
+                          className={`w-2 h-2 rounded-full ${order.paymentStatus === "Success"
+                            ? "bg-green-700"
+                            : order.paymentStatus === "Failure"
+                              ? "bg-red-700"
+                              : order.paymentStatus === "Expired"
+                                ? "bg-orange-700"
+                                : "bg-gray-500"
+                            }`}
+                        ></span>
+                        {order.paymentStatus}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-3 border-b whitespace-nowrap">
+                    {order.totalAmount.toLocaleString()} VND
+                  </td>
+                  <td className="p-3 border-b whitespace-nowrap">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </td>
                   <td className="p-5 whitespace-nowrap">
                     <button
                       className="flex items-center gap-1 hover:scale-110 hover:text-[#f0924c] bg-none"
@@ -161,7 +199,33 @@ function OrderContent() {
           <div key={order._id} className="bg-gray-50 p-4 rounded shadow">
             <div><strong>Order ID:</strong> {order._id}</div>
             <div><strong>Email:</strong> {order.userId?.email || "N/A"}</div>
-            <div><strong>Method:</strong> {order.paymentMethod}</div>
+            <div><strong>Method:</strong> {order.paymentMethod}</div><div className="mt-2">
+              <strong>Status:</strong>{" "}
+              {order.paymentStatus === "Deposited" ? (
+                <select
+                  value={order.paymentStatus}
+                  onChange={(e) => handleChangeStatus(order._id, e.target.value)}
+                  className="px-2 py-1 border rounded mt-1"
+                >
+                  <option value="Deposited">Deposited</option>
+                  <option value="Success">Success</option>
+                </select>
+              ) : (
+                <span
+                  className={`inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${order.paymentStatus === "Success"
+                    ? "bg-green-100 text-green-700"
+                    : order.paymentStatus === "Failure"
+                      ? "bg-red-100 text-red-700"
+                      : order.paymentStatus === "Expired"
+                        ? "bg-orange-100 text-orange-700"
+                        : "bg-gray-100 text-gray-700"
+                    }`}
+                >
+                  {order.paymentStatus}
+                </span>
+              )}
+            </div>
+
             <div><strong>Status:</strong> {order.paymentStatus}</div>
             <div><strong>Total:</strong> {order.totalAmount.toLocaleString()} VND</div>
             <div><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</div>
@@ -173,9 +237,6 @@ function OrderContent() {
                 <FaInfoCircle className="text-sm" /> View Details
               </button>
             </div>
-
-
-
           </div>
         ))}
       </div>
