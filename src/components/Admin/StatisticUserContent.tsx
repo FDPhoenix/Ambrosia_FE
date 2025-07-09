@@ -98,10 +98,12 @@ const StatisticUser: React.FC = () => {
   const [showFeedbackPieChart, setShowFeedbackPieChart] = useState(false);
   const [selectedFeedbackMonth, setSelectedFeedbackMonth] = useState<number>(currentDate.getMonth() + 1);
 
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'
+
   useEffect(() => {
     const fetchUserCounts = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/revenue/quantity")
+        const response = await axios.get(`${backendApiUrl}/api/revenue/quantity`)
         setUserCounts(response.data)
       } catch (error) {
         console.error("Error fetching user counts:", error)
@@ -113,7 +115,7 @@ const StatisticUser: React.FC = () => {
   useEffect(() => {
     const fetchLineChartData = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/api/revenue/line-chart?year=${selectedYear}`)
+        const response = await axios.get(`${backendApiUrl}/api/revenue/line-chart?year=${selectedYear}`)
         setLineChartData(response.data)
       } catch (error) {
         console.error("Error fetching line chart data:", error)
@@ -126,7 +128,7 @@ const StatisticUser: React.FC = () => {
     const fetchBarChartData = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/revenue/bar-chart?year=${selectedYear}&month=${selectedMonth}`,
+          `${backendApiUrl}/api/revenue/bar-chart?year=${selectedYear}&month=${selectedMonth}`,
         )
         setBarChartData(response.data)
       } catch (error) {
@@ -142,7 +144,7 @@ const StatisticUser: React.FC = () => {
       try {
         const currentYear = new Date().getFullYear();
         const monthStr = String(selectedFeedbackMonth).padStart(2, '0');
-        const response = await fetch(`http://localhost:3000/api/revenue/feedback/count?year=${currentYear}&month=${monthStr}`, {
+        const response = await fetch(`${backendApiUrl}/api/revenue/feedback/count?year=${currentYear}&month=${monthStr}`, {
           headers: {
             'Content-Type': 'application/json'
           }
@@ -443,7 +445,7 @@ const StatisticUser: React.FC = () => {
     try {
       const currentYear = new Date().getFullYear();
       const monthStr = String(selectedFeedbackMonth).padStart(2, '0');
-      const response = await fetch(`http://localhost:3000/api/revenue/feedback/pie-chart?year=${currentYear}&month=${monthStr}`, {
+      const response = await fetch(`${backendApiUrl}/api/revenue/feedback/pie-chart?year=${currentYear}&month=${monthStr}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

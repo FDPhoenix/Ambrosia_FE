@@ -28,7 +28,8 @@ interface Dish {
   isAvailable: boolean
 }
 
-const BASE_IMAGE_URL = "http://localhost:3000/uploads/"
+const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'
+const BASE_IMAGE_URL = `${backendApiUrl}/uploads/`
 
 const FeedbackContent: React.FC = () => {
   const [dishes, setDishes] = useState<Dish[]>([])
@@ -46,8 +47,8 @@ const FeedbackContent: React.FC = () => {
 
   const fetchDishes = () => {
     const apiUrl = selectedCategory
-      ? `http://localhost:3000/api/feedback/allDishes?categoryId=${selectedCategory}`
-      : `http://localhost:3000/api/feedback/allDishes`
+      ? `${backendApiUrl}/api/feedback/allDishes?categoryId=${selectedCategory}`
+      : `${backendApiUrl}/api/feedback/allDishes`
 
     fetch(apiUrl)
       .then((res) => res.json())
@@ -56,7 +57,7 @@ const FeedbackContent: React.FC = () => {
   }
 
   const fetchCategories = () => {
-    fetch("http://localhost:3000/category/all")
+    fetch(`${backendApiUrl}/category/all`)
       .then((res) => res.json())
       .then((data) => setCategories(Array.isArray(data.categories) ? data.categories : []))
       .catch((error) => console.error("Error fetching categories:", error))
@@ -64,7 +65,7 @@ const FeedbackContent: React.FC = () => {
 
   const fetchFeedbacks = (dishId: string) => {
     setLoadingFeedback(true)
-    fetch(`http://localhost:3000/api/feedback/dish/${dishId}`)
+    fetch(`${backendApiUrl}/api/feedback/dish/${dishId}`)
       .then((res) => res.json())
       .then((data) => setFeedbacks(data.feedbacks || []))
       .catch(() => setFeedbacks([]))
@@ -79,7 +80,7 @@ const FeedbackContent: React.FC = () => {
 
   const toggleVisibility = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/feedback/hide/${id}`, {
+      const response = await fetch(`${backendApiUrl}/api/feedback/hide/${id}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

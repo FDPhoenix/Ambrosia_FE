@@ -12,7 +12,8 @@ interface Category {
   isHidden?: boolean
 }
 
-const API_BASE = "http://localhost:3000/category"
+const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'
+const API_BASE = `${backendApiUrl}/category`
 
 const CategoryContent: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([])

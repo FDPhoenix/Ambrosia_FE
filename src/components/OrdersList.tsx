@@ -4,6 +4,8 @@ import axios from "axios";
 import { HiX } from "react-icons/hi";
 import { Trash2 } from "lucide-react";
 
+const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'
+
 interface User {
   _id: string;
   fullname: string;
@@ -89,7 +91,7 @@ const OrdersList: React.FC<OrdersListProps> = ({
     setLoading(true);
     try {
       const response = await axios.get<{ orders: Order[] }>(
-        `http://localhost:3000/api/revenue/${year}/${month}/${day}`
+        `${backendApiUrl}/api/revenue/${year}/${month}/${day}`
       );
       setOrders(response.data.orders);
     } catch (error) {
@@ -101,7 +103,7 @@ const OrdersList: React.FC<OrdersListProps> = ({
   const fetchOrderDetail = async (orderId: string) => {
     try {
       const response = await axios.get<{ data: Order }>(
-        `http://localhost:3000/api/revenue/order/${orderId}`
+        `${backendApiUrl}/api/revenue/order/${orderId}`
       );
       setSelectedOrder(response.data.data);
       setIsModalOpen(true);
@@ -117,7 +119,7 @@ const OrdersList: React.FC<OrdersListProps> = ({
   const loadTemplates = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:3000/api/revenue/templates"
+        `${backendApiUrl}/api/revenue/templates`
       );
       setTemplates(res.data.templates);
     } catch (error) {
@@ -129,7 +131,7 @@ const OrdersList: React.FC<OrdersListProps> = ({
     const name = prompt("Enter template name: ");
     if (!name) return;
     try {
-      await axios.post("http://localhost:3000/api/revenue/save", {
+      await axios.post(`${backendApiUrl}/api/revenue/save`, {
         name,
         fields: selectedFields,
       });
@@ -146,7 +148,7 @@ const OrdersList: React.FC<OrdersListProps> = ({
 
     try {
       await axios.delete(
-        `http://localhost:3000/api/revenue/deleteTemplate/${name}`
+        `${backendApiUrl}/api/revenue/deleteTemplate/${name}`
       );
       alert("Deleted!");
       setSelectedTemplate(null);
@@ -182,7 +184,7 @@ const OrdersList: React.FC<OrdersListProps> = ({
     setPrinting(true);
     try {
       const response = await axios.post(
-        `http://localhost:3000/api/revenue/printBill/${selectedOrder._id}`,
+        `${backendApiUrl}/api/revenue/printBill/${selectedOrder._id}`,
         { fields: selectedFields },
         { responseType: "text" }
       );
