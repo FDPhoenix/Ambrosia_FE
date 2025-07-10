@@ -1,4 +1,4 @@
-import { Minus, Trash2 } from 'lucide-react'
+import { Minus, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from 'react-bootstrap'
 import Cookies from 'js-cookie'
@@ -10,10 +10,12 @@ function MobileCart() {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState<any[]>([]);
   const token = Cookies.get('token');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const fetchCart = async () => {
+      setIsLoading(true);
       if (token) {
         try {
           const decoded: any = jwtDecode(token);
@@ -35,6 +37,7 @@ function MobileCart() {
         const storedCart = localStorage.getItem("cart");
         setCartItems(storedCart ? JSON.parse(storedCart) : []);
       }
+      setIsLoading(false);
     };
 
     fetchCart();
@@ -52,7 +55,6 @@ function MobileCart() {
   };
 
   const removeFromCart = async (cartItemId: any) => {
-    console.log(cartItemId);
     if (!cartItemId) return;
 
     if (token) {
@@ -127,60 +129,97 @@ function MobileCart() {
 
   return (
     <div className='w-full min-h-[323px] px-4 py-4 bg-[#EFF4F8] xl:px-16 '>
-      <div className="max-w-6xl mx-auto my-14">
+      <div className="max-w-6xl mx-auto my-6 xl:my-14">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <h1 className="text-2xl text-center md:text-3xl font-bold text-gray-800 mb-6">Your Cart</h1>
-            <div className="bg-white rounded-lg shadow-sm py-4 px-6">
-              <p className="text-gray-600 mb-4 text-right">You have {cartItems.length} dishes/drinks in your cart</p>
+            <div className="bg-white rounded-lg shadow-sm py-4 px-6 min-h-[200px]">
+              {isLoading ? (
+                <div className="w-[30px] aspect-square rounded-full border-4 border-solid border-black border-r-transparent border-b-transparent mx-auto my-12 animate-spin"></div>
+              ) : cartItems.length === 0 ? (
+                <div className='w-max flex flex-col justify-center items-center mx-auto my-12'>
+                  <p className='text-lg mb-2'>Your cart is empty</p>
+                  <button className='text-[13px] font-serif uppercase text-white bg-black px-5 py-2' style={{ margin: "0 auto" }} onClick={() => navigate("/menu")}>go to menu</button>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-gray-600 mb-4 text-right">You have {cartItems.length} dishes/drinks in your cart</p>
 
-              <div className="space-y-6 mb-2">
-                {cartItems.map((item) => (
-                  <div key={item._id} className="flex flex-col sm:flex-row gap-4 p-4 border border-gray-200 rounded-lg">
-                    <div className="flex-shrink-0">
-                      <img
-                        src={item.imageUrl || "/placeholder.svg"}
-                        alt={item.name}
-                        width={80}
-                        height={80}
-                        className="w-20 h-20 object-cover rounded-md"
-                      />
-                    </div>
-
-                    <div className="flex w-full justify-between items-center gap-4">
-                      <div>
-                        <h3 className="font-semibold text-gray-800 text-sm md:text-base mb-1">{item.name}</h3>
-                        <p className="text-gray-600 text-sm mb-3">
-                          {item.categoryName || "No category"}
-                        </p>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-8">
-                        <div className="flex items-center gap-3 border border-gray-300 rounded-lg px-2 py-1">
-                          <button className="w-[25px] h-[25px] border-none cursor-pointer" onClick={() => updateQuantity(item._id, "decrease")}><Minus className='w-3 mx-auto'/></button>
-                          <input type="number" value={item.quantity} className="w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                          <button className="w-[25px] h-[25px] border-none cursor-pointer" onClick={() => updateQuantity(item._id, "increase")}>+</button>
+                  <div className="w-full space-y-4 mb-2">
+                    {cartItems.map((item) => (
+                      <div
+                        key={item._id}
+                        className="relative flex flex-row gap-3 p-3 border border-gray-200 rounded-lg"
+                      >
+                        {/* Product Image */}
+                        <div className="flex-shrink-0">
+                          <img
+                            src={item.imageUrl || "/placeholder.svg"}
+                            alt={item.name}
+                            width={64}
+                            height={64}
+                            className="w-20 h-20 object-cover rounded-md"
+                          />
                         </div>
 
-
-                        <div className="flex items-center justify-between sm:justify-end gap-4">
-                          <div className="text-right">
-                            <div className="text-lg font-semibold text-red-600">{item.price.toLocaleString()}₫</div>
+                        {/* Item Details and Controls */}
+                        <div className="flex w-full flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                          <div>
+                            <h3 className="font-semibold text-gray-800 text-xs sm:text-sm md:text-base mb-1">
+                              {item.name}
+                            </h3>
+                            <p className="text-gray-600 text-xs sm:text-sm">
+                              {item.categoryName || "No category"}
+                            </p>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-gray-400 hover:text-red-500"
-                            onClick={() => removeFromCart(item._id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+
+                          {/* Quantity and Price Controls */}
+                          <div className="w-full flex flex-row items-center justify-between  sm:w-auto gap-3">
+                            <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-2 py-1 mr-0 xl:mr-14">
+                              <button
+                                className="w-4 h-4 md:w-6 md:h-6 xl:w-8 xl:h-8 border-none cursor-pointer flex items-center justify-center"
+                                onClick={() => updateQuantity(item._id, "decrease")}
+                              >
+                                <Minus className="w-4 h-4 sm:w-3 sm:h-3" />
+                              </button>
+                              <input
+                                type="number"
+                                value={item.quantity}
+                                className="w-10 sm:w-8 text-center text-sm sm:text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                readOnly
+                              />
+                              <button
+                                className="w-4 h-4 md:w-6 md:h-6 xl:w-8 xl:h-8 border-none cursor-pointer flex items-center justify-center"
+                                onClick={() => updateQuantity(item._id, "increase")}
+                              >
+                                <Plus className="w-4 h-4 sm:w-3 sm:h-3" />
+                              </button>
+                            </div>
+
+                            {/* Price and Remove Button */}
+                            <div className="flex items-center justify-between sm:justify-end gap-3">
+                              <div className="text-right">
+                                <div className="text-base sm:text-lg font-semibold text-red-600">
+                                  {item.price.toLocaleString()}₫
+                                </div>
+                              </div>
+                            </div>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="absolute top-1.5 right-1 md:static text-gray-400 hover:text-red-500 p-1"
+                              onClick={() => removeFromCart(item._id)}
+                            >
+                              <Trash2 className="h-5 w-5 sm:h-4 sm:w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -202,7 +241,7 @@ function MobileCart() {
                     <p className="text-[17px] text-gray-600">You can enter the discount code at checkout</p>
                   </div>
 
-                  <button className="w-full bg-black hover:bg-gray-800 text-white py-3 text-base font-medium" onClick={handleCheckout}>
+                  <button className="w-full bg-black hover:bg-gray-800 text-white py-3 text-base font-medium" onClick={handleCheckout} disabled={isLoading}>
                     Checkout
                   </button>
                 </div>

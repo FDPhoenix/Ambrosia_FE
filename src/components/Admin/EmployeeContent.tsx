@@ -154,7 +154,7 @@ export default function EmployeeContext() {
 
   return (
     // <div className="w-[1200px] max-h-[567px] mx-auto overflow-y-auto overflow-x-hidden bg-white px-8 rounded-lg shadow-lg scrollbar-hide" >
-    <div className="max-w-[1320px] pt-4 pb-5 pl-8 pr-8 bg-white rounded-xl shadow-md">
+    <div className="max-w-[1320px] max-h-[567px] pt-4 pb-5 pl-8 pr-8 bg-white rounded-xl shadow-md">
       <div className="bg-white z-20">
         <ul className="flex border-b pt-1 pl-5 mb-2 mt-2">
           <li>

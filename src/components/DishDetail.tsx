@@ -348,7 +348,7 @@ function DishDetail({ dishInfor }: DishDetailProps) {
                   type="number"
                   value={quantity}
                   onChange={(e) => setQuantity(Math.max(1, Number.parseInt(e.target.value) || 1))}
-                  className="w-[50px] h-[38px] p-1 text-center text-sm bg-[#EFF4F8] appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-[50px] h-[38px] p-1 text-center text-sm bg-[#EFF4F8] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <div className="flex flex-col border-l border-gray-300">
                   <button onClick={increaseQuantity} className="bg-none p-0 w-7 h-[19px] flex items-center justify-center cursor-pointer text-gray-600 text-[8px] border-b border-gray-300 hover:bg-gray-200" aria-label="Increase quantity">

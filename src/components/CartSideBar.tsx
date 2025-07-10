@@ -6,6 +6,7 @@ import { CiDeliveryTruck } from "react-icons/ci";
 import Cookies from "js-cookie";
 import { jwtDecode } from 'jwt-decode';
 import { toast } from "react-toastify";
+import { Minus } from "lucide-react";
 
 interface CartSidebarProps {
   isOpen: boolean
@@ -129,7 +130,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   }
 
   return (
-    <div className={`fixed top-0 ${isOpen ? 'right-0' : 'right-[-110%]'} w-[43  0px] h-full bg-white shadow-[ -2px_0_5px_rgba(0,0,0,0.1)] transition-[right] duration-500 z-[999] p-4 flex flex-col`}>
+    <div className={`fixed top-0 ${isOpen ? 'right-0' : 'right-[-110%]'} w-[400px] h-full bg-white shadow-[ -2px_0_5px_rgba(0,0,0,0.1)] transition-[right] duration-500 z-[999] p-4 flex flex-col`}>
       <div className="flex justify-between items-center p-2.5">
         <p className="text-[20px] font-bold">Your Cart</p>
         <button className="bg-none border-none text-[19px] cursor-pointer" onClick={onClose}>✖</button>
@@ -145,10 +146,10 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
           <p className="mt-[50%] text-center">There are no dish yet</p>
         ) : (
           cart.map((item: any) => (
-            <div key={item._id} className="h-[120px] relative flex justify-between items-center mt-1 mb-4 border border-[#ddd] rounded">
+            <div key={item._id} className="w-full h-[120px] relative flex justify-between items-center mt-1 mb-4 border border-[#ddd] rounded">
               <img src={item.imageUrl} alt={''} className="w-[80px] h-[90px] object-cover my-auto mr-4 ml-4" />
 
-              <div className="h-full w-[265px] block leading-normal mt-5 justify-between gap-1 mr-4">
+              <div className="h-full w-[239px] block leading-normal mt-5 justify-between gap-[5px] pr-4">
                 <div className="flex justify-between">
                   <div className="max-w-[155px] my-auto">
                     <p className="text-[15px] whitespace-nowrap overflow-hidden text-ellipsis font-bold m-0">{item.name}</p>
@@ -162,9 +163,9 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
 
                 <div className="flex justify-between mt-3">
                   <div className="flex items-center gap-2">
-                    <button className="w-[25px] h-[25px] border-none cursor-pointer" onClick={() => updateQuantity(item._id, "decrease")}>-</button>
-                    <input type="number" value={item.quantity} className="w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"/>
-                    <button className="w-[25px] h-[25px] border-none cursor-pointer" onClick={() => updateQuantity(item._id, "increase")}>+</button>
+                    <button className="w-[25px] h-[25px] border-none cursor-pointer bg-[#ddd]" onClick={() => updateQuantity(item._id, "decrease")}><Minus className="w-[11px] mx-auto"/></button>
+                    <input type="number" value={item.quantity} className="w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                    <button className="w-[25px] h-[25px] border-none cursor-pointer bg-[#ddd]" onClick={() => updateQuantity(item._id, "increase")}>+</button>
                   </div>
                   <p className="font-bold text-red-600">{item.price.toLocaleString()}₫</p>
                 </div>

@@ -163,7 +163,7 @@ function SystemReviewContent() {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
   return (
-    <div className="w-[1200px] mx-auto bg-white p-8 rounded-lg shadow-md">
+    <div className="w-[1200px] h-[567px] mx-auto bg-white p-8 rounded-lg shadow-md">
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="text-white text-center">
