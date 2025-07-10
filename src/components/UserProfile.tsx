@@ -2,6 +2,7 @@ import React, { useEffect, useState, FormEvent, ChangeEvent } from "react";
 import Cookies from 'js-cookie';
 import ViewRanks from "./ViewRanks";
 import { toast } from "react-toastify";
+const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
 interface UserProfileData {
     fullname: string;
@@ -64,7 +65,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ onChangePasswordClick, onBack
 
         const fetchProfile = async () => {
             try {
-                const response = await fetch("http://localhost:3000/user/profile", {
+                const response = await fetch(`${backendApiUrl}/user/profile`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -176,7 +177,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ onChangePasswordClick, onBack
             if (imageFile) {
                 const formData = new FormData();
                 formData.append("image", imageFile);
-                const uploadResponse = await fetch("http://localhost:3000/user/upload-profile-image", {
+                const uploadResponse = await fetch(`${backendApiUrl}/user/upload-profile-image`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -190,9 +191,9 @@ const EditProfile: React.FC<EditProfileProps> = ({ onChangePasswordClick, onBack
                 imageUrl = uploadResult.profileImage;
             }
 
-            const updateResponse = await fetch("http://localhost:3000/user/profile", {
-                method: "PUT",
+            const updateResponse = await fetch(`${backendApiUrl}/user/profile`, {
                 headers: {
+                    method: "PUT",
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
@@ -233,7 +234,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ onChangePasswordClick, onBack
         }
 
         try {
-            const response = await fetch("http://localhost:3000/user/profile", {
+            const response = await fetch(`${backendApiUrl}/user/profile`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -328,7 +329,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ onChangePasswordClick, onBack
                                 setMessage("");
 
                                 try {
-                                    const response = await fetch("http://localhost:3000/user/change-password", {
+                                    const response = await fetch(`${backendApiUrl}/user/change-password`, {
                                         method: "PUT",
                                         headers: {
                                             "Content-Type": "application/json",

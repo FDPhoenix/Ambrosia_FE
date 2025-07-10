@@ -13,18 +13,19 @@ function DishMenu() {
   const [totalPages, setTotalPages] = useState(1);
   const [, setCart] = useState([]);
   const navigate = useNavigate();
-  const token = Cookies.get('token')
+  const token = Cookies.get('token');
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const storedCart = localStorage.getItem('cart');
     setCart(storedCart ? JSON.parse(storedCart) : []);
 
-    fetch("http://localhost:3000/category/all")
+    fetch(`${backendApiUrl}/category/all`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          setCategories(data.categories);
-          console.log("Categories:", data.categories);
+          const visibleCategories = data.categories.filter((category: { isHidden: boolean }) => !category.isHidden);
+          setCategories(visibleCategories);
         }
       })
       .catch((err) => {
@@ -39,10 +40,8 @@ function DishMenu() {
   const fetchDishes = async (selectedCategory: string, page = 1) => {
     try {
       const query = selectedCategory ? `?categoryId=${selectedCategory}` : `all?page=${page}&limit=12`;
-      const response = await fetch(`http://localhost:3000/dishes/${query}`);
+      const response = await fetch(`${backendApiUrl}/dishes/${query}`);
       const data = await response.json();
-
-      console.log('Fetched data successful:', data);
 
       if (data.success && Array.isArray(data.dishes)) {
         setDishes(data.dishes);
@@ -65,7 +64,7 @@ function DishMenu() {
         const decoded: any = jwtDecode(token);
         const userId = decoded.id;
 
-        const response = await fetch('http://localhost:3000/cart', {
+        const response = await fetch(`${backendApiUrl}/cart`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -135,7 +134,7 @@ function DishMenu() {
                 />
                 <label htmlFor="all" className="text-[19px] text-[#00405d]">All</label>
               </div>
-              
+
               {categories.map((cat: any) => (
                 <div className="flex py-4 px-5 border-t border-[#d69c52]" key={cat._id}>
                   <input
@@ -197,7 +196,7 @@ function DishMenu() {
           {dishes.length > 1 && (
             <div className="w-full flex justify-between gap-5 xl:hidden mb-4">
               <select
-                className="w-max p-2 border border-[#d69c52] rounded bg-white text-[#00405d]"
+                className="w-max p-2 border border-[#ddd] rounded bg-white text-[#00405d]"
                 onChange={(e) => console.log(e.target.value)} // Placeholder for price filter
               >
                 <option value="">All Prices</option>
@@ -209,7 +208,7 @@ function DishMenu() {
               </select>
 
               <select
-                className="w-max p-2 border border-[#d69c52] rounded bg-white text-[#00405d]"
+                className="w-max p-2 border border-[#ddd] rounded bg-white text-[#00405d]"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >

@@ -56,11 +56,8 @@ function HomePage() {
 
       <CartSidebar isOpen={isCartOpen} onClose={toggleCart} />
       {isCartOpen && <div className={styles.overlay} onClick={toggleCart}></div>}
-
       <Footer />
-
       <ChatWidget />
-
       <ToastContainer theme="colored" />
     </div>
   );

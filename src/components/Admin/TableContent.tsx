@@ -22,6 +22,7 @@ const TableContent: React.FC = () => {
   const [sortBy, setSortBy] = useState<"tableNumber" | "capacity" | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [confirmDelete, setConfirmDelete] = useState<{ tableNumber: string | null }>({ tableNumber: null });
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     fetchTables();
@@ -30,7 +31,7 @@ const TableContent: React.FC = () => {
 
   const fetchTables = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/api/tables");
+      const response = await axios.get(`${backendApiUrl}/api/tables`);
       if (response.data.success) {
         setTables(response.data.tables);
       }
@@ -41,7 +42,7 @@ const TableContent: React.FC = () => {
 
   const fetchAvailableTables = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/api/tables/available-numbers");
+      const response = await axios.get(`${backendApiUrl}/api/tables/available-numbers`);
       if (response.data.success) {
         setAvailableTables(response.data.availableTables);
       }
@@ -78,7 +79,7 @@ const TableContent: React.FC = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:3000/api/tables", {
+      const response = await axios.post(`${backendApiUrl}/api/tables`, {
         tableNumber: finalTableNumber,
         capacity,
       });
@@ -103,7 +104,7 @@ const TableContent: React.FC = () => {
   const handleUpdateTable = async () => {
     if (!selectedTable) return;
     try {
-      const response = await axios.put(`http://localhost:3000/api/tables/${selectedTable.tableNumber}`, {
+      const response = await axios.put(`${backendApiUrl}/api/tables/${selectedTable.tableNumber}`, {
         capacity: selectedTable.capacity,
       });
 
@@ -134,8 +135,7 @@ const TableContent: React.FC = () => {
 
   const handleDeleteTable = async (tableNumber: string) => {
     try {
-      const response = await axios.delete(`http://localhost:3000/api/tables/${tableNumber}`);
-
+      const response = await axios.delete(`${backendApiUrl}/api/tables/${tableNumber}`);
       if (response.data.success) {
         toast.success("Table deleted successfully!");
         fetchTables();

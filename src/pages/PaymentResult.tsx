@@ -13,11 +13,12 @@ function PaymentResult() {
     const navigate = useNavigate();
     const voucherId = Cookies.get("VoucherId");
     const totalAmount = Cookies.get("TotalAmount");
-    const token = Cookies.get("token")
+    const token = Cookies.get("token");
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
     useEffect(() => {
         if (transactionId && isSuccess) {
-            fetch(`http://localhost:3000/payment/update-status/${transactionId}`, {
+            fetch(`${backendApiUrl}/payment/update-status/${transactionId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
             })
@@ -31,12 +32,12 @@ function PaymentResult() {
         if (token) {
             const decodeToken: any = jwtDecode(token);
 
-            fetch(`http://localhost:3000/cart/remove/all/${decodeToken.id}`, {
+            fetch(`${backendApiUrl}/cart/remove/all/${decodeToken.id}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
             });
 
-            fetch(`http://localhost:3000/rank/update`, {
+            fetch(`${backendApiUrl}/rank/update`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -49,7 +50,7 @@ function PaymentResult() {
         }
 
         if (voucherId) {
-            fetch(`http://localhost:3000/vouchers/status/${voucherId}`, {
+            fetch(`${backendApiUrl}/vouchers/status/${voucherId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
             })
@@ -71,7 +72,7 @@ function PaymentResult() {
 
             console.log("📤 Gửi yêu cầu xác nhận booking:", bookingId);
 
-            const response = await fetch(`http://localhost:3000/bookings/${bookingId}/confirm`, {
+            const response = await fetch(`${backendApiUrl}/bookings/${bookingId}/confirm`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
             });

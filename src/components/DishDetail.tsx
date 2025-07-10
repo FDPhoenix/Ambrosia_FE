@@ -54,6 +54,7 @@ function DishDetail({ dishInfor }: DishDetailProps) {
   const [editedRating, setEditedRating] = useState<number>(0);
   const [showMenu, setShowMenu] = useState<string | null>(null);
   const [hoverRating, setHoverRating] = useState<number>(0);
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const userToken = Cookies.get('token') ?? null;
@@ -68,7 +69,7 @@ function DishDetail({ dishInfor }: DishDetailProps) {
     const fetchFeedback = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3000/api/feedback/dish/${dishInfor._id}`
+          `${backendApiUrl}/api/feedback/dish/${dishInfor._id}`
         );
 
         if (!response.ok) {
@@ -91,7 +92,7 @@ function DishDetail({ dishInfor }: DishDetailProps) {
     const fetchIngredient = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3000/ingredients/${dishInfor._id}`
+          `${backendApiUrl}/ingredients/${dishInfor._id}`
         );
 
         if (!response.ok) {
@@ -189,7 +190,7 @@ function DishDetail({ dishInfor }: DishDetailProps) {
         const decoded: any = jwtDecode(token);
         const userId = decoded.id;
 
-        const response = await fetch('http://localhost:3000/cart', {
+        const response = await fetch(`${backendApiUrl}/cart`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -245,7 +246,7 @@ function DishDetail({ dishInfor }: DishDetailProps) {
 
   const handleSaveFeedback = async (feedbackId: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/feedback/update/${feedbackId}`, {
+      const response = await fetch(`${backendApiUrl}/api/feedback/update/${feedbackId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -281,7 +282,7 @@ function DishDetail({ dishInfor }: DishDetailProps) {
 
   const handleDeleteFeedback = async (feedbackId: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/feedback/delete/${feedbackId}`, {
+      const response = await fetch(`${backendApiUrl}/api/feedback/delete/${feedbackId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -347,7 +348,7 @@ function DishDetail({ dishInfor }: DishDetailProps) {
                   type="number"
                   value={quantity}
                   onChange={(e) => setQuantity(Math.max(1, Number.parseInt(e.target.value) || 1))}
-                  className="w-[50px] h-[38px] p-1 text-center text-sm bg-[#EFF4F8] appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-[50px] h-[38px] p-1 text-center text-sm bg-[#EFF4F8] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <div className="flex flex-col border-l border-gray-300">
                   <button onClick={increaseQuantity} className="bg-none p-0 w-7 h-[19px] flex items-center justify-center cursor-pointer text-gray-600 text-[8px] border-b border-gray-300 hover:bg-gray-200" aria-label="Increase quantity">

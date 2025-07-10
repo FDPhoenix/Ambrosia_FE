@@ -42,6 +42,7 @@ const TableReservationList = () => {
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
     const [pendingStatusChange, setPendingStatusChange] = useState<{ id: string, status: string } | null>(null);
     const [isEditingTable, setIsEditingTable] = useState(false);
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
     const [availableTables, setAvailableTables] = useState<{
         _id: string;
         tableNumber: string;
@@ -56,7 +57,7 @@ const TableReservationList = () => {
 
     const fetchTables = async () => {
         try {
-            const response = await axios.get("http://localhost:3000/reservation");
+            const response = await axios.get(`${backendApiUrl}/reservation`);
             setBookings(response.data);
         } catch (error) {
             console.error("Error fetching tables:", error);
@@ -79,7 +80,7 @@ const TableReservationList = () => {
             if (filters.status) queryParams.append("status", filters.status);
             if (filters.searchText.trim() !== "") queryParams.append("searchText", filters.searchText.trim());
 
-            const response = await axios.get(`http://localhost:3000/reservation/filter?${queryParams.toString()}`);
+            const response = await axios.get(`${backendApiUrl}/reservation/filter?${queryParams.toString()}`);
 
             if (response.data.length === 0) {
                 setBookings([]);
@@ -111,7 +112,7 @@ const TableReservationList = () => {
 
     const handleUpdateStatus = async (id: string, newStatus: string) => {
         try {
-            await axios.put(`http://localhost:3000/reservation/${id}/status`, { status: newStatus });
+            await axios.put(`${backendApiUrl}/reservation/${id}/status`, { status: newStatus });
 
             setBookings(prevBookings =>
                 prevBookings.map(booking =>
@@ -150,7 +151,7 @@ const TableReservationList = () => {
 
     const fetchAvailableTables = async (bookingDate: string, startTime: string) => {
         try {
-            const res = await axios.get("http://localhost:3000/reservation/available", {
+            const res = await axios.get(`${backendApiUrl}/reservation/available`, {
                 params: {
                     bookingDate,
                     startTime,
@@ -172,7 +173,7 @@ const TableReservationList = () => {
 
         try {
             await axios.put(
-                `http://localhost:3000/bookings/${selectedBooking._id}`,
+                `${backendApiUrl}/bookings/${selectedBooking._id}`,
                 {
                     tableId: newTableId,
                     bookingDate: selectedBooking.bookingDate,
