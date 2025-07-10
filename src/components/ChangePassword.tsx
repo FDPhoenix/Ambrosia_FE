@@ -1,5 +1,6 @@
 import React, { useState, FormEvent } from "react";
 import Cookies from "js-cookie";
+const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
 
 const ChangePassword: React.FC = () => {
     const [oldPassword, setOldPassword] = useState<string>("");
@@ -52,7 +53,7 @@ const ChangePassword: React.FC = () => {
         setMessage("");
 
         try {
-            const response = await fetch("http://localhost:3000/user/change-password", {
+            const response = await fetch(`${backendApiUrl}/user/change-password`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

@@ -10,6 +10,8 @@ interface Rank {
     totalSpending: number;
 }
 
+const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
+
 const ManageRank: React.FC = () => {
     const [ranks, setRanks] = useState<Rank[]>([]);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
@@ -26,7 +28,7 @@ const ManageRank: React.FC = () => {
 
     const fetchRanks = async () => {
         try {
-            const response = await axios.get<Rank[]>("http://localhost:3000/rank/all");
+            const response = await axios.get<Rank[]>(`${backendApiUrl}/rank/all`);
             setRanks(response.data);
         } catch (error) {
             console.error("Error fetching ranks", error);
@@ -54,9 +56,9 @@ const ManageRank: React.FC = () => {
         e.preventDefault();
         try {
             if (editingRank) {
-                await axios.put(`http://localhost:3000/rank/${editingRank._id}`, formData);
+                await axios.put(`${backendApiUrl}/rank/${editingRank._id}`, formData);
             } else {
-                await axios.post("http://localhost:3000/rank/add", formData);
+                await axios.post(`${backendApiUrl}/rank/add`, formData);
             }
             fetchRanks();
             setModalOpen(false);
