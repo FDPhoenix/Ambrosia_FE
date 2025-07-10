@@ -23,7 +23,6 @@ function SearchResult() {
             .then((data) => {
                 if (data.success) {
                     setCategories(data.categories);
-                    console.log("Categories:", data.categories);
                 }
             })
             .catch((err) => {

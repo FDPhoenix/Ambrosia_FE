@@ -3,6 +3,7 @@ import Footer from '../components/Footer'
 import MobileCart from '../components/MobileCart'
 import LinkRoute from '../components/LinkRoute'
 import Contact from '../components/Contact'
+import { ToastContainer } from 'react-toastify'
 
 function MobileCartPage() {
   const links = [
@@ -16,6 +17,7 @@ function MobileCartPage() {
     <MobileCart />
     <Contact />
     <Footer />
+    <ToastContainer theme='colored' />
     </>
   )
 }

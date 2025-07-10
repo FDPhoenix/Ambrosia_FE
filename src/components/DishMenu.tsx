@@ -24,8 +24,8 @@ function DishMenu() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          setCategories(data.categories);
-          console.log("Categories:", data.categories);
+          const visibleCategories = data.categories.filter((category: { isHidden: boolean }) => !category.isHidden);
+          setCategories(visibleCategories);
         }
       })
       .catch((err) => {
@@ -42,8 +42,6 @@ function DishMenu() {
       const query = selectedCategory ? `?categoryId=${selectedCategory}` : `all?page=${page}&limit=12`;
       const response = await fetch(`${backendApiUrl}/dishes/${query}`);
       const data = await response.json();
-
-      console.log('Fetched data successful:', data);
 
       if (data.success && Array.isArray(data.dishes)) {
         setDishes(data.dishes);
@@ -136,7 +134,7 @@ function DishMenu() {
                 />
                 <label htmlFor="all" className="text-[19px] text-[#00405d]">All</label>
               </div>
-              
+
               {categories.map((cat: any) => (
                 <div className="flex py-4 px-5 border-t border-[#d69c52]" key={cat._id}>
                   <input
@@ -198,7 +196,7 @@ function DishMenu() {
           {dishes.length > 1 && (
             <div className="w-full flex justify-between gap-5 xl:hidden mb-4">
               <select
-                className="w-max p-2 border border-[#d69c52] rounded bg-white text-[#00405d]"
+                className="w-max p-2 border border-[#ddd] rounded bg-white text-[#00405d]"
                 onChange={(e) => console.log(e.target.value)} // Placeholder for price filter
               >
                 <option value="">All Prices</option>
@@ -210,7 +208,7 @@ function DishMenu() {
               </select>
 
               <select
-                className="w-max p-2 border border-[#d69c52] rounded bg-white text-[#00405d]"
+                className="w-max p-2 border border-[#ddd] rounded bg-white text-[#00405d]"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >

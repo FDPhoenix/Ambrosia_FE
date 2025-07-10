@@ -412,7 +412,7 @@ function CheckoutPage() {
 
       <div className="w-full pl-4 pt-4 lg:pt-12 bg-white pr-4 lg:w-[45%] xl:pr-56 md:pr-10 lg:pl-[4%] lg:bg-gray-50 shadow-[-1px_0_0_#e1e1e1]">
         <h3 className="text-lg mb-2 lg:hidden">Order summary</h3>
-        <div className="w-full max-h-80 overflow-y-auto border-b border-gray-300 pb-2">
+        <div className="w-full max-h-80 overflow-y-auto border-b border-gray-300 pb-2 [scrollbar-w-1] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[#A2845E] [&::-webkit-scrollbar-thumb]:rounded-[50px]">
           {checkoutProduct.map((item) => (
             <div className="w-full flex justify-between py-3 relative" key={item._id}>
               <div className="w-3/4 flex">
@@ -434,7 +434,7 @@ function CheckoutPage() {
               name="voucher"
               id="voucher"
               placeholder="Voucher"
-              className="w-4/5 p-2 border border-[#e1e1e1] border-r-0 rounded-l-md"
+              className="w-4/5 p-2 border border-[#e1e1e1] border-r-0 rounded-l-md focus:outline-none"
               value={voucherCode}
               onChange={(e) => setVoucherCode(e.target.value)}
             />
