@@ -28,7 +28,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
   const [isOtpFormOpen, setIsOtpFormOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [lockoutTime, setLockoutTime] = useState(0);
   const token = getCookie("token");
