@@ -106,7 +106,7 @@ const Login = () => {
   };
 
   const handleLoginGoogle = () => {
-    window.location.href = `${backendApiUrl}/login/google`;
+    window.location.href = ` ${backendApiUrl}/login/google`;
   };
 
   const handleLoginFacebook = () => {
