@@ -24,10 +24,12 @@ const BestSellers: React.FC = () => {
     year: new Date().getFullYear().toString(),
   })
 
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'
+
   const fetchBestSellers = async () => {
     try {
       setLoading(true)
-      const response = await axios.get("http://localhost:3000/dish/bestsellers", {
+      const response = await axios.get(`${backendApiUrl}/dish/bestsellers`, {
         params: {
           limit: filters.limit,
           month: filters.month || undefined,
