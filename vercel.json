@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/:path*",
+      "source": "/api/:path*",
       "destination": "https://ambrosia-be.onrender.com/:path*"
     },
     {
