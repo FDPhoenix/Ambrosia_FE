@@ -1,5 +1,5 @@
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import axios from "axios"
 import { Line, Bar } from "react-chartjs-2"
 import {
@@ -67,6 +67,8 @@ interface PieChartData {
   percentage: number;
   color: string;
   averageRating?: number;
+  imageUrl?: string; // Added for tooltip
+  dishImage?: string; // Added for tooltip
 }
 
 const StatisticUser: React.FC = () => {
@@ -97,6 +99,14 @@ const StatisticUser: React.FC = () => {
   const [pieChartData, setPieChartData] = useState<PieChartData[]>([]);
   const [showFeedbackPieChart, setShowFeedbackPieChart] = useState(false);
   const [selectedFeedbackMonth, setSelectedFeedbackMonth] = useState<number>(currentDate.getMonth() + 1);
+  const [pieTooltip, setPieTooltip] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    data?: PieChartData;
+  }>({ visible: false, x: 0, y: 0 });
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [hoveredPieIndex, setHoveredPieIndex] = useState<number | null>(null);
 
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'
 
@@ -351,62 +361,140 @@ const StatisticUser: React.FC = () => {
         </div>
         
         <div className="flex justify-center mb-6 relative">
-          <svg width="400" height="400" viewBox="0 0 400 400">
+          <svg
+            ref={svgRef}
+            width="400"
+            height="400"
+            viewBox="0 0 400 400"
+            style={{ cursor: pieChartData.length > 0 ? 'pointer' : 'default' }}
+            onMouseLeave={() => { setPieTooltip({ ...pieTooltip, visible: false }); setHoveredPieIndex(null); }}
+          >
             <circle cx="200" cy="200" r="160" fill="none" stroke="#e0e0e0" strokeWidth="2" />
-            
-            {pieChartData.map((item, index) => {
-              const percentage = total > 0 ? (item.value / total) * 100 : 0;
-              const angle = (percentage / 100) * 360;
-              const startAngle = currentAngle;
-              const midAngle = startAngle + angle / 2;
-              currentAngle += angle;
+            {pieChartData.length === 1 ? (
+              <circle
+                cx="200"
+                cy="200"
+                r={hoveredPieIndex === 0 ? 170 : 160}
+                fill={pieChartData[0].color}
+                style={{ transition: 'r 0.2s' }}
+                onMouseMove={e => {
+                  const rect = svgRef.current?.getBoundingClientRect();
+                  setPieTooltip({
+                    visible: true,
+                    x: e.clientX - (rect?.left || 0),
+                    y: e.clientY - (rect?.top || 0),
+                    data: pieChartData[0],
+                  });
+                  setHoveredPieIndex(0);
+                }}
+                onMouseLeave={() => { setPieTooltip({ ...pieTooltip, visible: false }); setHoveredPieIndex(null); }}
+              />
+            ) : (
+              pieChartData.map((item, index) => {
+                const percentage = total > 0 ? (item.value / total) * 100 : 0;
+                const angle = (percentage / 100) * 360;
+                const startAngle = currentAngle;
+                const midAngle = startAngle + angle / 2;
+                currentAngle += angle;
 
-              const x1 = 200 + 160 * Math.cos((startAngle - 90) * Math.PI / 180);
-              const y1 = 200 + 160 * Math.sin((startAngle - 90) * Math.PI / 180);
-              const x2 = 200 + 160 * Math.cos((currentAngle - 90) * Math.PI / 180);
-              const y2 = 200 + 160 * Math.sin((currentAngle - 90) * Math.PI / 180);
+                const x1 = 200 + 160 * Math.cos((startAngle - 90) * Math.PI / 180);
+                const y1 = 200 + 160 * Math.sin((startAngle - 90) * Math.PI / 180);
+                const x2 = 200 + 160 * Math.cos((currentAngle - 90) * Math.PI / 180);
+                const y2 = 200 + 160 * Math.sin((currentAngle - 90) * Math.PI / 180);
 
-              const largeArcFlag = angle > 180 ? 1 : 0;
+                const largeArcFlag = angle > 180 ? 1 : 0;
 
-              const pathData = [
-                `M 200 200`,
-                `L ${x1} ${y1}`,
-                `A 160 160 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-                'Z'
-              ].join(' ');
+                const pathData = [
+                  `M 200 200`,
+                  `L ${x1} ${y1}`,
+                  `A 160 160 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                  'Z'
+                ].join(' ');
 
-              // Calculate text position for percentage
-              const textRadius = 120;
-              const textX = 200 + textRadius * Math.cos((midAngle - 90) * Math.PI / 180);
-              const textY = 200 + textRadius * Math.sin((midAngle - 90) * Math.PI / 180);
+                // Calculate text position for percentage
+                const textRadius = 120;
+                const textX = 200 + textRadius * Math.cos((midAngle - 90) * Math.PI / 180);
+                const textY = 200 + textRadius * Math.sin((midAngle - 90) * Math.PI / 180);
 
-              return (
-                <g key={index}>
-                  <path
-                    d={pathData}
-                    fill={item.color}
-                    stroke="white"
-                    strokeWidth="3"
-                  />
-                  {percentage > 5 && (
-                    <text
-                      x={textX}
-                      y={textY}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      className="text-xs font-bold fill-white"
-                      style={{ fontSize: '12px', fontWeight: 'bold' }}
-                    >
-                      {percentage.toFixed(1)}%
-                    </text>
-                  )}
-                </g>
-              );
-            })}
+                return (
+                  <g key={index}>
+                    <path
+                      d={pathData}
+                      fill={item.color}
+                      stroke="white"
+                      strokeWidth="3"
+                      style={{
+                        cursor: 'pointer',
+                        transform: hoveredPieIndex === index ? 'scale(1.06)' : 'scale(1)',
+                        transformOrigin: '200px 200px',
+                        transition: 'transform 0.18s',
+                      }}
+                      onMouseMove={e => {
+                        const rect = svgRef.current?.getBoundingClientRect();
+                        setPieTooltip({
+                          visible: true,
+                          x: e.clientX - (rect?.left || 0),
+                          y: e.clientY - (rect?.top || 0),
+                          data: item,
+                        });
+                        setHoveredPieIndex(index);
+                      }}
+                      onMouseLeave={() => { setPieTooltip({ ...pieTooltip, visible: false }); setHoveredPieIndex(null); }}
+                    />
+                    {percentage > 5 && (
+                      <text
+                        x={textX}
+                        y={textY}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        className="text-xs font-bold fill-white"
+                        style={{ fontSize: '12px', fontWeight: 'bold' }}
+                      >
+                        {percentage.toFixed(1)}%
+                      </text>
+                    )}
+                  </g>
+                );
+              })
+            )}
           </svg>
+          {pieTooltip.visible && pieTooltip.data && (
+            <div
+              style={{
+                position: 'absolute',
+                left: pieTooltip.x + 10,
+                top: pieTooltip.y + 10,
+                zIndex: 10,
+                background: 'white',
+                border: '1px solid #ddd',
+                borderRadius: 8,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                padding: 12,
+                minWidth: 180,
+                pointerEvents: 'none',
+                fontSize: 14,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+              }}
+            >
+              {(() => { console.log('Tooltip data:', pieTooltip.data); return null })()}
+              {pieTooltip.data.dishImage && (
+                <img src={pieTooltip.data.dishImage} alt={pieTooltip.data.name} style={{ width: 54, height: 54, objectFit: 'cover', borderRadius: 6, marginRight: 8 }} />
+              )}
+              <div>
+                <div><b>{pieTooltip.data.name}</b></div>
+                <div>Reviews: <b>{pieTooltip.data.value}</b></div>
+                <div>Percentage: <b>{pieTooltip.data.percentage}%</b></div>
+                {pieTooltip.data.averageRating !== undefined && (
+                  <div>Avg. Rating: <b>{pieTooltip.data.averageRating} ⭐</b></div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[180px] overflow-y-auto pr-2">
           {pieChartData.map((item, index) => (
             <div key={index} className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
               <div 
@@ -469,6 +557,12 @@ const StatisticUser: React.FC = () => {
       fetchPieChartData();
     }
   }, [showFeedbackPieChart, selectedFeedbackMonth]);
+
+  useEffect(() => {
+    if (pieChartData.length > 0) {
+      console.log('Pie chart data:', pieChartData);
+    }
+  }, [pieChartData]);
 
   return (
     <div className="w-[1200px] mb-5">

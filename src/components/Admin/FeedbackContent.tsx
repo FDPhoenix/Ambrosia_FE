@@ -203,8 +203,12 @@ const FeedbackContent: React.FC = () => {
                       <td className="p-2.5 border border-gray-300 text-center">{fb.isHided ? "Hidden" : "Showing"}</td>
                       <td className="p-2.5 border border-gray-300 text-center">
                         <button
-                          className="text-black py-2 px-3 border-none rounded-lg bg-amber-400 cursor-pointer transition-colors duration-200 hover:bg-amber-500"
-                          onClick={() => toggleVisibility(fb._id)}
+                          className="text-black py-2 px-3 border-none rounded-lg bg-[rgb(240,240,240)] cursor-pointer transition-colors duration-200 hover:bg-[#F09C42]"
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to change the status of this feedback?')) {
+                              toggleVisibility(fb._id)
+                            }
+                          }}
                         >
                           {fb.isHided ? "Show" : "Hide"}
                         </button>

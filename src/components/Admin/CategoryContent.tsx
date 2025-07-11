@@ -147,7 +147,7 @@ const CategoryContent: React.FC = () => {
       <div className="flex justify-between">
         <h3 className="mt-[5px]">List of category</h3>
         <button
-          className="font-medium bg-[#FBBF24;] border border-[#ccc] py-[7px] px-[12px] rounded-md cursor-pointer transition-colors duration-200 hover:bg-[#cc9f2d]"
+          className="font-medium border border-[#ccc] py-[7px] px-[12px] rounded-md cursor-pointer transition-colors duration-200 bg-[rgb(240,240,240)] hover:bg-[#F09C42] text-black"
           onClick={() => setModalIsOpen(true)}
         >
           Add category
@@ -176,13 +176,13 @@ const CategoryContent: React.FC = () => {
                 </td>
                 <td className="p-[15px] text-center border-b border-[#ddd]">
                   <button
-                    className="bg-transparent border-none cursor-pointer mr-5 text-xl text-gray-800 transition-transform duration-200 hover:scale-[1.2] hover:text-[#f0924c]"
+                    className="bg-transparent border-none cursor-pointer mr-5 text-xl text-black transition-transform duration-200 hover:scale-[1.2] hover:bg-[#F09C42] rounded-md p-1.5"
                     onClick={() => setEditCategory(category)}
                   >
                     <FaEdit />
                   </button>
                   <button
-                    className="bg-transparent border-none cursor-pointer text-xl text-gray-800 transition-transform duration-200 hover:scale-[1.2] hover:text-[#f0924c]"
+                    className="bg-transparent border-none cursor-pointer text-xl text-black transition-transform duration-200 hover:scale-[1.2] hover:bg-[#F09C42] rounded-md p-1.5"
                     onClick={() => handleToggleHide(category._id)}
                   >
                     {category.isHidden ? <FaEye title='Show'/> : <FaEyeSlash title='Hide'/>}
@@ -218,13 +218,13 @@ const CategoryContent: React.FC = () => {
           />
           <div className="flex justify-center gap-2.5">
             <button
-              className="flex-1 border-none py-2.5 px-5 rounded-md cursor-pointer text-sm transition-colors duration-200 bg-[#FBBF24] hover:bg-[#cc9f2d] font-medium"
+              className="flex-1 border-none py-2.5 px-5 rounded-md cursor-pointer text-sm transition-colors duration-200 bg-[rgb(240,240,240)] hover:bg-[#F09C42] font-medium text-black"
               onClick={handleAddCategory}
             >
               Add
             </button>
             <button
-              className="flex-1 border border-[#ddd] py-2.5 px-5 rounded-md cursor-pointer text-sm transition-colors duration-200 bg-[#FBBF24] hover:bg-[#cc9f2d] font-medium"
+              className="flex-1 border border-[#ddd] py-2.5 px-5 rounded-md cursor-pointer text-sm transition-colors duration-200 bg-[rgb(240,240,240)] hover:bg-[#F09C42] font-medium text-black"
               onClick={() => setModalIsOpen(false)}
             >
               Cancel
@@ -258,13 +258,13 @@ const CategoryContent: React.FC = () => {
             />
             <div className="flex justify-center gap-2.5">
               <button
-                className="font-medium border-none py-2.5 px-5 rounded-md cursor-pointer text-sm transition-colors duration-200 bg-[#FBBF24] hover:bg-[#cc9f2d]"
+                className="font-medium border-none py-2.5 px-5 rounded-md cursor-pointer text-sm transition-colors duration-200 bg-[rgb(240,240,240)] hover:bg-[#F09C42] text-black"
                 onClick={handleUpdateCategory}
               >
                 Save
               </button>
               <button
-                className="font-medium text-gray-800 border border-[#ddd] py-2.5 px-5 rounded-md cursor-pointer text-sm transition-colors duration-200 bg-[#FBBF24] hover:bg-[#cc9f2d]"
+                className="font-medium text-gray-800 border border-[#ddd] py-2.5 px-5 rounded-md cursor-pointer text-sm transition-colors duration-200 bg-[rgb(240,240,240)] hover:bg-[#F09C42] text-black"
                 onClick={() => setEditCategory(null)}
               >
                 Cancel
