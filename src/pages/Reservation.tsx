@@ -91,6 +91,7 @@ const BookingPage = () => {
     const [hasSearched, setHasSearched] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const tablesPerPage = 8;
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
     const totalPages = Math.ceil(availableTables.length / tablesPerPage);
     const paginatedTables = availableTables.slice(
@@ -103,7 +104,7 @@ const BookingPage = () => {
         if (!token) return;
 
         axios
-            .get("http://localhost:3000/user/profile", {
+            .get(`${backendApiUrl}/user/profile`, {
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true,
             })
@@ -131,7 +132,7 @@ const BookingPage = () => {
     const fetchTables = async () => {
         setLoadingTables(true);
         try {
-            const res = await axios.get("http://localhost:3000/bookings/available-tables", {
+            const res = await axios.get(`${backendApiUrl}/bookings/available-tables`, {
                 params: { bookingDate: selectedDate, startTime: selectedTime },
             });
             setAvailableTables(res.data);
@@ -164,7 +165,7 @@ const BookingPage = () => {
         try {
             const token = Cookies.get("token");
             const response = await axios.post(
-                "http://localhost:3000/bookings",
+                `${backendApiUrl}/bookings`,
                 {
                     tableId: selectedTableId,
                     bookingDate: selectedDate,

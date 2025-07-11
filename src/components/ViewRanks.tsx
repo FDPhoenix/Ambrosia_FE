@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
+const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
 interface RankData {
     _id: string;
@@ -35,7 +36,8 @@ const ViewRanks: React.FC = () => {
         try {
             setLoading(true);
             const token = Cookies.get("token");
-            const response = await fetch("http://localhost:3000/rank", {
+            const response = await fetch(`${backendApiUrl}/rank`, {
+
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

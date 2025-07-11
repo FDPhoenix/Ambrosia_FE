@@ -25,6 +25,7 @@ export default function EmployeeContext() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{ id: string; isActive: boolean } | null>(null);
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   const [newEmployee, setNewEmployee] = useState({
     fullname: "",
@@ -45,7 +46,7 @@ export default function EmployeeContext() {
   const fetchEmployees = async (role: "staff" | "chef") => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:3000/api/employees/get${role === "staff" ? "Staff" : "Chef"}`);
+      const response = await axios.get(`${backendApiUrl}/api/employees/get${role === "staff" ? "Staff" : "Chef"}`);
       if (role === "staff") setStaffs(response.data.employees);
       else setChefs(response.data.employees);
     } catch (error) {
@@ -57,7 +58,7 @@ export default function EmployeeContext() {
 
   const handleEditEmployee = async (id: string) => {
     try {
-      const response = await axios.get(`http://localhost:3000/api/employees/getEmployee/${id}`);
+      const response = await axios.get(`${backendApiUrl}/api/employees/getEmployee/${id}`);
       if (!response.data.user) {
         console.error("No employee data found");
         return;
@@ -78,7 +79,7 @@ export default function EmployeeContext() {
     }
 
     try {
-      await axios.put(`http://localhost:3000/api/employees/update/${editingEmployee._id}`, editingEmployee);
+      await axios.put(`${backendApiUrl}/api/employees/update/${editingEmployee._id}`, editingEmployee);
       setIsEditModalOpen(false);
       fetchEmployees(activeTab);
       toast.success("Employee updated successfully!");
@@ -90,7 +91,7 @@ export default function EmployeeContext() {
 
   const toggleBanUnban = async (id: string, currentStatus: boolean) => {
     try {
-      await axios.put(`http://localhost:3000/api/employees/update/${id}`, { isActive: !currentStatus });
+      await axios.put(`${backendApiUrl}/api/employees/update/${id}`, { isActive: !currentStatus });
       fetchEmployees(activeTab);
       toast.success(`Account has been ${currentStatus ? "banned" : "unbanned"}!`);
     } catch (error) {
@@ -112,7 +113,7 @@ export default function EmployeeContext() {
     }
 
     try {
-      await axios.post(`http://localhost:3000/api/employees/add${activeTab === "staff" ? "Staff" : "Chef"}`, newEmployee);
+      await axios.post(`${backendApiUrl}/api/employees/add${activeTab === "staff" ? "Staff" : "Chef"}`, newEmployee);
       setNewEmployee({ fullname: "", email: "", phoneNumber: "", password: "", confirmPassword: "" });
       fetchEmployees(activeTab);
       setModalIsOpen(false);
@@ -153,7 +154,7 @@ export default function EmployeeContext() {
 
   return (
     // <div className="w-[1200px] max-h-[567px] mx-auto overflow-y-auto overflow-x-hidden bg-white px-8 rounded-lg shadow-lg scrollbar-hide" >
-    <div className="max-w-[1320px] pt-4 pb-5 pl-8 pr-8 bg-white rounded-xl shadow-md">
+    <div className="max-w-[1320px] max-h-[567px] pt-4 pb-5 pl-8 pr-8 bg-white rounded-xl shadow-md">
       <div className="bg-white z-20">
         <ul className="flex border-b pt-1 pl-5 mb-2 mt-2">
           <li>

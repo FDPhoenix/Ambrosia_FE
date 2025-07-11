@@ -35,6 +35,7 @@ function SystemReviewContent() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [filterIsReplied, setFilterIsReplied] = useState<string>("");
   const [filterRating, setFilterRating] = useState<string>("");
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   const openModal = (review: Review) => {
     setSelectedReview(review);
@@ -62,7 +63,7 @@ function SystemReviewContent() {
 
   const fetchReviews = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/reviews');
+      const response = await axios.get(`${backendApiUrl}/reviews`);
       const formattedReviews = response.data.reviews.map((review: { _id: unknown; }) => ({
         ...review,
         id: review._id,
@@ -108,7 +109,7 @@ function SystemReviewContent() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:3000/reviews/reply", {
+      const response = await axios.post(`${backendApiUrl}/reviews/reply`, {
         reviewId: selectedReview.id,
         replyContent,
       });
@@ -137,7 +138,7 @@ function SystemReviewContent() {
       if (filterRating !== "") queryParams.push(`rating=${filterRating}`);
 
       const queryString = queryParams.length > 0 ? `?${queryParams.join("&")}` : "";
-      const response = await axios.get(`http://localhost:3000/reviews/filter${queryString}`);
+      const response = await axios.get(`${backendApiUrl}/reviews/filter${queryString}`);
 
       const formattedReviews = response.data.data.map((review: { _id: unknown }) => ({
         ...review,
@@ -162,7 +163,7 @@ function SystemReviewContent() {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
   return (
-    <div className="w-[1200px] mx-auto bg-white p-8 rounded-lg shadow-md">
+    <div className="w-[1200px] h-[567px] mx-auto bg-white p-8 rounded-lg shadow-md">
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="text-white text-center">

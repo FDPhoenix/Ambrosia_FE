@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import styles from '../../css/AdminCss/DishContent.module.css'
+import { useCallback, useEffect, useState } from 'react';
 import { FaEdit, FaEye, FaTimes } from 'react-icons/fa';
 import { FaEyeSlash } from 'react-icons/fa6';
 import StatusBadge from './StatusBadge';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
+import Pagination from '../Pagination';
 
 function DishContent() {
   const [dishes, setDishes] = useState<any[]>([]);
@@ -13,7 +13,11 @@ function DishContent() {
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [editLoading, setEditLoading] = useState(false)
+  const [editLoading, setEditLoading] = useState(false);
+  const [currentDishes, setCurrentDishes] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 4;
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   const [editDish, setEditDish] = useState({
     _id: "",
@@ -32,7 +36,7 @@ function DishContent() {
   });
 
   const fetchDishes = () => {
-    fetch("http://localhost:3000/dishes/admin/all", {
+    fetch(`${backendApiUrl}/dishes/admin/all`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -50,7 +54,7 @@ function DishContent() {
   };
 
   const fetchCategory = () => {
-    fetch("http://localhost:3000/category/all", {
+    fetch(`${backendApiUrl}/category/all`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${Cookies.get("token")}`,
@@ -58,8 +62,8 @@ function DishContent() {
     }).then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          setCategories(data.categories);
-          console.log("Categories:", data.categories);
+          const visibleCategories = data.categories.filter((category: { isHidden: boolean }) => !category.isHidden);
+          setCategories(visibleCategories);
         }
       })
       .catch((err) => {
@@ -72,7 +76,7 @@ function DishContent() {
     const dishToUpdate = dishes.find(dish => dish._id === id);
     const updatedStatus = !dishToUpdate.isAvailable;
 
-    fetch(`http://localhost:3000/dishes/hide/${id}`, {
+    fetch(`${backendApiUrl}/dishes/hide/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -142,7 +146,7 @@ function DishContent() {
     formData.append('price', newDish.price);
     formData.append('image', selectedFile);
 
-    fetch("http://localhost:3000/dishes/add", {
+    fetch(`${backendApiUrl}/dishes/add`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${Cookies.get("token")}`
@@ -210,7 +214,7 @@ function DishContent() {
       formData.append('image', selectedFile);
     }
 
-    fetch(`http://localhost:3000/dishes/update/${editDish._id}`, {
+    fetch(`${backendApiUrl}/dishes/update/${editDish._id}`, {
       method: "PUT",
       headers: {
         "Authorization": `Bearer ${Cookies.get("token")}`
@@ -232,6 +236,11 @@ function DishContent() {
       .finally(() => setEditLoading(false));
   };
 
+  const handlePageChange = useCallback((paginatedDishes: any[], page: number) => {
+    setCurrentDishes(paginatedDishes);
+    setCurrentPage(page);
+  }, []);
+
   useEffect(() => {
     fetchDishes();
     fetchCategory();
@@ -244,42 +253,57 @@ function DishContent() {
   }, [categories]);
 
   return (
-    <div className={styles.contentContainer}>
-      <div className={styles.contentTitle}>
-        <h3 className='text-2xl font-bold'>List of Dish</h3>
-        <button onClick={() => setShowForm(true)}>Add dish</button>
+    <div className="relative w-[1200px] h-[567px] p-5 max-w-[1210px] bg-white rounded-2xl shadow-md">
+      <div className="flex justify-between mb-4">
+        <h3 className="text-xl font-bold my-auto">List of Dish</h3>
+        <button
+          className="py-1 px-3 border border-gray-300 rounded-md transition-colors duration-200 bg-gray-100 hover:bg-[#F0924C]"
+          onClick={() => setShowForm(true)}
+        >
+          Add dish
+        </button>
       </div>
 
-      <div className={styles.mainContent}>
-        <table className={styles.dishTable}>
-          <thead>
+      <div className="max-h-[440px] overflow-y-auto">
+        <table className="w-full border-collapse text-left">
+          <thead className="bg-gray-100 border-b border-gray-300">
             <tr>
-              <th>No</th>
-              <th>Image</th>
-              <th>Name</th>
-              <th>Category</th>
-              <th>Price (VND)</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th className="p-4 text-center">No</th>
+              <th className="p-4 text-center">Image</th>
+              <th className="p-4 text-center">Name</th>
+              <th className="p-4 text-center">Category</th>
+              <th className="p-4 text-center">Price (VND)</th>
+              <th className="p-4 text-center">Status</th>
+              <th className="p-4 text-center">Action</th>
             </tr>
           </thead>
           <tbody>
-            {dishes.map((dish: any, index) => (
-              <tr key={dish._id}>
-                <td>{index + 1}</td>
-                <td><img src={dish.imageUrl} alt={''} className={styles.dishImage} /></td>
-                <td>{dish.name}</td>
-                <td>{dish.categoryName}</td>
-                <td>{dish.price.toLocaleString()}</td>
-                <td>
+            {currentDishes.map((dish: any, index) => (
+              <tr key={dish._id} className='border-b border-gray-300 last:border-b-0'>
+                <td className="p-3 text-center">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                <td className="p-3 text-center">
+                  <img src={dish.imageUrl} alt={''} className="w-[70px] h-[70px] rounded-md mx-auto" />
+                </td>
+                <td className="p-3 text-center w-[387px]">{dish.name}</td>
+                <td className="p-3 text-center">{dish.categoryName}</td>
+                <td className="p-3 text-center">{dish.price.toLocaleString()}</td>
+                <td className="p-3 text-center">
                   <div style={{ width: '106px', margin: '0 auto' }}>
                     <StatusBadge status={dish.isAvailable} caseTrue={"Available"} caseFalse={"Unavailable"} />
                   </div>
                 </td>
-                <td>
-                  <button className={styles.actionButton} style={{ marginRight: '10px' }} onClick={() => handleEditDish(dish)}><FaEdit title='Edit'/></button>
-                  <button className={styles.actionButton} onClick={() => handleHideDish(dish._id)}>
-                    {dish.isAvailable ? <FaEyeSlash title='Hide'/> : <FaEye title='Show'/>}
+                <td className="p-3 text-center">
+                  <button
+                    className="bg-none text-xl cursor-pointer mr-2.5 transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]"
+                    onClick={() => handleEditDish(dish)}
+                  >
+                    <FaEdit title='Edit' />
+                  </button>
+                  <button
+                    className="bg-none text-xl cursor-pointer transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]"
+                    onClick={() => handleHideDish(dish._id)}
+                  >
+                    {dish.isAvailable ? <FaEyeSlash title='Hide' /> : <FaEye title='Show' />}
                   </button>
                 </td>
               </tr>
@@ -288,37 +312,66 @@ function DishContent() {
         </table>
       </div>
 
+      <Pagination items={dishes} itemsPerPage={itemsPerPage} onPageChange={handlePageChange} />
+
       {showForm && (
-        <div className={styles.overlay}>
-          <div className={styles.formContainer}>
-            <div className={styles.formHeader}>
-              <h3>Add New Dish</h3>
-              <button onClick={() => setShowForm(false)}><FaTimes /></button>
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center">
+          <div className="bg-white w-[450px] p-5 rounded-lg">
+            <div className="flex justify-between items-center mb-2.5">
+              <h3 className='font-semibold'>Add New Dish</h3>
+              <button className="bg-none text-lg text-gray-600 cursor-pointer" onClick={() => setShowForm(false)}>
+                <FaTimes />
+              </button>
             </div>
 
-            <div className={styles.formContent}>
-              <div className={styles.imageUpload}>
-                {newDish.image ? <img src={newDish.image} alt="Preview" /> : <span>Select Image</span>}
-                <input type="file" accept="image/*" onChange={handleImageChange} />
+            <div className="flex gap-5">
+              <div className="relative w-[250px] h-[195px] bg-gray-100 flex items-center justify-center rounded-md cursor-pointer overflow-hidden">
+                {newDish.image ? <img src={newDish.image} alt="Preview" className="w-full h-full object-cover" /> : <span>Select Image</span>}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="absolute w-full h-full opacity-0 cursor-pointer"
+                />
               </div>
 
-              <div className={styles.formFields}>
-                <input type="text" name="name" placeholder="Dish Name" value={newDish.name} onChange={handleInputChange} />
+              <div className="flex flex-col gap-2.5 w-full">
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Dish Name"
+                  value={newDish.name}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
 
-                <select name="category" value={newDish.category} onChange={handleInputChange}>
+                <select
+                  name="category"
+                  value={newDish.category}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
                   {categories.map((cat: any) => (
                     <option key={cat._id} value={cat._id}>{cat.name}</option>
                   ))}
                 </select>
 
-                <input className={styles.noSpinner} type="number" name="price" placeholder="Price" value={newDish.price} onChange={handleInputChange} />
+                <input
+                  type="number"
+                  name="price"
+                  placeholder="Price"
+                  value={newDish.price}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border border-gray-300 rounded-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
 
-                {!loading ?
-                  (<button onClick={handleAddDish}>Add Dish</button>)
-                  :
-                  (<button>Adding...</button>)
-                }
-
+                <button
+                  className="bg-[#f0924c] text-white p-2.5 rounded-md transition-colors duration-200 hover:bg-[#d87c3b]"
+                  onClick={handleAddDish}
+                  disabled={loading}
+                >
+                  {loading ? 'Adding...' : 'Add Dish'}
+                </button>
               </div>
             </div>
           </div>
@@ -326,32 +379,41 @@ function DishContent() {
       )}
 
       {showEditForm && (
-        <div className={styles.overlay}>
-          <div className={styles.formContainer}>
-            <div className={styles.formHeader}>
-              <h3>Edit Dish</h3>
-              <button onClick={() => setShowEditForm(false)}><FaTimes /></button>
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center">
+          <div className="bg-white w-[450px] p-5 rounded-lg">
+            <div className="flex justify-between items-center mb-2.5">
+              <h3 className='font-semibold'>Edit Dish</h3>
+              <button className="bg-none text-lg text-gray-600 cursor-pointer" onClick={() => setShowEditForm(false)}>
+                <FaTimes />
+              </button>
             </div>
 
-            <div className={styles.formContent}>
-              <div className={styles.imageUpload}>
-                {editDish.image ? <img src={editDish.image} alt="Preview" /> : <span>Select Image</span>}
-                <input type="file" accept="image/*" onChange={handleEditImageChange} />
+            <div className="flex gap-5">
+              <div className="relative w-[275px] h-[195px] bg-gray-100 flex items-center justify-center rounded-md cursor-pointer overflow-hidden">
+                {editDish.image ? <img src={editDish.image} alt="Preview" className="w-full h-full object-cover" /> : <span>Select Image</span>}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleEditImageChange}
+                  className="absolute w-full h-full opacity-0 cursor-pointer"
+                />
               </div>
 
-              <div className={styles.formFields}>
+              <div className="flex flex-col gap-2.5 w-full">
                 <input
                   type="text"
                   name="name"
                   placeholder="Dish Name"
                   value={editDish.name}
                   onChange={(e) => setEditDish({ ...editDish, name: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded-md"
                 />
 
                 <select
                   name="category"
                   value={editDish.category}
                   onChange={(e) => setEditDish({ ...editDish, category: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded-md"
                 >
                   {categories.map((cat: any) => (
                     <option key={cat._id} value={cat._id}>
@@ -361,19 +423,21 @@ function DishContent() {
                 </select>
 
                 <input
-                  className={styles.noSpinner}
                   type="number"
                   name="price"
                   placeholder="Price"
                   value={editDish.price}
                   onChange={(e) => setEditDish({ ...editDish, price: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
 
-                {!editLoading ?
-                  (<button onClick={handleUpdateDish}>Save Changes</button>)
-                  :
-                  (<button>Saving...</button>)
-                }
+                <button
+                  className="bg-[#f0924c] text-white p-2.5 rounded-md transition-colors duration-200 hover:bg-[#d87c3b]"
+                  onClick={handleUpdateDish}
+                  disabled={editLoading}
+                >
+                  {editLoading ? 'Saving...' : 'Save Changes'}
+                </button>
               </div>
             </div>
           </div>

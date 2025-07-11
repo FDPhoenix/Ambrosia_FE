@@ -111,7 +111,7 @@ useEffect(() => {
           <FiMenu className="w-6 h-6 text-black" />
         </button>
 
-        <Link to="/" className="flex items-center">
+        <Link to="/" className="flex items-center pl-5">
           <img src={logo} alt="Ambrosia" className="h-10 object-cover ml-6" />
         </Link>
 
