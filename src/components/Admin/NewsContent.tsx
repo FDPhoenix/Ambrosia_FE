@@ -12,6 +12,8 @@ interface NewsItem {
     isPublished: boolean;
 }
 
+const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
+
 function NewsContent() {
     const [news, setNews] = useState<NewsItem[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
@@ -30,7 +32,7 @@ function NewsContent() {
 
     const fetchNews = async () => {
         try {
-            let url = "http://localhost:3000/news/all";
+            let url = `${backendApiUrl}/news/all`;
             if (filterCategory) url += `?category=${filterCategory}`;
             const response = await fetch(url);
             const data = await response.json();
@@ -67,7 +69,9 @@ function NewsContent() {
     const handleConfirmDelete = async () => {
         if (!newsToDelete) return;
         try {
-            await fetch(`http://localhost:3000/news/${newsToDelete._id}`, { method: "DELETE" });
+            await fetch(`${backendApiUrl}/news/${newsToDelete._id}`, {
+                method: "DELETE",
+            });
             fetchNews();
         } catch (error) {
             console.error("Error deleting news:", error);
@@ -79,8 +83,8 @@ function NewsContent() {
     const handleSubmit = async () => {
         const method = editingNews ? "PUT" : "POST";
         const url = editingNews
-            ? `http://localhost:3000/news/${editingNews._id}`
-            : "http://localhost:3000/news";
+            ? `${backendApiUrl}/news/${editingNews._id}`
+            : `${backendApiUrl}/news`;
 
         try {
             const formData = new FormData();

@@ -10,6 +10,8 @@ function RevenueContent() {
   const [loading, setLoading] = useState(false)
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
 
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'
+
   useEffect(() => {
     fetchRevenue()
   }, [year, month])
@@ -17,7 +19,7 @@ function RevenueContent() {
   const fetchRevenue = async () => {
     setLoading(true)
     try {
-      const response = await axios.get(`http://localhost:3000/api/revenue?year=${year}&month=${month}`)
+      const response = await axios.get(`${backendApiUrl}/api/revenue?year=${year}&month=${month}`)
       setRevenueData(response.data.revenueList)
       setTotalRevenue(response.data.totalRevenue)
     } catch (error) {
@@ -33,7 +35,7 @@ function RevenueContent() {
   const handleDownloadReport = async () => {
     setLoading(true)
     try {
-      const response = await axios.get(`http://localhost:3000/api/revenue/export-revenue?year=${year}&month=${month}`, {
+      const response = await axios.get(`${backendApiUrl}/api/revenue/export-revenue?year=${year}&month=${month}`, {
         responseType: "blob",
       })
 

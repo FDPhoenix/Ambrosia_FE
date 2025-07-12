@@ -62,7 +62,8 @@ function UserContent() {
   const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || '${backendApiUrl}';
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
+
   const [newUser, setNewUser] = useState<NewUser>({
     fullname: "",
     email: "",
