@@ -62,6 +62,7 @@ function UserContent() {
   const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   const [newUser, setNewUser] = useState<NewUser>({
     fullname: "",
@@ -84,7 +85,7 @@ function UserContent() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:3000/user/all', {
+      const response = await fetch(`${backendApiUrl}/user/all`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${Cookies.get('token')}`,
@@ -133,7 +134,7 @@ function UserContent() {
       onConfirm: async () => {
         setConfirmData(prev => ({ ...prev, isVisible: false }));
         try {
-          const response = await fetch(`http://localhost:3000/user/ban/${id}`, {
+          const response = await fetch(`${backendApiUrl}/user/ban/${id}`, {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${Cookies.get('token')}`,
@@ -198,7 +199,7 @@ function UserContent() {
         return;
       }
       try {
-        const response = await fetch(`http://localhost:3000/user/edit/${editingUser.id}`, {
+        const response = await fetch(`${backendApiUrl}/user/edit/${editingUser.id}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,

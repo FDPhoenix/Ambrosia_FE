@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from 'react';
 import axios from "axios";
 import Modal from "react-modal";
 import { FaUserEdit, FaLock, FaUnlock, FaEye, FaEyeSlash } from "react-icons/fa";
@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import StatusBadge from "./StatusBadge";
 import { AxiosError } from 'axios';
+import Pagination from "../Pagination";
 
 interface Employee {
   _id: string;
@@ -25,7 +26,15 @@ export default function EmployeeContext() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{ id: string; isActive: boolean } | null>(null);
+  const [currentEmployees, setCurrentEmployees] = useState<Employee[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 4;
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
+  const employees = activeTab === "staff" ? staffs : chefs;
+  useEffect(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    setCurrentEmployees(employees.slice(start, start + itemsPerPage));
+  }, [employees, currentPage, itemsPerPage]);
 
   const [newEmployee, setNewEmployee] = useState({
     fullname: "",
@@ -55,6 +64,20 @@ export default function EmployeeContext() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchEmployees("staff");
+    fetchEmployees("chef");
+    setCurrentPage(1);
+  }, [activeTab]);
+
+  const handlePageChange = useCallback(
+    (paginatedEmployees: Employee[], page: number) => {
+      setCurrentEmployees(paginatedEmployees);
+      setCurrentPage(page);
+    },
+    []
+  );
 
   const handleEditEmployee = async (id: string) => {
     try {
@@ -150,13 +173,11 @@ export default function EmployeeContext() {
     return null;
   };
 
-  const employees = activeTab === "staff" ? staffs : chefs;
-
   return (
     // <div className="w-[1200px] max-h-[567px] mx-auto overflow-y-auto overflow-x-hidden bg-white px-8 rounded-lg shadow-lg scrollbar-hide" >
-    <div className="max-w-[1320px] max-h-[567px] pt-4 pb-5 pl-8 pr-8 bg-white rounded-xl shadow-md">
-      <div className="bg-white z-20">
-        <ul className="flex border-b pt-1 pl-5 mb-2 mt-2">
+    <div className="relative w-[1200px] h-[567px] p-5 max-w-[1210px] bg-white rounded-2xl shadow-md">
+      <div className="bg-white z-20 mb-3">
+        <ul className="flex border-b pt-1 pl-5 mb-1 mt-2">
           <li>
             <button
               className={`px-4 py-2 font-medium ${activeTab === "staff"
@@ -202,23 +223,23 @@ export default function EmployeeContext() {
           <table className="table-auto w-full text-center border-collapse">
             <thead className="bg-gray-100 text-base">
               <tr>
-                <th className="py-6 px-5">No</th>
-                <th className="py-6 px-5">Full Name</th>
-                <th className="py-6 px-5">Email</th>
-                <th className="py-6 px-5">Phone</th>
-                <th className="py-6 px-5">Status</th>
-                <th className="py-6 px-5">Action</th>
+                <th className="py-4 px-5">No</th>
+                <th className="py-4 px-5">Full Name</th>
+                <th className="py-4 px-5">Email</th>
+                <th className="py-4 px-5">Phone</th>
+                <th className="py-4 px-5">Status</th>
+                <th className="py-4 px-5">Action</th>
               </tr>
             </thead>
             <tbody className="text-base">
-              {employees.map((emp, idx) => (
+              {currentEmployees.map((emp, idx) => (
                 <tr key={emp._id} className="hover:bg-[rgba(186,163,146,0.205)] border-b">
 
-                  <td className="py-7 px-5">{idx + 1}</td>
-                  <td className="py-7 px-5">{emp.fullname}</td>
-                  <td className="py-7 px-5">{emp.email}</td>
-                  <td className="py-7 px-5">{emp.phoneNumber}</td>
-                  <td className="py-7 px-5">
+                  <td className="py-5 px-5">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
+                  <td className="py-5 px-5">{emp.fullname}</td>
+                  <td className="py-5 px-5">{emp.email}</td>
+                  <td className="py-5 px-5">{emp.phoneNumber}</td>
+                  <td className="py-5 px-5">
                     <StatusBadge
                       status={emp.isActive}
                       caseTrue="Active"
@@ -449,6 +470,14 @@ export default function EmployeeContext() {
           </div>
         </div>
       </Modal>
+
+      <Pagination
+        key={`${activeTab}-${employees.length}`}
+        items={employees}
+        itemsPerPage={itemsPerPage}
+        onPageChange={handlePageChange}
+      />
+
     </div >
   );
 }

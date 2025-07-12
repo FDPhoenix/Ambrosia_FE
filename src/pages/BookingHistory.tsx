@@ -46,6 +46,7 @@ export default function BookingHistory() {
   const [selectedBooking, setSelectedBooking] = useState<BookingDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -56,7 +57,7 @@ export default function BookingHistory() {
           return;
         }
 
-        const response = await fetch("http://localhost:3000/api/history/bookings", {
+        const response = await fetch(`${backendApiUrl}/api/history/bookings`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -86,7 +87,7 @@ export default function BookingHistory() {
   const fetchBookingDetails = async (bookingId: string) => {
     try {
       const token = Cookies.get("token");
-      const response = await fetch(`http://localhost:3000/api/history/booking/${bookingId}`, {
+      const response = await fetch(`${backendApiUrl}/api/history/booking/${bookingId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
