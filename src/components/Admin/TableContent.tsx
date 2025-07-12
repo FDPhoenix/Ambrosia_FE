@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Modal from "react-modal";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import Pagination from "../Pagination";
 
 interface Table {
   tableNumber: string;
@@ -22,6 +23,36 @@ const TableContent: React.FC = () => {
   const [sortBy, setSortBy] = useState<"tableNumber" | "capacity" | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [confirmDelete, setConfirmDelete] = useState<{ tableNumber: string | null }>({ tableNumber: null });
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [currentTables, setCurrentTables] = useState<Table[]>([]);
+  const itemsPerPage = 5;
+  useEffect(() => {
+    const sorted = [...tables].sort((a, b) => {
+      const extract = (s: string) => {
+        const prefix = s.replace(/\d+$/, "");       // phần chữ
+        const number = parseInt(s.replace(/^\D+/, ""), 10); // phần số
+        return { prefix, number: isNaN(number) ? 0 : number };
+      };
+
+      const aPart = extract(a.tableNumber);
+      const bPart = extract(b.tableNumber);
+
+      if (aPart.prefix !== bPart.prefix) {
+        return sortOrder === "asc"
+          ? aPart.prefix.localeCompare(bPart.prefix)
+          : bPart.prefix.localeCompare(aPart.prefix);
+      }
+
+      return sortOrder === "asc"
+        ? aPart.number - bPart.number
+        : bPart.number - aPart.number;
+    });
+
+    const start = (currentPage - 1) * itemsPerPage;
+    setCurrentTables(sorted.slice(start, start + itemsPerPage));
+  }, [tables, currentPage, sortBy, sortOrder]);
+
+
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
@@ -51,6 +82,12 @@ const TableContent: React.FC = () => {
     }
   };
 
+  const handlePageChange = useCallback((paginatedData: Table[], page: number) => {
+    setCurrentTables(paginatedData);
+    setCurrentPage(page);
+  }, []);
+
+
   const handleSort = (column: "tableNumber" | "capacity") => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -59,13 +96,6 @@ const TableContent: React.FC = () => {
       setSortOrder("asc");
     }
   };
-
-  const sortedTables = [...tables].sort((a, b) => {
-    if (!sortBy) return 0;
-    if (sortBy === "tableNumber") return sortOrder === "asc" ? a.tableNumber.localeCompare(b.tableNumber) : b.tableNumber.localeCompare(a.tableNumber);
-    if (sortBy === "capacity") return sortOrder === "asc" ? Number(a.capacity) - Number(b.capacity) : Number(b.capacity) - Number(a.capacity);
-    return 0;
-  });
 
   const handleAddTable = async () => {
     const finalTableNumber = customTable || tableNumber;
@@ -150,7 +180,7 @@ const TableContent: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1210px] p-10 bg-white rounded-xl shadow-md">
+    <div className="relative w-[1200px] h-[567px] p-5 max-w-[1210px] bg-white rounded-2xl shadow-md">
       <div className="flex justify-between items-center mb-6 text-[#3f2b22]">
         <h2 className="text-2xl font-bold">Table List</h2>
         <button className="px-4 py-[8px] text-sm rounded border border-gray-300 bg-[#f0f0f0] hover:bg-[#F0924C] hover:text-white transition duration-200 shadow-sm" onClick={() => setIsAddModalOpen(true)}>
@@ -169,9 +199,9 @@ const TableContent: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {sortedTables.map((table, index) => (
+            {currentTables.map((table, index) => (
               <tr key={table.tableNumber} className="hover:bg-[rgba(186,163,146,0.205)] border-b">
-                <td className="p-5">{index + 1}</td>
+                <td className="p-5">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                 <td className="p-5">{table.tableNumber}</td>
                 <td className="p-5">{table.capacity}</td>
                 <td className="py-6 px-5">
@@ -457,6 +487,13 @@ const TableContent: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      <Pagination
+        items={tables}
+        itemsPerPage={itemsPerPage}
+        onPageChange={handlePageChange}
+      />
+
     </div>
   );
 };
