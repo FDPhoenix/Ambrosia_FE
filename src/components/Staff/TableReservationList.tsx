@@ -28,7 +28,6 @@ const TableReservationList = () => {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [reload] = useState(false);
     const [, setFilterModalOpen] = useState(false);
     const [filters, setFilters] = useState({
         dateRange: "",
