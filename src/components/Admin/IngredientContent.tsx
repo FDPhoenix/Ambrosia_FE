@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FaEdit, FaEye, FaEyeSlash, FaTimes } from 'react-icons/fa';
 import StatusBadge from './StatusBadge';
 import { toast } from 'react-toastify';
-
+import Pagination from '../Pagination';
 interface Ingredient {
   _id: string;
   dishId: { _id: string; name: string };
@@ -34,6 +34,13 @@ function IngredientContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || '${backendApiUrl}';
+  const [currentIngredients, setCurrentIngredients] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+    const itemsPerPage = 4;
+    const handlePageChange = useCallback((paginatedDishes: any[], page: number) => {
+      setCurrentIngredients(paginatedDishes);
+      setCurrentPage(page);
+    }, []);
   const [ingredientData, setIngredientData] = useState<IngredientData>({
     name: '',
     status: 'Available',
@@ -204,16 +211,28 @@ function IngredientContent() {
     fetchIngredients(type);
   };
 
+  useEffect(() => {
+    const totalPages = Math.ceil(ingredients.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    } else if (totalPages === 0) {
+      setCurrentPage(1);
+    }
+  
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedItems = ingredients.slice(startIndex, startIndex + itemsPerPage);
+    setCurrentIngredients(paginatedItems);
+  }, [ingredients, currentPage, itemsPerPage]);
   return (
-    <div className="max-w-8xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <div className="relative h-[567px] max-w-8xl mx-auto bg-white p-6 rounded-xl shadow-md">
       {loading ? (
         <div className="text-center">Loading...</div>
       ) : error ? (
         <div className="text-red-400">{error}</div>
       ) : (
         <>
-          <div className="flex flex-col items-start mb-4">
-            <h3 className="text-xl font-semibold">List of Ingredients</h3>
+          <div className=" flex flex-row justify-between mb-4">
+            <h3 className=" text-xl font-semibold">List of Ingredients</h3>
             <div className="flex flex-col sm:flex-row items-start mt-2 sm:mt-0">
               <select
                 value={filterType}
@@ -234,7 +253,7 @@ function IngredientContent() {
             </div>
           </div>
 
-          <div className="overflow-auto sm:max-h-[475px]">
+          <div className="h-[450px] overflow-auto sm:max-h-[475px]">
             {ingredients.length === 0 ? (
               <p className="text-center">No ingredients found.</p>
             ) : (
@@ -253,9 +272,10 @@ function IngredientContent() {
                       </tr>
                     </thead>
                     <tbody>
-                      {ingredients.map((ingredient, index) => (
+                      {currentIngredients.map((ingredient, index) => (
                         <tr key={ingredient._id} className="border-b">
-                          <td className="p-3">{index + 1}</td>
+                          <td className="p-3">{(currentPage - 1) * itemsPerPage + index + 1}
+</td>
                           <td className="p-3">{ingredient.name}</td>
                           <td className="max-w-[250px] p-3">{ingredient.description || '-'}</td>
                           <td className="p-3">{ingredient.quantity}</td>
@@ -315,7 +335,8 @@ function IngredientContent() {
               </>
             )}
           </div>
-
+          <Pagination items={ingredients} itemsPerPage={itemsPerPage} onPageChange={handlePageChange} />
+          
           {showForm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
               <div className="bg-white rounded-lg p-6 w-[90%] sm:w-[400px]">

@@ -49,6 +49,7 @@ export default function OrderHistory() {
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState<string>("");
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -59,7 +60,7 @@ export default function OrderHistory() {
           return;
         }
 
-        const response = await fetch("http://localhost:3000/api/history/orders", {
+        const response = await fetch(`${backendApiUrl}/api/history/orders`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -93,7 +94,7 @@ export default function OrderHistory() {
         return;
       }
 
-      const response = await fetch(`http://localhost:3000/api/history/order/${order._id}`, {
+      const response = await fetch(`${backendApiUrl}/api/history/order/${order._id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -144,7 +145,7 @@ export default function OrderHistory() {
         return;
       }
 
-      const response = await fetch("http://localhost:3000/api/feedback/add", {
+      const response = await fetch(`${backendApiUrl}/api/feedback/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
