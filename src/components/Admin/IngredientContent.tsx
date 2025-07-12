@@ -211,6 +211,18 @@ function IngredientContent() {
     fetchIngredients(type);
   };
 
+  useEffect(() => {
+    const totalPages = Math.ceil(ingredients.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    } else if (totalPages === 0) {
+      setCurrentPage(1);
+    }
+  
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedItems = ingredients.slice(startIndex, startIndex + itemsPerPage);
+    setCurrentIngredients(paginatedItems);
+  }, [ingredients, currentPage, itemsPerPage]);
   return (
     <div className="relative h-[567px] max-w-8xl mx-auto bg-white p-6 rounded-xl shadow-md">
       {loading ? (

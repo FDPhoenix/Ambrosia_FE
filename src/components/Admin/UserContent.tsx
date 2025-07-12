@@ -230,7 +230,18 @@ function UserContent() {
       }
     }
   };
-
+  useEffect(() => {
+    const totalPages = Math.ceil(users.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    } else if (totalPages === 0) {
+      setCurrentPage(1);
+    }
+  
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedItems = users.slice(startIndex, startIndex + itemsPerPage);
+    setCurrentiUsers(paginatedItems);
+  }, [users, currentPage, itemsPerPage]);
 
 
   return (
