@@ -58,10 +58,10 @@ function NewsDetail() {
 
     return (
         <div className="w-full bg-[#EFF4F8]">
-            <div className="max-w-[1350px] mx-auto px-4 pt-24 sm:pt-28 pb-12">
+            <div className="mt-[72px] md:mt-0 max-w-[1350px] mx-auto px-4 pt-8 md:py-16 pb-12">
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-semibold text-gray-800">Ambrosia News</h2>
-                    <p className="text-gray-600">Stay updated with the latest promotions, events, and restaurant news</p>
+                    <h2 className="text-3xl md:text-4xl font-semibold text-gray-800">Ambrosia News</h2>
+                    <p className="text-gray-600 text-base md:text-lg">Stay updated with the latest promotions, events, and restaurant news</p>
                 </div>
 
                 <div className="mb-8 text-right">

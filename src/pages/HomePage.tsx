@@ -36,7 +36,7 @@ function HomePage() {
 
   return (
     <div>
-      <Header fixed={true} onCartToggle={toggleCart} />
+      <Header fixed={true} inheritBackground={true} onCartToggle={toggleCart} />
       <Banner />
       <About />
       <FAQ />

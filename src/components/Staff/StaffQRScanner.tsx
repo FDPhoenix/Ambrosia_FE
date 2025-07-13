@@ -45,7 +45,11 @@ export default function StaffQRScanner() {
     const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
     useEffect(() => {
-        if (mode === "camera" && !bookingInfo && videoRef.current) {
+        const setupScanner = async () => {
+            if (mode !== "camera" || bookingInfo || !videoRef.current) return;
+
+            await stopAndDestroyScanner();
+
             qrScannerRef.current = new QrScanner(
                 videoRef.current,
                 (result) => {
@@ -57,13 +61,30 @@ export default function StaffQRScanner() {
                     preferredCamera: facingMode,
                 }
             );
-            qrScannerRef.current.start();
 
-            return () => {
-                qrScannerRef.current?.stop();
-            };
-        }
+            await qrScannerRef.current.start();
+        };
+
+        setupScanner();
+
+        return () => {
+            stopAndDestroyScanner();
+        };
     }, [mode, facingMode, bookingInfo]);
+
+    const stopAndDestroyScanner = async () => {
+        if (qrScannerRef.current) {
+            await qrScannerRef.current.stop();
+            qrScannerRef.current.destroy();
+            qrScannerRef.current = null;
+        }
+
+        if (videoRef.current?.srcObject) {
+            const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+            tracks.forEach((track) => track.stop());
+            videoRef.current.srcObject = null;
+        }
+    };
 
     const handleExtractBooking = async (qrData: string) => {
         try {
@@ -105,8 +126,6 @@ export default function StaffQRScanner() {
         setSelectedImage(file);
     };
 
-
-
     const handleScanImage = async () => {
         if (!selectedImage) return;
 
@@ -140,8 +159,6 @@ export default function StaffQRScanner() {
         if (typeof result === "object" && "data" in result) return result.data;
         return null;
     };
-
-
 
 
     const handleReset = () => {
@@ -281,8 +298,6 @@ export default function StaffQRScanner() {
                     )}
                 </div>
             )}
-
-
 
             {loading && <p className="text-[#f0924c] font-medium mt-4">Scanning QR code...</p>}
 

@@ -1,9 +1,10 @@
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import Modal from "react-modal"
 import { FaEdit, FaEye, FaEyeSlash } from "react-icons/fa"
 import StatusBadge from "./StatusBadge"
 import { toast } from "react-toastify"
+import Pagination from "../Pagination"
 
 interface Category {
   _id: string
@@ -21,6 +22,10 @@ const CategoryContent: React.FC = () => {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [editCategory, setEditCategory] = useState<Category | null>(null)
+
+  const [currentCategories, setCurrentCategories] = useState<Category[]>([])
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const itemsPerPage = 6
 
   const fetchCategories = async () => {
     try {
@@ -43,6 +48,19 @@ const CategoryContent: React.FC = () => {
   useEffect(() => {
     fetchCategories()
   }, [])
+
+  useEffect(() => {
+    const totalPages = Math.ceil(categories.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    } else if (totalPages === 0) {
+      setCurrentPage(1);
+    }
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedItems = categories.slice(startIndex, startIndex + itemsPerPage);
+    setCurrentCategories(paginatedItems);
+  }, [categories, currentPage, itemsPerPage]);
 
   const handleAddCategory = async () => {
     if (!name.trim()) {
@@ -124,6 +142,11 @@ const CategoryContent: React.FC = () => {
     }
   }
 
+  const handlePageChange = useCallback((paginatedCategories: Category[], page: number) => {
+    setCurrentCategories(paginatedCategories);
+    setCurrentPage(page);
+  }, []);
+
   const customModalStyles = {
     content: {
       position: "relative" as const,
@@ -143,9 +166,9 @@ const CategoryContent: React.FC = () => {
   }
 
   return (
-    <div className="w-[1200px] h-[567px] p-[20px_30px] max-w-[1210px] bg-white rounded-[15px] shadow-[0_4px_8px_rgba(0,0,0,0.1)]">
+    <div className="relative w-[1200px] h-[567px] p-[20px_30px] max-w-[1210px] bg-white rounded-[15px] shadow-[0_4px_8px_rgba(0,0,0,0.1)]">
       <div className="flex justify-between">
-        <h3 className="mt-[5px]">List of category</h3>
+        <h3 className="text-xl font-bold my-auto">List of category</h3>
         <button
           className="font-medium border border-[#ccc] py-[7px] px-[12px] rounded-md cursor-pointer transition-colors duration-200 bg-[rgb(240,240,240)] hover:bg-[#F09C42] text-black"
           onClick={() => setModalIsOpen(true)}
@@ -154,27 +177,27 @@ const CategoryContent: React.FC = () => {
         </button>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-5 max-h-[440px] overflow-y-auto">
         <table className="w-full border-collapse">
           <thead className="bg-[#f4f4f4]">
             <tr>
-              <th className="p-[15px] text-center border-b border-[#ddd] font-bold">No</th>
-              <th className="p-[15px] text-center border-b border-[#ddd] font-bold">Name</th>
-              <th className="p-[15px] text-center border-b border-[#ddd] font-bold">Description</th>
-              <th className="p-[15px] text-center border-b border-[#ddd] font-bold">Status</th>
-              <th className="p-[15px] text-center border-b border-[#ddd] font-bold">Action</th>
+              <th className="p-[14px] text-center border-b border-[#ddd] font-bold">No</th>
+              <th className="p-[14px] text-center border-b border-[#ddd] font-bold">Name</th>
+              <th className="p-[14px] text-center border-b border-[#ddd] font-bold">Description</th>
+              <th className="p-[14px] text-center border-b border-[#ddd] font-bold">Status</th>
+              <th className="p-[14px] text-center border-b border-[#ddd] font-bold">Action</th>
             </tr>
           </thead>
           <tbody>
-            {categories.map((category, index) => (
+            {currentCategories.map((category, index) => (
               <tr key={category._id} className="last:border-b-0">
-                <td className="p-[15px] text-center border-b border-[#ddd]">{index + 1}</td>
-                <td className="p-[15px] text-center border-b border-[#ddd]">{category.name}</td>
-                <td className="p-[15px] text-center border-b border-[#ddd]">{category.description || "-"}</td>
-                <td className="p-[15px] text-center border-b border-[#ddd]">
+                <td className="p-[14px] text-center border-b border-[#ddd]">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                <td className="p-[14px] text-center border-b border-[#ddd]">{category.name}</td>
+                <td className="p-[14px] text-center border-b border-[#ddd]">{category.description || "-"}</td>
+                <td className="p-[14px] text-center border-b border-[#ddd]">
                   <StatusBadge status={!category.isHidden} caseTrue="Available" caseFalse="Unavailable" />
                 </td>
-                <td className="p-[15px] text-center border-b border-[#ddd]">
+                <td className="p-[14px] text-center border-b border-[#ddd]">
                   <button
                     className="bg-transparent border-none cursor-pointer mr-5 text-xl text-black transition-transform duration-200 hover:scale-[1.2] hover:bg-[#F09C42] rounded-md p-1.5"
                     onClick={() => setEditCategory(category)}
@@ -193,6 +216,8 @@ const CategoryContent: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      <Pagination items={categories} itemsPerPage={itemsPerPage} onPageChange={handlePageChange} />
 
       <Modal
         isOpen={modalIsOpen}
