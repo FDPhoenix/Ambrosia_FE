@@ -37,23 +37,23 @@ const Login = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const successMessage = urlParams.get("success");
     const errorMessage = urlParams.get("error");
-  
+
     if (successMessage) {
       toast.success(successMessage);
       setTimeout(() => {
         window.history.replaceState({}, document.title, window.location.pathname);
-        navigate("/"); 
+        navigate("/");
       }, 1500);
       return;
     }
-  
+
     if (errorMessage) {
       toast.error(errorMessage);
       setTimeout(() => {
         window.history.replaceState({}, document.title, window.location.pathname);
       }, 3000);
     }
-    
+
     if (token) {
       document.cookie = `token=${token}; path=/;`;
       navigate("/");
@@ -197,9 +197,9 @@ const Login = () => {
           '67ac667ae072694cafa16e7c': '/chef',             // chef
           '67ac64afe072694cafa16e79': '/',                 // customer or default
         };
-      
+
         let destination = '/';
-      
+
         if (Array.isArray(decodedToken.roleId)) {
           for (const roleId of decodedToken.roleId) {
             if (roleMap[roleId]) {
@@ -210,10 +210,10 @@ const Login = () => {
         } else if (typeof decodedToken.roleId === 'string') {
           destination = roleMap[decodedToken.roleId] || '/';
         }
-      
+
         navigate(destination);
       }, 1500);
-      
+
     } catch (err) {
       console.error("Unexpected error during login:", err);
       toast.error("An unexpected error occurred. Please try again later.");
@@ -245,15 +245,14 @@ const Login = () => {
         theme="light"
       />
 
-<div className="flex items-center justify-center -translate-y-5">
-<img 
-  src={logo} 
-  alt="Ambrosia Logo" 
-  className="w-[3rem] h-[3rem] rounded-full border-4 border-[#a68a64] shadow-lg object-cover cursor-pointer bg-[#a68a64]" 
-  onClick={() => navigate("/")} 
-/>
-<p className="ml-3 text-3xl font-bold text-[#a68a64]">Ambrosia</p>
-</div>
+      <div className="flex items-center justify-center -translate-y-5" onClick={() => navigate("/")}>
+        <img
+          src={logo}
+          alt="Ambrosia Logo"
+          className="w-[3rem] h-[3rem] rounded-full border-4 border-[#a68a64] shadow-lg object-cover cursor-pointer bg-[#a68a64]"
+        />
+        <p className="ml-3 text-3xl font-bold text-[#a68a64]">Ambrosia</p>
+      </div>
 
       <div className="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl overflow-hidden shadow-xl min-h-[600px] md:min-h-[500px]">
         <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center flex-1 space-y-6">
@@ -380,7 +379,7 @@ const Login = () => {
         />
       )}
     </div>
-  );  
+  );
 };
 
 export default Login;

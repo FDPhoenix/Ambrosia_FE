@@ -97,12 +97,12 @@ function DishMenu() {
       let updatedCart;
 
       if (existingItem) {
-        updatedCart = cart.map((item: { _id: any; quantity: number; }) =>
-          item._id === dish._id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      } else {
-        updatedCart = [...cart, { ...dish, quantity: 1 }];
-      }
+      updatedCart = cart.map((item: { _id: any; quantity: number; }) =>
+        item._id === dish._id ? { ...item, quantity: item.quantity + 1 } : item
+      );
+    } else {
+      updatedCart = [...cart, { ...dish, quantity: 1, isAvailable: dish.isAvailable ?? true }];
+    }
 
       localStorage.setItem('cart', JSON.stringify(updatedCart));
       window.dispatchEvent(new Event('cartUpdated'));

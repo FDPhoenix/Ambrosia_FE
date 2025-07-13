@@ -113,11 +113,17 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const totalPrice = cart.reduce((sum, item: any) => sum + item.price * item.quantity, 0);
+  const totalPrice = cart.reduce((sum, item: any) => item.isAvailable ? sum + item.price * item.quantity : sum, 0);
 
   const handleCheckout = () => {
     if (cart.length === 0) {
       toast.error('There are no dish to checkout');
+      return;
+    }
+
+    const hasUnavailableItems = cart.some((item: any) => !item.isAvailable);
+    if (hasUnavailableItems) {
+      toast.error('Please remove unavailable dishes before checking out.');
       return;
     }
 
@@ -161,14 +167,20 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                   </button>
                 </div>
 
-                <div className="flex justify-between mt-3">
+                {item.isAvailable ? (
+                  <div className="flex justify-between mt-3">
                   <div className="flex items-center gap-2">
                     <button className="w-[25px] h-[25px] border-none cursor-pointer bg-[#ddd]" onClick={() => updateQuantity(item._id, "decrease")}><Minus className="w-[11px] mx-auto"/></button>
-                    <input type="number" value={item.quantity} className="w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                    <input type="number" value={item.quantity} className="w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" readOnly/>
                     <button className="w-[25px] h-[25px] border-none cursor-pointer bg-[#ddd]" onClick={() => updateQuantity(item._id, "increase")}>+</button>
                   </div>
                   <p className="font-bold text-red-600">{item.price.toLocaleString()}₫</p>
                 </div>
+                ) : (
+                  <div className="w-full h-[25px] flex justify-start items-center mt-3">
+                    <div className="px-3 py-[3px] rounded-md text-red-600 font-semibold border border-red-600">Sold out</div>
+                  </div>
+                )}
               </div>
             </div>
           ))
