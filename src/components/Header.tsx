@@ -132,7 +132,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
             }`} />
         </button>
 
-        <Link to="/" className="flex items-center pl-10">
+        <Link to="/" className="flex items-center pl-8">
           <img src={logo} alt="Ambrosia" className="h-10 object-cover ml-6" />
         </Link>
 
