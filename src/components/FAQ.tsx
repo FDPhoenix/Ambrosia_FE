@@ -31,7 +31,7 @@ function FAQ() {
   return (
     <section className="w-full bg-[#A2845E] py-10 px-4 md:px-0 md:py-14">
       <div className="container mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8 md:mb-12 text-black">FAQs</h2>
+        <h2 className="text-3xl font-semibold text-center mb-8 md:mb-12 text-black">FAQs</h2>
 
         <div className="max-w-3xl mx-auto">
           <p className="text-center mb-8 text-black">

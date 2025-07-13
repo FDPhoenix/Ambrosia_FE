@@ -91,6 +91,7 @@ function DishContent() {
             dish._id === id ? { ...dish, isAvailable: updatedStatus } : dish
           ));
         }
+        fetchDishes();
       })
       .catch(err => console.error("Error updating dish status:", err));
   };
@@ -240,6 +241,19 @@ function DishContent() {
     setCurrentDishes(paginatedDishes);
     setCurrentPage(page);
   }, []);
+
+  useEffect(() => {
+  const totalPages = Math.ceil(dishes.length / itemsPerPage);
+  if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(totalPages);
+  } else if (totalPages === 0) {
+    setCurrentPage(1);
+  }
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedItems = dishes.slice(startIndex, startIndex + itemsPerPage);
+  setCurrentDishes(paginatedItems);
+}, [dishes, currentPage, itemsPerPage]);
 
   useEffect(() => {
     fetchDishes();

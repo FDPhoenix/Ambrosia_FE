@@ -5,6 +5,7 @@ import Cookies from 'js-cookie'
 import { useNavigate } from 'react-router'
 import { toast } from 'react-toastify'
 import { jwtDecode } from 'jwt-decode'
+import LoadingAnimation from './LoadingAnimation'
 
 function MobileCart() {
   const navigate = useNavigate();
@@ -111,11 +112,17 @@ function MobileCart() {
     }
   };
 
-  const totalPrice = cartItems.reduce((sum, item: any) => sum + item.price * item.quantity, 0);
+  const totalPrice = cartItems.reduce((sum, item: any) => item.isAvailable ? sum + item.price * item.quantity : sum, 0);
 
   const handleCheckout = () => {
     if (cartItems.length === 0) {
       toast.error('There are no dish to checkout');
+      return;
+    }
+
+    const hasUnavailableItems = cartItems.some((item: any) => !item.isAvailable);
+    if (hasUnavailableItems) {
+      toast.error('Please remove unavailable dishes before checking out.');
       return;
     }
 
@@ -135,7 +142,7 @@ function MobileCart() {
             <h1 className="text-2xl text-center md:text-3xl font-bold text-gray-800 mb-6">Your Cart</h1>
             <div className="bg-white rounded-lg shadow-sm py-4 px-6 min-h-[200px]">
               {isLoading ? (
-                <div className="w-[30px] aspect-square rounded-full border-4 border-solid border-black border-r-transparent border-b-transparent mx-auto my-12 animate-spin"></div>
+                <LoadingAnimation />
               ) : cartItems.length === 0 ? (
                 <div className='w-max flex flex-col justify-center items-center mx-auto my-12'>
                   <p className='text-lg mb-2'>Your cart is empty</p>
@@ -175,7 +182,7 @@ function MobileCart() {
 
                           {/* Quantity and Price Controls */}
                           <div className="w-full flex flex-row items-center justify-between  sm:w-auto gap-3">
-                            <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-2 py-1 mr-0 xl:mr-14">
+                            <div className={`flex items-center gap-2 border border-gray-300 rounded-lg px-2 py-1 mr-0 xl:mr-14 ${item.isAvailable ? '' : 'hidden'}`}>
                               <button
                                 className="w-4 h-4 md:w-6 md:h-6 xl:w-8 xl:h-8 border-none cursor-pointer flex items-center justify-center"
                                 onClick={() => updateQuantity(item._id, "decrease")}
@@ -197,13 +204,19 @@ function MobileCart() {
                             </div>
 
                             {/* Price and Remove Button */}
-                            <div className="flex items-center justify-between sm:justify-end gap-3">
-                              <div className="text-right">
-                                <div className="text-base sm:text-lg font-semibold text-red-600">
-                                  {item.price.toLocaleString()}₫
+                            {item.isAvailable ? (
+                              <div className="flex items-center justify-between sm:justify-end gap-3">
+                                <div className="text-right">
+                                  <div className="text-base sm:text-lg font-semibold text-red-600">
+                                    {item.price.toLocaleString()}₫
+                                  </div>
                                 </div>
                               </div>
-                            </div>
+                            ) : (
+                              <div className="w-full h-[25px] flex justify-start items-center">
+                                <div className="px-3 py-[3px] rounded-md text-red-600 font-semibold border border-red-600">Sold out</div>
+                              </div>
+                            )}
 
                             <Button
                               variant="ghost"
