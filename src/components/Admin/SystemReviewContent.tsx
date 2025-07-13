@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Modal from "react-modal";
 import StatusBadge from "./StatusBadge";
 import { FaInfoCircle, FaStar } from 'react-icons/fa';
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from 'react-toastify';
+import Pagination from "../Pagination";
 
 interface Review {
   id: string;
@@ -35,6 +36,14 @@ function SystemReviewContent() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [filterIsReplied, setFilterIsReplied] = useState<string>("");
   const [filterRating, setFilterRating] = useState<string>("");
+  const [currentReviews, setCurrentReviews] = useState<Review[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 5;
+  useEffect(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    setCurrentReviews(reviews.slice(start, start + itemsPerPage));
+  }, [reviews, currentPage, itemsPerPage]);
+
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   const openModal = (review: Review) => {
@@ -87,6 +96,15 @@ function SystemReviewContent() {
       <FaStar key={i} className="text-[18px] mr-1 inline-block text-yellow-400" />
     ));
   };
+
+  const handlePageChange = useCallback(
+    (paginated: Review[], page: number) => {
+      setCurrentReviews(paginated);
+      setCurrentPage(page);
+    },
+    []
+  );
+
 
   const replyStars = (rating: number) => {
     return [...Array(5)].map((_, i) => (
@@ -163,7 +181,8 @@ function SystemReviewContent() {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
   return (
-    <div className="w-[1200px] h-[567px] mx-auto bg-white p-8 rounded-lg shadow-md">
+    // <div className="w-[1200px] h-[567px] mx-auto bg-white p-8 rounded-lg shadow-md">
+    <div className="relative w-[1200px] h-[567px] p-5 max-w-[1210px] bg-white rounded-2xl shadow-md">
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="text-white text-center">
@@ -209,29 +228,31 @@ function SystemReviewContent() {
         </div>
       </div>
 
-      <div className="overflow-y-auto max-h-[451px] h-[451px] scrollbar-hide">
+      <div className="overflow-y-auto max-h-[425px] h-[451px]">
         <table className="w-full border border-collapse text-base">
           <thead className="bg-gray-100">
             <tr>
-              <th className="border px-4 py-4 text-center">User Name</th>
-              <th className="border px-4 py-4 text-center">Rating</th>
-              <th className="border px-4 py-4 w-[30%] text-center">Feedback</th>
-              <th className="border px-4 py-4 text-center">Status</th>
-              <th className="border px-4 py-4 text-center">Detail</th>
-              <th className="border px-4 py-4 text-center">Reply</th>
+              <th className="border px-4 py-3 text-center">No</th>
+              <th className="border px-4 py-3 text-center">User Name</th>
+              <th className="border px-4 py-3 text-center">Rating</th>
+              <th className="border px-4 py-3 w-[30%] text-center">Feedback</th>
+              <th className="border px-4 py-3 text-center">Status</th>
+              <th className="border px-4 py-3 text-center">Detail</th>
+              <th className="border px-4 py-3 text-center">Reply</th>
             </tr>
           </thead>
           <tbody>
-            {reviews.length > 0 ? (
-              reviews.map((review) => (
+            {currentReviews.length > 0 ? (
+              currentReviews.map((review, index) => (
                 <tr key={review.id} className="hover:bg-gray-100">
-                  <td className="border px-4 py-4 text-center">{review.userId ? review.userId.fullname : review.guestId?.name || "Unknown"}</td>
-                  <td className="border px-4 py-4 text-center">{renderStars(review.rating)}</td>
-                  <td className="border px-4 py-4 text-center">{review.comment}</td>
-                  <td className="border px-4 py-4 text-center">
+                  <td className="border px-4 py-5 text-center">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                  <td className="border px-4 py-5 text-center">{review.userId ? review.userId.fullname : review.guestId?.name || "Unknown"}</td>
+                  <td className="border px-4 py-5 text-center">{renderStars(review.rating)}</td>
+                  <td className="border px-4 py-5 text-center">{review.comment}</td>
+                  <td className="border px-4 py-5 text-center">
                     <StatusBadge status={review.isReplied} caseTrue="Replied" caseFalse="No Replied" />
                   </td>
-                  <td className="border px-4 py-4 text-center">
+                  <td className="border px-4 py-5 text-center">
                     <button onClick={() => openModal(review)} className="bg-none border-none text-sm flex items-center justify-center hover:scale-110 hover:text-[#f0924c] transition pl-4">
                       <FaInfoCircle /> <span className="ml-1">View Details</span>
                     </button>
@@ -245,7 +266,7 @@ function SystemReviewContent() {
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="text-center p-6 text-gray-500 font-semibold h-[391px]">
+                <td colSpan={7} className="text-center p-6 text-red-500 font-semibold h-[371px]">
                   No results found.
                 </td>
               </tr>
@@ -366,6 +387,13 @@ function SystemReviewContent() {
           </div>
         )}
       </Modal>
+
+      <Pagination
+        items={reviews}
+        itemsPerPage={itemsPerPage}
+        onPageChange={handlePageChange}
+      />
+
     </div>
   );
 }

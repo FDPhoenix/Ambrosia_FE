@@ -14,7 +14,7 @@ import {
   Legend,
 } from "chart.js"
 import annotationPlugin from "chartjs-plugin-annotation"
-import { FaUser, FaUserShield, FaUserTie, FaUserFriends, FaComments } from "react-icons/fa"
+import { FaUsers, FaUserShield, FaUserFriends, FaUserTie, FaComments, FaUtensils } from "react-icons/fa"
 
 ChartJS.register(
   CategoryScale,
@@ -67,8 +67,8 @@ interface PieChartData {
   percentage: number;
   color: string;
   averageRating?: number;
-  imageUrl?: string; // Added for tooltip
-  dishImage?: string; // Added for tooltip
+  imageUrl?: string; 
+  dishImage?: string; 
 }
 
 const StatisticUser: React.FC = () => {
@@ -478,7 +478,7 @@ const StatisticUser: React.FC = () => {
                 gap: 12,
               }}
             >
-              {(() => { console.log('Tooltip data:', pieTooltip.data); return null })()}
+
               {pieTooltip.data.dishImage && (
                 <img src={pieTooltip.data.dishImage} alt={pieTooltip.data.name} style={{ width: 54, height: 54, objectFit: 'cover', borderRadius: 6, marginRight: 8 }} />
               )}
@@ -558,40 +558,41 @@ const StatisticUser: React.FC = () => {
     }
   }, [showFeedbackPieChart, selectedFeedbackMonth]);
 
-  useEffect(() => {
-    if (pieChartData.length > 0) {
-      console.log('Pie chart data:', pieChartData);
-    }
-  }, [pieChartData]);
+
 
   return (
     <div className="w-[1200px] mb-5">
       <div className="flex justify-between mb-5">
-        <div className="bg-white p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.1)] w-[18%] text-center transition-transform duration-200 hover:-translate-y-[5px]">
-          <FaUser className="text-2xl text-[#1E90FF] mb-2.5" />
+        <div className="bg-white p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.1)] w-[15%] text-center transition-transform duration-200 hover:-translate-y-[5px]">
+          <FaUsers className="text-2xl text-[#3B82F6] mb-2.5" />
           <h3 className="text-2xl my-[10px_0_5px] text-gray-800">{userCounts.totalUsers}</h3>
           <p className="text-sm text-gray-500 my-[5px_0]">Total Users</p>
         </div>
-        <div className="bg-white p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.1)] w-[18%] text-center transition-transform duration-200 hover:-translate-y-[5px]">
-          <FaUserShield className="text-2xl text-[#1E90FF] mb-2.5" />
+        <div className="bg-white p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.1)] w-[15%] text-center transition-transform duration-200 hover:-translate-y-[5px]">
+          <FaUserShield className="text-2xl text-[#DC2626] mb-2.5" />
           <h3 className="text-2xl my-[10px_0_5px] text-gray-800">{userCounts.adminCount}</h3>
           <p className="text-sm text-gray-500 my-[5px_0]">Admins</p>
         </div>
-        <div className="bg-white p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.1)] w-[18%] text-center transition-transform duration-200 hover:-translate-y-[5px]">
-          <FaUserFriends className="text-2xl text-[#1E90FF] mb-2.5" />
+        <div className="bg-white p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.1)] w-[15%] text-center transition-transform duration-200 hover:-translate-y-[5px]">
+          <FaUserFriends className="text-2xl text-[#059669] mb-2.5" />
           <h3 className="text-2xl my-[10px_0_5px] text-gray-800">{userCounts.customerCount}</h3>
           <p className="text-sm text-gray-500 my-[5px_0]">Customers</p>
         </div>
-        <div className="bg-white p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.1)] w-[18%] text-center transition-transform duration-200 hover:-translate-y-[5px]">
-          <FaUserTie className="text-2xl text-[#1E90FF] mb-2.5" />
+        <div className="bg-white p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.1)] w-[15%] text-center transition-transform duration-200 hover:-translate-y-[5px]">
+          <FaUserTie className="text-2xl text-[#7C3AED] mb-2.5" />
           <h3 className="text-2xl my-[10px_0_5px] text-gray-800">{userCounts.staffCount}</h3>
           <p className="text-sm text-gray-500 my-[5px_0]">Staff</p>
         </div>
+        <div className="bg-white p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.1)] w-[15%] text-center transition-transform duration-200 hover:-translate-y-[5px]">
+          <FaUtensils className="text-2xl text-[#F59E0B] mb-2.5" />
+          <h3 className="text-2xl my-[10px_0_5px] text-gray-800">{userCounts.chefCount}</h3>
+          <p className="text-sm text-gray-500 my-[5px_0]">Chef</p>
+        </div>
         <div 
-          className="bg-white p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.1)] w-[18%] text-center transition-transform duration-200 hover:-translate-y-[5px] cursor-pointer"
+          className="bg-white p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.1)] w-[15%] text-center transition-transform duration-200 hover:-translate-y-[5px] cursor-pointer"
           onClick={handleFeedbackClick}
         >
-          <FaComments className="text-2xl text-[#1E90FF] mb-2.5" />
+          <FaComments className="text-2xl text-[#EC4899] mb-2.5" />
           <h3 className="text-2xl my-[10px_0_5px] text-gray-800">{feedbackCount?.totalFeedback || 0}</h3>
           <p className="text-sm text-gray-500 my-[5px_0]">Total Feedback</p>
           <p className="text-xs text-gray-400 mt-1">

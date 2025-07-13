@@ -29,8 +29,6 @@ const BookingOrderManagement = () => {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [reload] = useState(false);
-    // const [filterModalOpen, setFilterModalOpen] = useState(false);
     const [, setFilterModalOpen] = useState(false);
     const [filters, setFilters] = useState({
         dateRange: "",
@@ -40,23 +38,92 @@ const BookingOrderManagement = () => {
         status: "",
         searchText: "",
     });
+
+    const [appliedFilters, setAppliedFilters] = useState({
+        dateRange: "",
+        fromDate: "",
+        toDate: "",
+        orderType: "",
+        status: "",
+        searchText: "",
+    });
+
     const [noResultsFound, setNoResultsFound] = useState(false);
     const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [totalPages, setTotalPages] = useState<number>(1);
+    const limit = 6;
 
     useEffect(() => {
-        fetchTables();
-    }, [reload]);
+        const hasApplied =
+            appliedFilters.dateRange ||
+            appliedFilters.fromDate ||
+            appliedFilters.toDate ||
+            appliedFilters.orderType ||
+            appliedFilters.status ||
+            appliedFilters.searchText.trim();
 
-    const fetchTables = async () => {
+        if (hasApplied) {
+            handleApplyFilter(currentPage, appliedFilters);
+        } else {
+            fetchTables(currentPage);
+        }
+    }, [currentPage]);
+
+    const fetchTables = async (page = 1) => {
         try {
-            const response = await axios.get(`${backendApiUrl}/reservation/staff`);
+            const response = await axios.get(`${backendApiUrl}/reservation/staff?page=${page}&limit=${limit}`);
+            const { data, totalPages } = response.data;
 
-            setBookings(response.data);
+            setBookings(data);
+            setTotalPages(totalPages || 1);
         } catch (error) {
             console.error("Error fetching tables:", error);
         }
     };
 
+    const handleApplyFilter = async (page = 1, customFilters = filters) => {
+        try {
+            setAppliedFilters(customFilters);
+
+            const queryParams = new URLSearchParams();
+            queryParams.append("page", page.toString());
+            queryParams.append("limit", limit.toString());
+
+            if (customFilters.dateRange) queryParams.append("dateRange", customFilters.dateRange);
+            if (customFilters.fromDate) queryParams.append("fromDate", customFilters.fromDate);
+            if (customFilters.toDate) queryParams.append("toDate", customFilters.toDate);
+            if (customFilters.orderType) queryParams.append("orderType", customFilters.orderType);
+            if (customFilters.status) queryParams.append("status", customFilters.status);
+            if (customFilters.searchText.trim()) queryParams.append("searchText", customFilters.searchText.trim());
+
+            const response = await axios.get(`${backendApiUrl}/reservation/filters?${queryParams.toString()}`);
+            const { data, totalPages } = response.data;
+
+            setBookings(data);
+            setTotalPages(totalPages || 1);
+            setCurrentPage(page);
+            setNoResultsFound(data.length === 0);
+            setFilterModalOpen(false);
+        } catch (error) {
+            console.error("Error filtering reservations:", error);
+        }
+    };
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (filters.searchText.trim() === "") {
+                fetchTables(1);
+                setCurrentPage(1);
+                setNoResultsFound(false);
+            } else {
+                handleApplyFilter(1, filters);
+                setCurrentPage(1);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [filters.searchText]);
 
     const handleViewDetails = (booking: Booking) => {
         setSelectedBooking(booking);
@@ -67,47 +134,6 @@ const BookingOrderManagement = () => {
         setIsModalOpen(false);
         setSelectedBooking(null);
     };
-
-    const handleApplyFilter = async () => {
-        try {
-            const queryParams = new URLSearchParams();
-
-            if (filters.dateRange) queryParams.append("dateRange", filters.dateRange);
-            if (filters.fromDate) queryParams.append("fromDate", filters.fromDate);
-            if (filters.toDate) queryParams.append("toDate", filters.toDate);
-            if (filters.orderType) queryParams.append("orderType", filters.orderType);
-            if (filters.status) queryParams.append("status", filters.status);
-            if (filters.searchText.trim() !== "") queryParams.append("searchText", filters.searchText.trim());
-
-            const response = await axios.get(`${backendApiUrl}/reservation/filters?${queryParams.toString()}`);
-
-            if (response.data.length === 0) {
-                setBookings([]);
-                setNoResultsFound(true);
-            } else {
-                setBookings(response.data);
-                setNoResultsFound(false);
-            }
-
-            setFilterModalOpen(false);
-        } catch (error) {
-            console.error("Error filtering reservations:", error);
-        }
-    };
-
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            if (filters.searchText.trim() === "") {
-                fetchTables();
-                setNoResultsFound(false);
-            } else {
-                handleApplyFilter();
-            }
-        }, 500);
-
-        return () => clearTimeout(delayDebounceFn);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filters.searchText]);
 
     const statusModelStyles = {
         Confirmed: { color: "green" },
@@ -125,9 +151,9 @@ const BookingOrderManagement = () => {
     };
 
     return (
-        <div className="mx-auto bg-white p-6 rounded-xl shadow-md  min-h-[80vh]">
-            <div className="flex flex-wrap items-center gap-3 mb-4 flex justify-between">
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">List of Reservation</h3>
+        <div className="mx-auto bg-white px-6 pt-5 pb-5 rounded-xl shadow-md min-h-[82vh]">
+            <div className="flex flex-wrap items-center gap-3 mb-2 flex justify-between">
+                <h3 className="text-2xl font-bold text-gray-800 mb-1">List of Reservation</h3>
                 <div className="flex flex-wrap items-center gap-3">
                     <select
                         className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-orange-400 cursor-pointer transition"
@@ -164,18 +190,21 @@ const BookingOrderManagement = () => {
                     </select>
 
                     <button
-                        onClick={handleApplyFilter}
+                        onClick={() => handleApplyFilter(1, filters)}
                         className="px-4 py-[7px] text-sm rounded border border-gray-300 bg-[#f0f0f0] hover:bg-[#F0924C] hover:text-white transition duration-200 shadow-sm"
                     >
                         Apply Filters
                     </button>
+
                 </div>
             </div>
 
-            <div className="overflow-x-auto max-h-[63vh] rounded-md scrollbar-hide">
+            <div className="overflow-x-auto scrollbar-hide">{/*  max-h-[62vh]  */}
                 {noResultsFound ? (
-                    <div className="text-center text-[16px] text-[#ff6347] font-bold mt-5">
-                        No results found
+                    <div className="flex items-center justify-center h-[62vh]">
+                        <div className="text-center text-red-500 font-semibold text-[18px]">
+                            No results found
+                        </div>
                     </div>
                 ) : (
                     <>
@@ -183,18 +212,20 @@ const BookingOrderManagement = () => {
                         <table className="hidden md:table w-full border-collapse rounded-md text-center">
                             <thead className="bg-gray-100">
                                 <tr>
-                                    <th className="p-5 font-bold">Order Number</th>
-                                    <th className="p-5 font-bold">Customer Name</th>
-                                    <th className="p-5 font-bold">Booking Date</th>
-                                    <th className="p-5 font-bold">Order Type</th>
-                                    <th className="p-5 font-bold">Status</th>
-                                    <th className="p-5 font-bold">Actions</th>
+                                    <th className="p-4 font-bold">Order Number</th>
+                                    <th className="p-4 font-bold">Customer Name</th>
+                                    <th className="p-4 font-bold">Booking Date</th>
+                                    <th className="p-4 font-bold">Order Type</th>
+                                    <th className="p-4 font-bold">Status</th>
+                                    <th className="p-4 font-bold">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {bookings.map((booking, index) => (
                                     <tr key={booking._id} className="border-b">
-                                        <td className="p-5 bg-white whitespace-nowrap">{index + 1}</td>
+                                        <td className="p-5 bg-white whitespace-nowrap">
+                                            {(currentPage - 1) * limit + index + 1}
+                                        </td>
                                         <td className="p-5 bg-white whitespace-nowrap">{booking.userId?.fullname || booking.guest?.name || "Unknown"}</td>
                                         <td className="p-5 bg-white whitespace-nowrap">{new Date(booking.bookingDate).toLocaleDateString()}</td>
                                         <td className="p-5">
@@ -237,7 +268,7 @@ const BookingOrderManagement = () => {
                             {bookings.map((booking, index) => (
                                 <div key={booking._id} className="bg-white rounded-md p-4 shadow border">
                                     <div className="mb-2">
-                                        <span className="font-semibold">Order No:</span> {index + 1}
+                                        <span className="font-semibold">Order No:</span> {(currentPage - 1) * limit + index + 1}
                                     </div>
                                     <div className="mb-2">
                                         <span className="font-semibold">Customer:</span> {booking.userId?.fullname || booking.guest?.name || "Unknown"}
@@ -416,6 +447,47 @@ const BookingOrderManagement = () => {
                     )}
                 </div>
             </Modal>
+
+            {!noResultsFound && totalPages > 1 && (
+                <div className="flex justify-center mt-3 gap-2 flex-wrap">
+                    <button
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
+                    >
+                        &laquo; Prev
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter((page) => page === 1 || page === totalPages || (page >= currentPage - 2 && page <= currentPage + 2))
+                        .map((page, index, arr) => {
+                            const isEllipsisBefore = index > 0 && arr[index - 1] !== page - 1;
+                            return (
+                                <span key={page}>
+                                    {isEllipsisBefore && <span className="px-2">...</span>}
+                                    <button
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`px-3 py-1 rounded ${currentPage === page
+                                            ? "bg-[#f0924c] text-white"
+                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                            }`}
+                                    >
+                                        {page}
+                                    </button>
+                                </span>
+                            );
+                        })}
+
+                    <button
+                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
+                    >
+                        Next &raquo;
+                    </button>
+                </div>
+            )}
+
         </div>
     );
 };
