@@ -245,7 +245,7 @@ const Login = () => {
         theme="light"
       />
 
-      <div className="flex items-center justify-center -translate-y-5" onClick={() => navigate("/")}>
+      <div className="flex items-center justify-center -translate-y-5 cursor-pointer" onClick={() => navigate("/")}>
         <img
           src={logo}
           alt="Ambrosia Logo"
