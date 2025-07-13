@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FaUserEdit, FaTimes, FaUnlock, FaLock } from 'react-icons/fa';
 import StatusBadge from './StatusBadge';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
-
+import Pagination from '../Pagination';
 // Định nghĩa các interface cần thiết
 interface User {
   id: string;
@@ -62,6 +62,14 @@ function UserContent() {
   const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
+  const [currentUsers, setCurrentiUsers] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 4;
+  const handlePageChange = useCallback((paginatedUsers: any[], page: number) => {
+    setCurrentiUsers(paginatedUsers);
+    setCurrentPage(page);
+  }, []);
 
   const [newUser, setNewUser] = useState<NewUser>({
     fullname: "",
@@ -84,7 +92,7 @@ function UserContent() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:3000/user/all', {
+      const response = await fetch(`${backendApiUrl}/user/all`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${Cookies.get('token')}`,
@@ -133,7 +141,7 @@ function UserContent() {
       onConfirm: async () => {
         setConfirmData(prev => ({ ...prev, isVisible: false }));
         try {
-          const response = await fetch(`http://localhost:3000/user/ban/${id}`, {
+          const response = await fetch(`${backendApiUrl}/user/ban/${id}`, {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${Cookies.get('token')}`,
@@ -198,7 +206,7 @@ function UserContent() {
         return;
       }
       try {
-        const response = await fetch(`http://localhost:3000/user/edit/${editingUser.id}`, {
+        const response = await fetch(`${backendApiUrl}/user/edit/${editingUser.id}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -222,16 +230,27 @@ function UserContent() {
       }
     }
   };
-
+  useEffect(() => {
+    const totalPages = Math.ceil(users.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    } else if (totalPages === 0) {
+      setCurrentPage(1);
+    }
+  
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedItems = users.slice(startIndex, startIndex + itemsPerPage);
+    setCurrentiUsers(paginatedItems);
+  }, [users, currentPage, itemsPerPage]);
 
 
   return (
-    <div className="w-[1200px] h-[567px] p-[25px_40px] max-w-[1210px] bg-white rounded-[20px] shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-transform duration-300">
+    <div className="relative w-[1200px] h-[567px] p-[25px_40px] max-w-[1210px] bg-white rounded-[20px] shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-transform duration-300">
       <div className="w-full flex justify-between mb-5">
         <h3 className="my-auto text-2xl font-semibold text-gray-800">List of User</h3>
       </div>
 
-      <div className="max-h-[475px] overflow-y-auto pr-2.5">
+      <div className="max-h-[430px] overflow-y-auto pr-2.5">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr>
@@ -246,9 +265,9 @@ function UserContent() {
             </tr>
           </thead>
           <tbody>
-            {users.map((user: any, index) => (
+            {currentUsers.map((user: any, index) => (
               <tr key={user.id}>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{index + 1}</td>
+                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                 <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
                   <img src={user.profileImage || "/placeholder.svg"} alt={user.fullname} className="w-[70px] h-[70px] rounded-lg object-cover mx-auto" />
                 </td>
@@ -283,6 +302,9 @@ function UserContent() {
           </tbody>
         </table>
       </div>
+
+      <Pagination items={users} itemsPerPage={itemsPerPage} onPageChange={handlePageChange} />
+
 
       {showForm && (
         <div
