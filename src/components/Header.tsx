@@ -436,12 +436,10 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
 
                   <div className={`${dropdownView === "main" ? "" : "hidden"}`}>
 
-                    <div
-                      className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-gray-700"
-                      onClick={showEditProfile}
-                    >
+                    <div className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-gray-700" onClick={showEditProfile} >
                       Profile
                     </div>
+
                     <Link
                       to="/history"
                       className="block px-4 py-3 hover:bg-gray-100 text-gray-700"
@@ -449,7 +447,8 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
                     >
                       History
                     </Link>
-                    {isAdmin && (
+
+                    {/* {isAdmin && (
                       <Link
                         to="/manage/dashboard"
                         className="block px-4 py-3 hover:bg-gray-100 text-gray-700"
@@ -457,7 +456,8 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
                       >
                         Manage System
                       </Link>
-                    )}
+                    )} */}
+
                     <button
                       className="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-600"
                       onClick={handleLogout}
