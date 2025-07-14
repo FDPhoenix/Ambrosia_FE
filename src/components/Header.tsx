@@ -1,4 +1,4 @@
-import { BsFillBagFill, BsSearch } from "react-icons/bs";
+import { BsSearch } from "react-icons/bs";
 import { FiMenu } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
@@ -6,14 +6,16 @@ import avatar from "../assets/avatar.png";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import EditProfile from "./UserProfile";
-import logo from "../assets/ambrosia-logo.png";
+import logo from "../assets/ambrosia-logo-removebg.png";
+import { FaCartShopping } from "react-icons/fa6";
 
 interface HeaderProps {
   fixed?: boolean;
+  inheritBackground?: boolean;
   onCartToggle?: () => void;
 }
 
-function Header({ fixed = false, onCartToggle }: HeaderProps) {
+function Header({ fixed = false, inheritBackground = false, onCartToggle }: HeaderProps) {
   const [userToken, setUserToken] = useState<string | null>(null);
   const [userImage, setUserImage] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -27,6 +29,7 @@ function Header({ fixed = false, onCartToggle }: HeaderProps) {
   const navigate = useNavigate();
   const dropdownRefMobile = useRef<HTMLDivElement>(null);
   const dropdownRefDesktop = useRef<HTMLDivElement>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const handleSearch = (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -75,31 +78,46 @@ function Header({ fixed = false, onCartToggle }: HeaderProps) {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-
-useEffect(() => {
-  const handleClickOutside = (event: MouseEvent) => {
-    const target = event.target as Node;
-    if (
-      (dropdownRefMobile.current && dropdownRefMobile.current.contains(target)) ||
-      (dropdownRefDesktop.current && dropdownRefDesktop.current.contains(target))
-    ) {
-      return;
-    }
-    setIsDropdownOpen(false);
-    setDropdownView("main");
-  };
-
-  if (isDropdownOpen) {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
     };
-  }
-}, [isDropdownOpen]);
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        (dropdownRefMobile.current && dropdownRefMobile.current.contains(target)) ||
+        (dropdownRefDesktop.current && dropdownRefDesktop.current.contains(target))
+      ) {
+        return;
+      }
+      setIsDropdownOpen(false);
+      setDropdownView("main");
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [isDropdownOpen]);
 
   return (
     <header
-      className={`w-full bg-[#A2845E] py-4 px-4 md:px-16 shadow-[0_4px_6px_rgba(0,0,0,0.2)] ${fixed ? "fixed top-0 left-0 z-50" : ""
+      className={`w-full py-4 px-4 md:px-16 ${fixed ? "fixed top-0 left-0 z-50" : ""} ${inheritBackground && !isScrolled
+        ? "bg-transparent shadow-none"
+        : "bg-[#A2845E] shadow-[0_4px_6px_rgba(0,0,0,0.2)]"
         }`}
     >
       {/* Mobile Header */}
@@ -108,10 +126,13 @@ useEffect(() => {
           className="text-white p-2"
           onClick={() => setIsSidebarOpen(true)}
         >
-          <FiMenu className="w-6 h-6 text-black" />
+          <FiMenu className={`w-6 h-6 hover:scale-110 ${inheritBackground && !isScrolled
+            ? "text-white"
+            : "text-black hover:scale-125 transition"
+            }`} />
         </button>
 
-        <Link to="/" className="flex items-center pl-5">
+        <Link to="/" className="flex items-center pl-8">
           <img src={logo} alt="Ambrosia" className="h-10 object-cover ml-6" />
         </Link>
 
@@ -120,7 +141,10 @@ useEffect(() => {
             className="relative rounded-full p-2"
             onClick={() => navigate("/cart")}
           >
-            <BsFillBagFill className="text-black w-6 h-6" />
+            <FaCartShopping className={`w-6 h-6 hover:scale-110 ${inheritBackground && !isScrolled
+              ? "text-white"
+              : "text-black hover:scale-125 transition"
+              }`} />
           </button>
 
           {userToken ? (
@@ -211,11 +235,11 @@ useEffect(() => {
 
       {isSidebarOpen && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 md:hidden">
-          <div className="w-64 h-full bg-white p-6">
+          <div className="w-72 h-full bg-white p-6">
             <div className="flex justify-between items-center mb-6">
-              <p className="font-serif font-bold text-[17px]">Ambrosia</p>
+              <p className="font-serif font-bold text-xl" onClick={() => navigate("/")}>Ambrosia</p>
               <button
-                className="text-gray-500"
+                className="text-gray-500 font-semibold"
                 onClick={() => setIsSidebarOpen(false)}
               >
                 ✕
@@ -223,7 +247,7 @@ useEffect(() => {
             </div>
 
             <form
-              className="flex items-center bg-white rounded-full px-3 py-1 shadow-inner mb-4"
+              className="w-full flex justify-between items-center bg-white rounded-full px-3 py-1 shadow-inner mb-4"
               onSubmit={handleSearch}
             >
               <input
@@ -234,7 +258,7 @@ useEffect(() => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <button type="submit" className="text-[#A2845E]">
-                <BsSearch className="w-5 h-5 pb-[2px]" />
+                <BsSearch className="w-5 h-5 pb-[2px] mr-2" />
               </button>
             </form>
 
@@ -247,6 +271,15 @@ useEffect(() => {
                     onClick={() => setIsSidebarOpen(false)}
                   >
                     Menu
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/reservation"
+                    className="text-[#A2845E] text-lg font-medium"
+                    onClick={() => setIsSidebarOpen(false)}
+                  >
+                    Reservation
                   </Link>
                 </li>
                 <li>
@@ -284,43 +317,61 @@ useEffect(() => {
 
       {/* Desktop Header */}
       <div className="hidden md:flex items-center justify-between">
-        <div className="flex items-center gap-12">
+        <div className="flex items-center gap-8 xl:gap-12">
           <Link
             to="/"
-            className="text-3xl font-bold font-serif text-black select-none"
+            className={`text-3xl font-bold font-serif text-black select-none ${inheritBackground && !isScrolled
+              ? "text-white"
+              : ""
+              }`}
           >
             Ambrosia
           </Link>
           <nav>
-            <ul className="flex gap-8">
+            <ul className="flex gap-6 xl;gap-8">
               <li>
                 <Link
                   to="/menu"
-                  className="text-black text-lg font-medium hover:opacity-60 transition"
+                  className={`text-black text-lg font-medium  ${inheritBackground && !isScrolled
+                    ? "text-white hover:underline transition"
+                    : "hover:opacity-60 transition"
+                    }`}
                 >
                   Menu
                 </Link>
               </li>
+
               <li>
                 <Link
                   to="/about"
-                  className="text-black text-lg font-medium hover:opacity-60 transition"
+                  className={`text-black text-lg font-medium ${inheritBackground && !isScrolled
+                    ? "text-white hover:underline transition"
+                    : "hover:opacity-60 transition"
+                    }`}
                 >
                   About Us
                 </Link>
               </li>
+
               <li>
                 <Link
                   to="/news"
-                  className="text-black text-lg font-medium hover:opacity-60 transition"
+                  className={`text-black text-lg font-medium ${inheritBackground && !isScrolled
+                    ? "text-white hover:underline transition"
+                    : "hover:opacity-60 transition"
+                    }`}
                 >
                   News
                 </Link>
               </li>
+
               <li>
                 <Link
                   to="/contact"
-                  className="text-black text-lg font-medium hover:opacity-60 transition"
+                  className={`text-black text-lg font-medium ${inheritBackground && !isScrolled
+                    ? "text-white hover:underline transition"
+                    : "hover:opacity-60 transition"
+                    }`}
                 >
                   Contact
                 </Link>
@@ -328,27 +379,43 @@ useEffect(() => {
             </ul>
           </nav>
         </div>
-        <div className="flex items-center gap-6">
+
+        <div className="flex items-center gap-3 xl:gap-6">
           <form
-            className="flex items-center bg-white rounded-full px-3 py-1 shadow-inner"
+            className={`flex items-center rounded-full px-3 py-1 ${inheritBackground && !isScrolled
+              ? "bg-transparent shadow-none border border-white"
+              : "bg-[#ECE6DF] shadow-inner"
+              }`}
             onSubmit={handleSearch}
           >
             <input
               type="text"
-              className="outline-none border-none bg-transparent px-2 py-1 text-gray-700 w-40 placeholder:text-gray-400"
+              className={`outline-none border-none bg-transparent px-2 py-1 w-32 xl:w-40 ${inheritBackground && !isScrolled
+                ? "text-white placeholder:text-white"
+                : "text-gray-700 placeholder:text-gray-400"
+                }`}
               placeholder="Searching dish...."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button type="submit" className="text-[#A2845E]">
+            <button type="submit" className={`${inheritBackground && !isScrolled
+              ? "text-white font-semibold"
+              : "text-[#A2845E] hover:opacity-80 transition"
+              }`}>
               <BsSearch className="w-5 h-5 pb-[2px]" />
             </button>
           </form>
           <button
-            className="relative bg-[#A2845E] rounded-full p-2"
+            className={`relative rounded-full p-2 ${inheritBackground && !isScrolled
+              ? "bg-transparent"
+              : "bg-[#A2845E]"
+              }`}
             onClick={onCartToggle}
           >
-            <BsFillBagFill className="text-black w-6 h-6 hover:scale-110" />
+            <FaCartShopping className={`w-6 h-6 hover:scale-110 ${inheritBackground && !isScrolled
+              ? "text-white"
+              : "text-black hover:scale-125 transition"
+              }`} />
           </button>
           {userToken ? (
             <div className="relative" ref={dropdownRefMobile}>

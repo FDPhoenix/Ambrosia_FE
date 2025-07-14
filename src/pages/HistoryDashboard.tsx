@@ -21,12 +21,12 @@ export default function HistoryDashboard() {
 
       <PageName name={"History"} />
 
-      <div className="bg-[#EFF4F8] py-12">
+      <div className="bg-[#EFF4F8] py-6 md:py-12">
         <div className="w-full max-w-[1200px] mx-auto bg-[#EFF4F8] rounded-lg">
           <ul className="flex justify-center border-b-2 border-gray-300 list-none">
             <li className="mx-2.5">
               <button
-                className={`bg-transparent border-none py-2.5 px-5 text-base cursor-pointer transition-all duration-300 ease-in-out border-b-3 ${
+                className={`bg-transparent border-none py-2.5 px-5 text-lg cursor-pointer transition-all duration-300 ease-in-out border-b-3 ${
                   activeTab === "booking"
                     ? "text-[#8c6342] font-bold border-b-3 border-[#8c6342]"
                     : "text-gray-600 hover:text-gray-800 border-transparent"
@@ -38,7 +38,7 @@ export default function HistoryDashboard() {
             </li>
             <li className="mx-2.5">
               <button
-                className={`bg-transparent border-none py-2.5 px-5 text-base cursor-pointer transition-all duration-300 ease-in-out border-b-3 ${
+                className={`bg-transparent border-none py-2.5 px-5 text-lg cursor-pointer transition-all duration-300 ease-in-out border-b-3 ${
                   activeTab === "order"
                     ? "text-[#8c6342] font-bold border-b-3 border-[#8c6342]"
                     : "text-gray-600 hover:text-gray-800 border-transparent"
