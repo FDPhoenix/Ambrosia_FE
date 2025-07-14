@@ -322,7 +322,7 @@ function CheckoutPage() {
 
           <div className="flex flex-col md:flex-row md:space-x-4 mb-3.5">
             <input
-              className="w-full md:w-2/3 p-3 border border-gray-200 rounded-md md:mb-0"
+              className="w-full md:w-2/3 p-3 border border-gray-200 rounded-md mb-3.5 md:mb-0"
               type='text'
               placeholder='Email'
               value={userProfile?.email || ''}
