@@ -290,6 +290,11 @@ export default function OrderHistory() {
                       const quantity = item.quantity ?? 0;
                       const subtotal = price * quantity;
 
+                      const orderDate = selectedOrder.createdAt ? new Date(selectedOrder.createdAt) : new Date();
+                      const now = new Date();
+                      const diffMs = !isNaN(orderDate.getTime()) ? now.getTime() - orderDate.getTime() : 0;
+                      const diffHours = diffMs / (1000 * 60 * 60);
+
                       return (
                         <tr key={item._id}>
                           <td className="p-2 text-sm md:text-base md:p-4 border-b border-gray-200">{item.dishId.name}</td>
@@ -297,12 +302,20 @@ export default function OrderHistory() {
                           <td className="p-2 text-sm md:text-base md:p-4 border-b border-gray-200">{price.toLocaleString()} VND</td>
                           <td className="p-2 text-sm md:text-base md:p-4 border-b border-gray-200 hidden md:block">{subtotal.toLocaleString()} VND</td>
                           <td className="p-2 text-sm md:text-base md:p-4 border-b border-gray-200">
-                            <button
-                              className="px-2 py-1 bg-[#A2845E] text-white rounded-md hover:bg-amber-800"
-                              onClick={() => openFeedbackModal(item.dishId)}
-                            >
-                              Feedback
-                            </button>
+                            {selectedOrder.paymentStatus === "Success" ? (
+                              diffHours > 24 ? (
+                                <span className="text-red-400 italic">Feedback expired</span>
+                              ) : (
+                                <button
+                                  className="px-2 py-1 bg-[#A2845E] text-white rounded-md hover:bg-amber-800"
+                                  onClick={() => openFeedbackModal(item.dishId)}
+                                >
+                                  Feedback
+                                </button>
+                              )
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
                           </td>
                         </tr>
                       );
