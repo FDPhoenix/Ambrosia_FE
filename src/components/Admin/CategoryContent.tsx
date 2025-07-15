@@ -293,7 +293,7 @@ const CategoryContent: React.FC = () => {
                 Save
               </button>
               <button
-                className="font-medium text-gray-800 border border-[#ddd] py-2.5 px-5 rounded-md cursor-pointer text-sm transition-colors duration-200 bg-[rgb(240,240,240)] hover:bg-[#F09C42] text-black"
+                className="font-medium text-gray-800 border border-[#ddd] py-2.5 px-5 rounded-md cursor-pointer text-sm transition-colors duration-200 bg-[rgb(240,240,240)] hover:bg-[#F09C42]"
                 onClick={() => setEditCategory(null)}
               >
                 Cancel
