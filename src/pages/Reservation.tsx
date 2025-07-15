@@ -91,6 +91,22 @@ const BookingPage = () => {
     const [hasSearched, setHasSearched] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const tablesPerPage = 8;
+    const allTimes = [
+        "08:00", "09:00", "10:00", "11:00", "12:00",
+        "13:00", "14:00", "15:00", "16:00", "17:00",
+        "18:00", "19:00", "20:00"
+    ];
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const filteredTimes = selectedDate === todayStr
+        ? allTimes.filter((time) => {
+            const [h, m] = time.split(":").map(Number);
+            const slot = new Date();
+            slot.setHours(h, m, 0, 0);
+
+            return slot.getTime() - now.getTime() >= 60 * 60 * 1000;
+        })
+        : allTimes;
     const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
     const totalPages = Math.ceil(availableTables.length / tablesPerPage);
@@ -211,7 +227,7 @@ const BookingPage = () => {
 
                                 {/* PHẦN VĂN BẢN */}
                                 <div className="space-y-6 md:space-y-9 pl-2 sm:pl-4 md:pl-8 lg:pl-12">
-                                    <h1 className="text-2 sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
+                                    <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
                                         Make a Reservation
                                     </h1>
                                     <p className="text-base sm:text-lg md:text-xl text-gray-700">
@@ -219,12 +235,12 @@ const BookingPage = () => {
                                     </p>
                                     <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
                                         <div className="flex items-center gap-2 text-gray-700">
-                                            <FaCalendarDays className="h-5 w-5 text-amber-600" />
+                                            <FaCalendarDays className="h-5 w-5 text-amber-600 text-sm" />
                                             <span className="text-sm sm:text-base">Easy Reservation</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-gray-700">
-                                            <BsClock className="h-5 w-5 text-amber-600" />
-                                            <span>Quick Confirmation</span>
+                                            <BsClock className="h-5 w-5 text-amber-600 text-sm" />
+                                            <span className="text-sm sm:text-base">Quick Confirmation</span>
                                         </div>
                                     </div>
                                 </div>
@@ -278,7 +294,7 @@ const BookingPage = () => {
                     </div>
 
 
-                    <div className="flex flex-col md:flex-row w-full gap-6 px-4">
+                    <div className="flex flex-col md:flex-row w-full gap-6 px-4 mb-7">
                         <div className="w-full md:w-1/2 bg-white p-8">
                             <h2 className="text-2xl font-bold m-4 mb-8 text-center">Make a Reservation</h2>
                             <form onSubmit={handleSubmitInfo} className="space-y-4">
@@ -292,10 +308,39 @@ const BookingPage = () => {
                                         {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                                     </>
                                 )}
-                                <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={new Date().toISOString().split("T")[0]} className="w-full p-2 border rounded" />
-                                <select value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} className="w-full p-2 border rounded">
+                                <div className="w-full">
+                                    <input
+                                        id="date"
+                                        type="date"
+                                        value={selectedDate}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            const today = new Date().toISOString().split("T")[0];
+                                            const maxDate = new Date(new Date().setDate(new Date().getDate() + 30))
+                                                .toISOString()
+                                                .split("T")[0];
+
+                                            if (value >= today && value <= maxDate) {
+                                                setSelectedDate(value);
+                                            }
+                                        }}
+                                        min={new Date().toISOString().split("T")[0]}
+                                        max={new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split("T")[0]}
+                                        inputMode="none"
+                                        className="w-full p-3 border border-gray-300 rounded-lg text-base bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                                {/* <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={new Date().toISOString().split("T")[0]} className="w-full p-2 border rounded" /> */}
+                                <select
+                                    value={selectedTime}
+                                    onChange={(e) => {
+                                        setSelectedTime(e.target.value);
+                                        setSelectedTableId(null);
+                                    }}
+                                    className="w-full p-2 border rounded"
+                                >
                                     <option value="">Select time</option>
-                                    {["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"].map((time) => (
+                                    {filteredTimes.map((time) => (
                                         <option key={time} value={time}>{time}</option>
                                     ))}
                                 </select>
