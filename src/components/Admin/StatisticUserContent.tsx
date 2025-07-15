@@ -441,7 +441,7 @@ const StatisticUser: React.FC = () => {
                       }}
                       onMouseLeave={() => { setPieTooltip({ ...pieTooltip, visible: false }); setHoveredPieIndex(null); }}
                     />
-                    {percentage > 5 && (
+                    {percentage > 0 && (
                       <text
                         x={textX}
                         y={textY}
