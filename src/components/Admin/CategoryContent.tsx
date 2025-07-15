@@ -5,7 +5,7 @@ import { FaEdit, FaEye, FaEyeSlash } from "react-icons/fa"
 import StatusBadge from "./StatusBadge"
 import { toast } from "react-toastify"
 import Pagination from "../Pagination"
-
+import Cookies from 'js-cookie';
 interface Category {
   _id: string
   name: string
@@ -29,9 +29,13 @@ const CategoryContent: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch(`${API_BASE}/all`, {
+      const res = await fetch(`${API_BASE}/admin/all`, {
         method: "GET",
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${Cookies.get("token")}`,
+        },
       })
       const data = await res.json()
       if (data.success) {
