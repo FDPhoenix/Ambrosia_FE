@@ -166,7 +166,7 @@ const Login = () => {
       if (response.status === 403) {
         if (data.code === 1001) {
           setError(data.message);
-          toast.error(data.message);
+          toast.error("Your account has been banned. Please contact support.");
         } else if (data.code === 1002) {
           setIsOtpFormOpen(true);
           toast.info("Please verify your email with the OTP sent.");
@@ -176,6 +176,7 @@ const Login = () => {
         setLoginAttempts((prev) => prev + 1);
         return;
       }
+      
 
       if (!response.ok) {
         console.error("API Error:", response.status, data.message);
