@@ -318,7 +318,7 @@ function DishDetail({ dishInfor }: DishDetailProps) {
             <img
               src={dishInfor.imageUrl}
               alt={dishInfor.name}
-              className="w-full h-[450px] object-fill mb-3 lg:mb-5 lg:h-[660px] lg:rounded"
+              className="w-full h-[400px] object-fill mb-3 lg:mb-5 lg:h-[660px] lg:rounded"
             />
           </div>
 

@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link, useLocation } from 'react-router';
 // import { BiUserPlus } from 'react-icons/bi';
 import UserIcon from '../../assets/user.png';
 import EmployeeIcon from '../../assets/employees.png';
@@ -15,18 +15,22 @@ import VoucherIcon from '../../assets/coupon.png';
 import NewsIcon from '../../assets/news.png';
 import LogoutIcon from '../../assets/logout.png';
 import styles from '../../css/AdminCss/AdminSidebar.module.css';
+import { Dispatch, SetStateAction } from 'react';
 
-function AdminSidebar() {
+interface AdminSidebarProps {
+  setShowLogoutModal: Dispatch<SetStateAction<boolean>>;
+}
+
+function AdminSidebar({ setShowLogoutModal }: AdminSidebarProps) {
   const location = useLocation();
-  const navigate = useNavigate();
 
   return (
     <aside className="w-[270px] h-[664px] bg-white border-r border-gray-200 flex flex-col rounded-[15px] shadow-md fixed">
-      <div className="min-h-[70px] p-4 flex items-center gap-3 border-b border-gray-200 cursor-pointer" onClick={() => navigate('/')}>
+      <div className="min-h-[70px] p-4 flex items-center gap-3 border-b border-gray-200 cursor-pointer">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white">
           <img src={RestaurantIcon} alt="logo" />
         </div>
-        <span className="text-[22px] font-semibold font-['Inter'] tracking-wider">Ambrosia</span>
+        <span className="text-[22px] font-semibold font-serif tracking-wider">Ambrosia</span>
       </div>
 
       <nav className={styles.nav}>
@@ -96,12 +100,6 @@ function AdminSidebar() {
                 <span>System Review</span>
               </Link>
             </li>
-            {/* <li>
-              <Link to="/manage/register" className={`flex items-center gap-3 p-3 rounded-md text-gray-700 hover:bg-[#F09C42] ${location.pathname === '/auth/register' ? 'bg-[#F09C42]' : ''}`}>
-                <BiUserPlus className="w-5 h-5" />
-                <span>Other</span>
-              </Link>
-            </li> */}
           </ul>
         </div>
 
@@ -109,10 +107,10 @@ function AdminSidebar() {
           <h3 className="text-xs font-semibold text-gray-500 px-3">AUTH</h3>
           <ul className="list-none p-0 m-0 flex flex-col gap-1">
             <li>
-              <Link to="/manage/logout" className={`flex items-center gap-3 p-3 rounded-md text-gray-700 hover:bg-[#F09C42] ${location.pathname === '/manage/logout' ? 'bg-[#F09C42]' : ''}`}>
+              <div className={`flex items-center gap-3 p-3 rounded-md text-gray-700 hover:bg-[#F09C42]`} onClick={() => setShowLogoutModal(true)}>
                 <img src={LogoutIcon} alt="Logout" className="w-6 h-6" />
                 <span>Logout</span>
-              </Link>
+              </div>
             </li>
           </ul>
         </div>

@@ -6,7 +6,7 @@ import avatar from "../assets/avatar.png";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import EditProfile from "./UserProfile";
-import logo from "../assets/ambrosia-logo.png";
+import logo from "../assets/ambrosia-logo-removebg.png";
 import { FaCartShopping } from "react-icons/fa6";
 
 interface HeaderProps {
@@ -132,7 +132,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
             }`} />
         </button>
 
-        <Link to="/" className="flex items-center pl-10">
+        <Link to="/" className="flex items-center pl-8">
           <img src={logo} alt="Ambrosia" className="h-10 object-cover ml-6" />
         </Link>
 
@@ -235,11 +235,11 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
 
       {isSidebarOpen && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 md:hidden">
-          <div className="w-64 h-full bg-white p-6">
+          <div className="w-72 h-full bg-white p-6">
             <div className="flex justify-between items-center mb-6">
-              <p className="font-serif font-bold text-[17px]">Ambrosia</p>
+              <p className="font-serif font-bold text-xl" onClick={() => navigate("/")}>Ambrosia</p>
               <button
-                className="text-gray-500"
+                className="text-gray-500 font-semibold"
                 onClick={() => setIsSidebarOpen(false)}
               >
                 ✕
@@ -247,7 +247,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
             </div>
 
             <form
-              className="flex items-center bg-white rounded-full px-3 py-1 shadow-inner mb-4"
+              className="w-full flex justify-between items-center bg-white rounded-full px-3 py-1 shadow-inner mb-4"
               onSubmit={handleSearch}
             >
               <input
@@ -258,7 +258,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <button type="submit" className="text-[#A2845E]">
-                <BsSearch className="w-5 h-5 pb-[2px]" />
+                <BsSearch className="w-5 h-5 pb-[2px] mr-2" />
               </button>
             </form>
 
@@ -271,6 +271,15 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
                     onClick={() => setIsSidebarOpen(false)}
                   >
                     Menu
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/reservation"
+                    className="text-[#A2845E] text-lg font-medium"
+                    onClick={() => setIsSidebarOpen(false)}
+                  >
+                    Reservation
                   </Link>
                 </li>
                 <li>
@@ -308,7 +317,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
 
       {/* Desktop Header */}
       <div className="hidden md:flex items-center justify-between">
-        <div className="flex items-center gap-12">
+        <div className="flex items-center gap-8 xl:gap-12">
           <Link
             to="/"
             className={`text-3xl font-bold font-serif text-black select-none ${inheritBackground && !isScrolled
@@ -319,7 +328,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
             Ambrosia
           </Link>
           <nav>
-            <ul className="flex gap-8">
+            <ul className="flex gap-6 xl;gap-8">
               <li>
                 <Link
                   to="/menu"
@@ -331,6 +340,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
                   Menu
                 </Link>
               </li>
+
               <li>
                 <Link
                   to="/about"
@@ -342,6 +352,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
                   About Us
                 </Link>
               </li>
+
               <li>
                 <Link
                   to="/news"
@@ -353,6 +364,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
                   News
                 </Link>
               </li>
+
               <li>
                 <Link
                   to="/contact"
@@ -367,7 +379,8 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
             </ul>
           </nav>
         </div>
-        <div className="flex items-center gap-6">
+
+        <div className="flex items-center gap-3 xl:gap-6">
           <form
             className={`flex items-center rounded-full px-3 py-1 ${inheritBackground && !isScrolled
               ? "bg-transparent shadow-none border border-white"
@@ -377,7 +390,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
           >
             <input
               type="text"
-              className={`outline-none border-none bg-transparent px-2 py-1  w-40  ${inheritBackground && !isScrolled
+              className={`outline-none border-none bg-transparent px-2 py-1 w-32 xl:w-40 ${inheritBackground && !isScrolled
                 ? "text-white placeholder:text-white"
                 : "text-gray-700 placeholder:text-gray-400"
                 }`}
@@ -423,12 +436,10 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
 
                   <div className={`${dropdownView === "main" ? "" : "hidden"}`}>
 
-                    <div
-                      className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-gray-700"
-                      onClick={showEditProfile}
-                    >
+                    <div className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-gray-700" onClick={showEditProfile} >
                       Profile
                     </div>
+
                     <Link
                       to="/history"
                       className="block px-4 py-3 hover:bg-gray-100 text-gray-700"
@@ -436,7 +447,8 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
                     >
                       History
                     </Link>
-                    {isAdmin && (
+
+                    {/* {isAdmin && (
                       <Link
                         to="/manage/dashboard"
                         className="block px-4 py-3 hover:bg-gray-100 text-gray-700"
@@ -444,7 +456,8 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
                       >
                         Manage System
                       </Link>
-                    )}
+                    )} */}
+
                     <button
                       className="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-600"
                       onClick={handleLogout}

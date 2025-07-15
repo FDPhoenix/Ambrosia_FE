@@ -25,43 +25,42 @@ function PaymentResult() {
                 .then((res) => res.json())
                 .then((data) => console.log("Order updated:", data))
                 .catch((err) => console.error("Error updating order:", err));
+
+            if (token) {
+                const decodeToken: any = jwtDecode(token);
+
+                fetch(`${backendApiUrl}/cart/remove/all/${decodeToken.id}`, {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                });
+
+                fetch(`${backendApiUrl}/rank/update`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        userId: decodeToken.id,
+                        newSpending: Number(totalAmount)
+                    })
+                });
+
+                Cookies.remove('TotalAmount');
+            }
         }
-    }, [transactionId, isSuccess]);
+    }, [transactionId, isSuccess, token, totalAmount]);
 
     useEffect(() => {
-        if (token) {
-            const decodeToken: any = jwtDecode(token);
-
-            fetch(`${backendApiUrl}/cart/remove/all/${decodeToken.id}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-            });
-
-            fetch(`${backendApiUrl}/rank/update`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userId: decodeToken.id,
-                    newSpending: Number(totalAmount)
-                })
-            });
-
-            Cookies.remove('TotalAmount');
-        }
-
-        if (voucherId) {
+        if (voucherId && isSuccess) {
             fetch(`${backendApiUrl}/vouchers/status/${voucherId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
             })
                 .then((res) => res.json())
                 .then((data) => console.log("voucher updated:", data))
-                .catch((err) => console.error("Error updating order:", err)
-                );
+                .catch((err) => console.error("Error updating voucher:", err));
 
             Cookies.remove('VoucherId');
         }
-    }, [])
+    }, [voucherId, isSuccess]);
 
     const handleConfirmBooking = async () => {
         try {

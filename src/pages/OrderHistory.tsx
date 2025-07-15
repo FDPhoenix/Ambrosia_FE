@@ -200,15 +200,15 @@ export default function OrderHistory() {
           <table className="w-full border-collapse bg-white shadow-md rounded-lg overflow-hidden">
             <thead>
               <tr>
-                <th className="p-2 md:p-4 text-center md:text-left bg-[#A2845E] text-white font-bold">
+                <th className="p-2 py-3 md:p-4 text-center md:text-left bg-[#A2845E] text-white font-bold">
                   No
                 </th>
-                <th className="p-2 md:p-4 text-center md:text-left bg-[#A2845E] text-white font-bold">
+                <th className="p-2 py-3 md:p-4 text-center md:text-left bg-[#A2845E] text-white font-bold">
                   <FontAwesomeIcon icon={faClock} className="hidden md:inline mr-2" />
                   Date
                 </th>
-                <th className="p-2 md:p-4 text-center md:text-left bg-[#A2845E] text-white font-bold">Payment Status</th>
-                <th className="p-2 md:p-4 text-center md:text-left bg-[#A2845E] text-white font-bold">
+                <th className="p-2 py-3 md:p-4 text-center md:text-left bg-[#A2845E] text-white font-bold">Payment Status</th>
+                <th className="p-2 py-3 md:p-4 text-center md:text-left bg-[#A2845E] text-white font-bold">
                   <FontAwesomeIcon icon={faCoins} className="hidden md:inline mr-2" />
                   Total Amount
                 </th>
@@ -217,15 +217,15 @@ export default function OrderHistory() {
             <tbody className="w-full">
               {currentOrders.map((order, index) => (
                 <tr key={order._id} onClick={() => openOrderDetail(order)} className="hover:bg-gray-100 cursor-pointer">
-                  <td className="p-2 md:p-4 text-center text-sm md:text-base md:text-left border-b border-gray-200">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                  <td className="p-2 md:p-4 text-center text-sm md:text-base md:text-left border-b border-gray-200">{new Date(order.createdAt).toLocaleDateString()}</td>
+                  <td className="p-2 py-3 md:p-4 text-center text-sm md:text-base md:text-left border-b border-gray-200">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                  <td className="p-2 py-3 md:p-4 text-center text-sm md:text-base md:text-left border-b border-gray-200">{new Date(order.createdAt).toLocaleDateString()}</td>
                   <td
-                    className={`p-2 md:p-4 text-center text-sm md:text-base md:text-left border-b border-gray-200 font-bold ${order.paymentStatus === "Success" ? "text-green-600" : order.paymentStatus === "Deposited" ? "text-yellow-400" : "text-red-500"
+                    className={`p-2 py-3 md:p-4 text-center text-sm md:text-base md:text-left border-b border-gray-200 font-bold ${order.paymentStatus === "Success" ? "text-green-600" : order.paymentStatus === "Deposited" ? "text-yellow-400" : "text-red-500"
                       }`}
                   >
                     {order.paymentStatus}
                   </td>
-                  <td className="p-2 md:p-4 text-center text-sm md:text-base md:text-left border-b border-gray-200">{order.totalAmount.toLocaleString()} VND</td>
+                  <td className="p-2 py-3 md:p-4 text-center text-sm md:text-base md:text-left border-b border-gray-200">{order.totalAmount.toLocaleString()} VND</td>
                 </tr>
               ))}
             </tbody>
