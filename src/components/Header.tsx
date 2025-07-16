@@ -43,9 +43,40 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
     setUserToken(token);
 
     if (token) {
-      const decodedToken: any = jwtDecode(token);
-      setUserImage(decodedToken.image);
-      setIsAdmin(decodedToken.roleId == "67ac64afe072694cafa16e76");
+      // Gọi API lấy thông tin user thay vì chỉ decode token
+      const fetchUserInfo = async () => {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'}/user/profile`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: 'include', 
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setUserImage(data.user.profileImage);
+         
+            const userRoles = data.user.roles || [];
+            const isAdminUser = userRoles.some((role: any) => role.roleId === "67ac64afe072694cafa16e76");
+            setIsAdmin(isAdminUser);
+          } else {
+           
+            const decodedToken: any = jwtDecode(token);
+            setUserImage(decodedToken.image);
+            setIsAdmin(decodedToken.roleId == "67ac64afe072694cafa16e76");
+          }
+        } catch (error) {
+          console.error("Error fetching user info:", error);
+          const decodedToken: any = jwtDecode(token);
+          setUserImage(decodedToken.image);
+          setIsAdmin(decodedToken.roleId == "67ac64afe072694cafa16e76");
+        }
+      };
+
+      fetchUserInfo();
     } else {
       setIsAdmin(false);
     }
@@ -55,7 +86,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
     Cookies.remove("token");
     setUserToken(null);
     setIsDropdownOpen(false);
-    setDropdownView("main"); // Reset view on logout
+    setDropdownView("main");
     navigate("/login");
   };
 
