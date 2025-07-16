@@ -1,6 +1,13 @@
 import type React from "react";
 import { useState, useEffect } from "react";
-import { FaGoogle, FaFacebook, FaEye, FaEyeSlash, FaGithub, FaLinkedinIn } from "react-icons/fa";
+import {
+  FaGoogle,
+  FaFacebook,
+  FaEye,
+  FaEyeSlash,
+  FaGithub,
+  FaLinkedinIn,
+} from "react-icons/fa";
 import { useNavigate } from "react-router";
 import FormModal from "../pages/common/form-modal";
 import axios from "axios";
@@ -11,22 +18,13 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 
 const getCookie = (name: string) => {
-  console.log("[Login] getCookie called for:", name);
-  console.log("[Login] All cookies:", document.cookie);
-  
   const cookieArr = document.cookie.split("; ");
-  console.log("[Login] Cookie array:", cookieArr);
-  
   for (const cookie of cookieArr) {
     const [key, value] = cookie.split("=");
-    console.log("[Login] Checking cookie:", key, "=", value);
     if (key === name) {
-      console.log("[Login] Found cookie:", name, "=", decodeURIComponent(value));
       return decodeURIComponent(value);
     }
   }
-  
-  console.log("[Login] Cookie not found:", name);
   return null;
 };
 
@@ -43,57 +41,41 @@ const Login = () => {
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [lockoutTime, setLockoutTime] = useState(0);
   const token = getCookie("token");
-  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
+  const backendApiUrl =
+    import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const successMessage = urlParams.get("success");
     const errorMessage = urlParams.get("error");
 
-    console.log("[Login] URL params - success:", successMessage, "error:", errorMessage);
-    console.log("[Login] Current URL:", window.location.href);
-    console.log("[Login] Document cookies:", document.cookie);
-
     if (successMessage) {
-      console.log("[Login] Success message found, processing Google login");
       toast.success(successMessage);
-      
+
       const fetchUserProfile = async () => {
         try {
           const token = getCookie("token");
-          console.log("[Login] Token from cookie:", token ? "Found" : "Not found");
-          
+
           if (token) {
-            console.log("[Login] Calling user/profile API...");
             const response = await fetch(`${backendApiUrl}/user/profile`, {
               method: "GET",
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
               },
-              credentials: 'include', 
+              credentials: "include",
             });
-
-            console.log("[Login] API response status:", response.status);
 
             if (response.ok) {
               const data = await response.json();
-              console.log("[Login] User profile loaded:", data);
-              console.log("[Login] Dispatching loginSuccess event");
-              window.dispatchEvent(new Event('loginSuccess'));
+              window.dispatchEvent(new Event("loginSuccess"));
             } else {
-              console.log("[Login] API failed with status:", response.status);
               const errorText = await response.text();
-              console.log("[Login] API error response:", errorText);
             }
           } else {
-            console.log("[Login] No token found in cookie");
-            console.log("[Login] Trying to get token from URL params...");
-            
             const urlToken = urlParams.get("token");
             if (urlToken) {
-              console.log("[Login] Token found in URL params, setting cookie");
               document.cookie = `token=${urlToken}; path=/; max-age=86400`;
-              window.dispatchEvent(new Event('loginSuccess'));
+              window.dispatchEvent(new Event("loginSuccess"));
             }
           }
         } catch (error) {
@@ -102,29 +84,33 @@ const Login = () => {
       };
 
       fetchUserProfile();
-      
+
       setTimeout(() => {
-        console.log("[Login] Redirecting to home page");
-        window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
         navigate("/");
       }, 1500);
       return;
     }
 
     if (errorMessage) {
-      console.log("[Login] Error message found:", errorMessage);
       toast.error(errorMessage);
       setTimeout(() => {
-        window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
       }, 3000);
     }
 
     if (token) {
-      console.log("[Login] Token found, redirecting to home");
       document.cookie = `token=${token}; path=/;`;
       navigate("/");
     } else {
-      console.log("[Login] No token found, setting loading to false");
       setIsLoading(false);
     }
   }, [navigate]);
@@ -147,7 +133,8 @@ const Login = () => {
         name: "otp",
         type: "text",
         required: true,
-        onChange: (e: { target: { value: React.SetStateAction<string> } }) => setOtp(e.target.value),
+        onChange: (e: { target: { value: React.SetStateAction<string> } }) =>
+          setOtp(e.target.value),
       },
     ],
     submitText: "Verify OTP",
@@ -161,37 +148,41 @@ const Login = () => {
         otp,
       });
       if (response.data.success) {
-        toast.success(response.data.message || "OTP verified successfully! Please login now.");
+        toast.success(
+          response.data.message ||
+            "OTP verified successfully! Please login now."
+        );
         setIsOtpFormOpen(false);
       } else {
         toast.error(response.data.message || "Failed to verify OTP.");
       }
     } catch (error) {
-      console.error("OTP verification error:", error);
       toast.error("An unexpected error occurred during OTP verification.");
     }
   };
 
   const handleLoginGoogle = () => {
-    console.log("[Login] Google login clicked, redirecting to:", `${backendApiUrl}/login/google`);
     window.location.href = `${backendApiUrl}/login/google`;
   };
 
   const handleLoginFacebook = () => {
-    console.log("[Login] Facebook login clicked, redirecting to:", `${backendApiUrl}/facebook`);
     window.location.href = `${backendApiUrl}/facebook`;
   };
 
   const validateInputs = () => {
-    console.log("[Login] Validating inputs...");
     if (!email || !password) {
-      console.log("[Login] Validation failed: Email or password missing");
       toast.error("Email and password are required.");
       return false;
     }
-    if (email.length < 6 || email.length > 50 || email.includes(" ") || !/\S+@\S+\.\S+/.test(email)) {
-      console.log("[Login] Validation failed: Invalid email format");
-      toast.error("Invalid email format or length (6-50 characters, no spaces).");
+    if (
+      email.length < 6 ||
+      email.length > 50 ||
+      email.includes(" ") ||
+      !/\S+@\S+\.\S+/.test(email)
+    ) {
+      toast.error(
+        "Invalid email format or length (6-50 characters, no spaces)."
+      );
       return false;
     }
     if (
@@ -200,11 +191,11 @@ const Login = () => {
       password.includes(" ") ||
       !/(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(password)
     ) {
-      console.log("[Login] Validation failed: Invalid password format");
-      toast.error("Password must be 6-50 characters, no spaces, and include letters, numbers, and special characters.");
+      toast.error(
+        "Password must be 6-50 characters, no spaces, and include letters, numbers, and special characters."
+      );
       return false;
     }
-    console.log("[Login] Validation passed");
     return true;
   };
 
@@ -214,18 +205,15 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("[Login] Form submitted");
 
     if (!validateInputs()) return;
 
     if (lockoutTime > 0) {
-      console.log("[Login] Account locked, remaining time:", lockoutTime);
       toast.error(`Too many failed attempts. Try again in ${lockoutTime}s.`);
       return;
     }
 
     try {
-      console.log("[Login] Starting login process...");
       setLoading(true);
       setError("");
 
@@ -235,15 +223,11 @@ const Login = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      console.log("[Login] Login API response status:", response.status);
-
       const data = await response.json().catch((jsonError) => {
-        console.error("[Login] Invalid JSON response:", jsonError);
         throw new Error("Invalid response from server.");
       });
 
       if (response.status === 403) {
-        console.log("[Login] 403 status received, code:", data.code);
         if (data.code === 1001) {
           setError(data.message);
           toast.error("Your account has been banned. Please contact support.");
@@ -256,32 +240,30 @@ const Login = () => {
         setLoginAttempts((prev) => prev + 1);
         return;
       }
-      
 
       if (!response.ok) {
-        console.error("[Login] API Error:", response.status, data.message);
         toast.error(data.message || `Error: ${response.statusText}`);
         setLoginAttempts((prev) => prev + 1);
         return;
       }
 
-      console.log("[Login] Login successful, setting token");
       Cookies.set("token", data.token, { expires: 7, path: "/" });
 
       const decodedToken: any = jwtDecode(data.token);
-      console.log("[Login] Token decoded:", decodedToken);
 
-      toast.success(data.message || `Welcome back, ${decodedToken.fullname || "User"}!`);
+      toast.success(
+        data.message || `Welcome back, ${decodedToken.fullname || "User"}!`
+      );
 
       setTimeout(() => {
         const roleMap: Record<string, string> = {
-          '67ac64afe072694cafa16e76': '/manage/dashboard', // admin
-          '67ac64c7e072694cafa16e7a': '/staff',            // staff
-          '67ac667ae072694cafa16e7c': '/chef',             // chef
-          '67ac64afe072694cafa16e79': '/',                 // customer or default
+          "67ac64afe072694cafa16e76": "/manage/dashboard", // admin
+          "67ac64c7e072694cafa16e7a": "/staff", // staff
+          "67ac667ae072694cafa16e7c": "/chef", // chef
+          "67ac64afe072694cafa16e79": "/", // customer or default
         };
 
-        let destination = '/';
+        let destination = "/";
 
         if (Array.isArray(decodedToken.roleId)) {
           for (const roleId of decodedToken.roleId) {
@@ -290,16 +272,13 @@ const Login = () => {
               break;
             }
           }
-        } else if (typeof decodedToken.roleId === 'string') {
-          destination = roleMap[decodedToken.roleId] || '/';
+        } else if (typeof decodedToken.roleId === "string") {
+          destination = roleMap[decodedToken.roleId] || "/";
         }
 
-        console.log("[Login] Navigating to:", destination);
         navigate(destination);
       }, 1500);
-
     } catch (err) {
-      console.error("[Login] Unexpected error during login:", err);
       toast.error("An unexpected error occurred. Please try again later.");
       setLoginAttempts((prev) => prev + 1);
     } finally {
@@ -329,7 +308,10 @@ const Login = () => {
         theme="light"
       />
 
-      <div className="flex items-center justify-center -translate-y-5 cursor-pointer" onClick={() => navigate("/")}>
+      <div
+        className="flex items-center justify-center -translate-y-5 cursor-pointer"
+        onClick={() => navigate("/")}
+      >
         <img
           src={logo}
           alt="Ambrosia Logo"
@@ -340,8 +322,12 @@ const Login = () => {
 
       <div className="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl overflow-hidden shadow-xl min-h-[600px] md:min-h-[500px]">
         <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center flex-1 space-y-6">
-          <h2 className="text-2xl font-bold mb-10 text-gray-800 text-center md:text-left">Login</h2>
-          {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+          <h2 className="text-2xl font-bold mb-10 text-gray-800 text-center md:text-left">
+            Login
+          </h2>
+          {error && (
+            <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
+          )}
 
           <form onSubmit={handleSubmit} autoComplete="off">
             <div className="mb-4">
@@ -375,7 +361,11 @@ const Login = () => {
             </div>
 
             <div className="text-center text-sm mb-4">
-              <a href="#" onClick={() => navigate("/forgot-password")} className="text-gray-500 hover:text-gray-700">
+              <a
+                href="#"
+                onClick={() => navigate("/forgot-password")}
+                className="text-gray-500 hover:text-gray-700"
+              >
                 Forgot password?
               </a>
             </div>
@@ -391,7 +381,9 @@ const Login = () => {
 
           <div className="flex items-center my-4">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gray-200"></div>
-            <span className="px-4 text-sm text-gray-500 font-medium">or login with</span>
+            <span className="px-4 text-sm text-gray-500 font-medium">
+              or login with
+            </span>
             <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
           </div>
 
@@ -429,7 +421,10 @@ const Login = () => {
           </div>
           <div className="mt-3 text-center md:hidden">
             <p className="text-sm text-gray-600">Don't have an account?</p>
-            <button onClick={() => navigate("/register")} className="mt-1 text-[#a68a64] font-medium hover:underline">
+            <button
+              onClick={() => navigate("/register")}
+              className="mt-1 text-[#a68a64] font-medium hover:underline"
+            >
               Register
             </button>
           </div>
@@ -439,7 +434,9 @@ const Login = () => {
           className="hidden md:flex md:w-1/2 p-8 flex-col justify-center items-center text-white text-center"
           style={{ backgroundColor: "#a68a64" }}
         >
-          <h1 className="text-3xl font-bold mb-2">Hello, Welcome to Ambrosia!</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            Hello, Welcome to Ambrosia!
+          </h1>
           <p className="text-sm mb-8 opacity-90">Don't have an account?</p>
           <button
             onClick={() => navigate("/register")}
