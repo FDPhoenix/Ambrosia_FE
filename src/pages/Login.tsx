@@ -38,13 +38,19 @@ const Login = () => {
     const successMessage = urlParams.get("success");
     const errorMessage = urlParams.get("error");
 
+    console.log("[Login] URL params - success:", successMessage, "error:", errorMessage);
+
     if (successMessage) {
+      console.log("[Login] Success message found, processing Google login");
       toast.success(successMessage);
       
       const fetchUserProfile = async () => {
         try {
           const token = getCookie("token");
+          console.log("[Login] Token from cookie:", token ? "Found" : "Not found");
+          
           if (token) {
+            console.log("[Login] Calling user/profile API...");
             const response = await fetch(`${backendApiUrl}/user/profile`, {
               method: "GET",
               headers: {
@@ -54,19 +60,30 @@ const Login = () => {
               credentials: 'include', 
             });
 
+            console.log("[Login] API response status:", response.status);
+
             if (response.ok) {
               const data = await response.json();
-              console.log("User profile loaded:", data);
-                     }
+              console.log("[Login] User profile loaded:", data);
+              console.log("[Login] Dispatching loginSuccess event");
+              window.dispatchEvent(new Event('loginSuccess'));
+            } else {
+              console.log("[Login] API failed with status:", response.status);
+              const errorText = await response.text();
+              console.log("[Login] API error response:", errorText);
+            }
+          } else {
+            console.log("[Login] No token found in cookie");
           }
         } catch (error) {
-          console.error("Error fetching user profile:", error);
+          console.error("[Login] Error fetching user profile:", error);
         }
       };
 
       fetchUserProfile();
       
       setTimeout(() => {
+        console.log("[Login] Redirecting to home page");
         window.history.replaceState({}, document.title, window.location.pathname);
         navigate("/");
       }, 1500);
@@ -74,6 +91,7 @@ const Login = () => {
     }
 
     if (errorMessage) {
+      console.log("[Login] Error message found:", errorMessage);
       toast.error(errorMessage);
       setTimeout(() => {
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -81,9 +99,11 @@ const Login = () => {
     }
 
     if (token) {
+      console.log("[Login] Token found, redirecting to home");
       document.cookie = `token=${token}; path=/;`;
       navigate("/");
     } else {
+      console.log("[Login] No token found, setting loading to false");
       setIsLoading(false);
     }
   }, [navigate]);
@@ -132,19 +152,24 @@ const Login = () => {
   };
 
   const handleLoginGoogle = () => {
+    console.log("[Login] Google login clicked, redirecting to:", `${backendApiUrl}/login/google`);
     window.location.href = `${backendApiUrl}/login/google`;
   };
 
   const handleLoginFacebook = () => {
+    console.log("[Login] Facebook login clicked, redirecting to:", `${backendApiUrl}/facebook`);
     window.location.href = `${backendApiUrl}/facebook`;
   };
 
   const validateInputs = () => {
+    console.log("[Login] Validating inputs...");
     if (!email || !password) {
+      console.log("[Login] Validation failed: Email or password missing");
       toast.error("Email and password are required.");
       return false;
     }
     if (email.length < 6 || email.length > 50 || email.includes(" ") || !/\S+@\S+\.\S+/.test(email)) {
+      console.log("[Login] Validation failed: Invalid email format");
       toast.error("Invalid email format or length (6-50 characters, no spaces).");
       return false;
     }
@@ -154,9 +179,11 @@ const Login = () => {
       password.includes(" ") ||
       !/(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(password)
     ) {
+      console.log("[Login] Validation failed: Invalid password format");
       toast.error("Password must be 6-50 characters, no spaces, and include letters, numbers, and special characters.");
       return false;
     }
+    console.log("[Login] Validation passed");
     return true;
   };
 
@@ -166,15 +193,18 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[Login] Form submitted");
 
     if (!validateInputs()) return;
 
     if (lockoutTime > 0) {
+      console.log("[Login] Account locked, remaining time:", lockoutTime);
       toast.error(`Too many failed attempts. Try again in ${lockoutTime}s.`);
       return;
     }
 
     try {
+      console.log("[Login] Starting login process...");
       setLoading(true);
       setError("");
 
@@ -184,12 +214,15 @@ const Login = () => {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log("[Login] Login API response status:", response.status);
+
       const data = await response.json().catch((jsonError) => {
-        console.error("Invalid JSON response:", jsonError);
+        console.error("[Login] Invalid JSON response:", jsonError);
         throw new Error("Invalid response from server.");
       });
 
       if (response.status === 403) {
+        console.log("[Login] 403 status received, code:", data.code);
         if (data.code === 1001) {
           setError(data.message);
           toast.error("Your account has been banned. Please contact support.");
@@ -205,15 +238,17 @@ const Login = () => {
       
 
       if (!response.ok) {
-        console.error("API Error:", response.status, data.message);
+        console.error("[Login] API Error:", response.status, data.message);
         toast.error(data.message || `Error: ${response.statusText}`);
         setLoginAttempts((prev) => prev + 1);
         return;
       }
 
+      console.log("[Login] Login successful, setting token");
       Cookies.set("token", data.token, { expires: 7, path: "/" });
 
       const decodedToken: any = jwtDecode(data.token);
+      console.log("[Login] Token decoded:", decodedToken);
 
       toast.success(data.message || `Welcome back, ${decodedToken.fullname || "User"}!`);
 
@@ -238,11 +273,12 @@ const Login = () => {
           destination = roleMap[decodedToken.roleId] || '/';
         }
 
+        console.log("[Login] Navigating to:", destination);
         navigate(destination);
       }, 1500);
 
     } catch (err) {
-      console.error("Unexpected error during login:", err);
+      console.error("[Login] Unexpected error during login:", err);
       toast.error("An unexpected error occurred. Please try again later.");
       setLoginAttempts((prev) => prev + 1);
     } finally {
