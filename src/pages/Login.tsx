@@ -40,6 +40,32 @@ const Login = () => {
 
     if (successMessage) {
       toast.success(successMessage);
+      
+      const fetchUserProfile = async () => {
+        try {
+          const token = getCookie("token");
+          if (token) {
+            const response = await fetch(`${backendApiUrl}/user/profile`, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              credentials: 'include', 
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              console.log("User profile loaded:", data);
+                     }
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      };
+
+      fetchUserProfile();
+      
       setTimeout(() => {
         window.history.replaceState({}, document.title, window.location.pathname);
         navigate("/");
