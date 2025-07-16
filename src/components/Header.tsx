@@ -25,7 +25,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
   const [dropdownView, setDropdownView] = useState<
     "main" | "editProfile" | "changePassword"
   >("main");
-  // const dropdownRef = useRef<HTMLDivElement>(null);
+  const [forceUpdate, setForceUpdate] = useState(0); // Thêm state để force re-render
   const navigate = useNavigate();
   const dropdownRefMobile = useRef<HTMLDivElement>(null);
   const dropdownRefDesktop = useRef<HTMLDivElement>(null);
@@ -38,12 +38,40 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
     }
   };
 
+  // Thêm event listener để re-render khi đăng nhập thành công
+  useEffect(() => {
+    const handleLoginSuccess = () => {
+      console.log("[Header] Login success event received, forcing re-render");
+      setForceUpdate(prev => prev + 1);
+    };
+
+    window.addEventListener('loginSuccess', handleLoginSuccess);
+    return () => {
+      window.removeEventListener('loginSuccess', handleLoginSuccess);
+    };
+  }, []);
+
+  // Thêm interval để kiểm tra token định kỳ (backup)
+  useEffect(() => {
+    const checkTokenInterval = setInterval(() => {
+      const currentToken = Cookies.get("token") ?? null;
+      if (currentToken !== userToken) {
+        console.log("[Header] Token changed, updating state");
+        setUserToken(currentToken);
+        setForceUpdate(prev => prev + 1);
+      }
+    }, 1000); // Kiểm tra mỗi giây
+
+    return () => clearInterval(checkTokenInterval);
+  }, [userToken]);
+
   useEffect(() => {
     const token = Cookies.get("token") ?? null;
+    console.log("[Header] Current token:", token ? "Found" : "Not found");
     setUserToken(token);
 
     if (token) {
-      // Gọi API lấy thông tin user thay vì chỉ decode token
+      console.log("[Header] Fetching user info...");
       const fetchUserInfo = async () => {
         try {
           const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'}/user/profile`, {
@@ -55,21 +83,26 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
             credentials: 'include', 
           });
 
+          console.log("[Header] API response status:", response.status);
+
           if (response.ok) {
             const data = await response.json();
+            console.log("[Header] User data received:", data);
             setUserImage(data.user.profileImage);
          
             const userRoles = data.user.roles || [];
             const isAdminUser = userRoles.some((role: any) => role.roleId === "67ac64afe072694cafa16e76");
             setIsAdmin(isAdminUser);
+            console.log("[Header] User image set:", data.user.profileImage);
+            console.log("[Header] Is admin:", isAdminUser);
           } else {
-           
+            console.log("[Header] API failed, using token decode fallback");
             const decodedToken: any = jwtDecode(token);
             setUserImage(decodedToken.image);
             setIsAdmin(decodedToken.roleId == "67ac64afe072694cafa16e76");
           }
         } catch (error) {
-          console.error("Error fetching user info:", error);
+          console.error("[Header] Error fetching user info:", error);
           const decodedToken: any = jwtDecode(token);
           setUserImage(decodedToken.image);
           setIsAdmin(decodedToken.roleId == "67ac64afe072694cafa16e76");
@@ -78,11 +111,13 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
 
       fetchUserInfo();
     } else {
+      console.log("[Header] No token, setting isAdmin to false");
       setIsAdmin(false);
     }
-  }, [userToken]);
+  }, [userToken, forceUpdate]); // Thêm forceUpdate vào dependency
 
   const handleLogout = () => {
+    console.log("[Header] Logout clicked");
     Cookies.remove("token");
     setUserToken(null);
     setIsDropdownOpen(false);
@@ -91,18 +126,22 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
   };
 
   const showEditProfile = () => {
+    console.log("[Header] Show edit profile clicked");
     setDropdownView("editProfile");
   };
 
   const showChangePassword = () => {
+    console.log("[Header] Show change password clicked");
     setDropdownView("changePassword");
   };
 
   const handleBack = () => {
+    console.log("[Header] Back clicked");
     setDropdownView("main"); // Always return to main view
   };
 
   const handleAvatarClick = () => {
+    console.log("[Header] Avatar clicked, dropdown open:", !isDropdownOpen);
     if (!isDropdownOpen) {
       setDropdownView("main"); // Reset to main when opening dropdown
     }
