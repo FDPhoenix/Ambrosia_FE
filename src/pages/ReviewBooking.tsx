@@ -43,6 +43,35 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
   const isOrderAtRestaurant = (isEditing ? editedBooking?.dishes?.length : booking?.dishes?.length) === 0;
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const allTimes = [
+    "08:00", "09:00", "10:00", "11:00", "12:00",
+    "13:00", "14:00", "15:00", "16:00", "17:00",
+    "18:00", "19:00", "20:00"
+  ];
+
+  const now = new Date();
+  const selectedDate = editedBooking?.bookingDate;
+  const todayStr = now.toISOString().split("T")[0];
+
+  const filteredTimes = selectedDate === todayStr
+    ? allTimes.filter((time) => {
+      const [h, m] = time.split(":").map(Number);
+      const slot = new Date();
+      slot.setHours(h, m, 0, 0);
+
+      return slot.getTime() - now.getTime() >= 60 * 60 * 1000;
+    })
+    : allTimes;
+
+  useEffect(() => {
+    if (isEditing && editedBooking?.bookingDate === todayStr) {
+      const timeValid = filteredTimes.includes(editedBooking?.startTime || "");
+      if (!timeValid) {
+        const newTime = filteredTimes[0] || "";
+        setEditedBooking((prev) => prev ? { ...prev, startTime: newTime } : prev);
+      }
+    }
+  }, [isEditing, editedBooking?.bookingDate]);
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
 
 
@@ -95,12 +124,6 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
     }
   };
 
-  useEffect(() => {
-    if (isEditing && editedBooking?.bookingDate && editedBooking?.startTime) {
-      fetchAvailableTablesForEditing(editedBooking.bookingDate, editedBooking.startTime, editedBooking.tableId?._id || null);
-    }
-  }, [isEditing, editedBooking?.bookingDate, editedBooking?.startTime]);
-
   const fetchAvailableTablesForEditing = async (date: string, time: string, currentTableId: string | null) => {
     try {
       if (!date || !time) return;
@@ -110,8 +133,12 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
       let filteredTables = (response.data as { isAvailable: boolean; _id: string; tableNumber: string }[])
         .filter((table) => table.isAvailable);
       if (currentTableId && !filteredTables.some((t) => t._id === currentTableId)) {
-        const currentTableResponse = await axios.get(`${backendApiUrl}/tables/${currentTableId}`);
-        filteredTables.push(currentTableResponse.data);
+        try {
+          const currentTableResponse = await axios.get(`${backendApiUrl}/tables/${currentTableId}`);
+          filteredTables.push(currentTableResponse.data);
+        } catch (err) {
+          console.warn("⚠️ Table does not exist anymore:", currentTableId);
+        }
       }
       setAvailableTables(filteredTables);
       setNoTablesAvailable(filteredTables.length === 0);
@@ -119,6 +146,20 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
       console.error("Error retrieving table list:", error);
     }
   };
+
+  useEffect(() => {
+    if (
+      isEditing &&
+      editedBooking?.bookingDate &&
+      editedBooking?.startTime
+    ) {
+      fetchAvailableTablesForEditing(
+        editedBooking.bookingDate,
+        editedBooking.startTime,
+        editedBooking.tableId?._id || null
+      );
+    }
+  }, [isEditing]);
 
   const handleUpdateBooking = async () => {
     try {
@@ -188,7 +229,7 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
 
         const paymentUrl = paymentResponse.data.paymentUrl;
         if (paymentUrl) {
-          window.location.href = paymentUrl; // redirect
+          window.location.href = paymentUrl;
         } else {
           toast.error("Unable to generate payment link!");
         }
@@ -289,21 +330,24 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
                   <input
                     type="date"
                     value={editedBooking?.bookingDate || ""}
-                    onChange={(e) =>
-                      setEditedBooking((prev) => {
-                        if (!prev) return prev; // hoặc null
-
-                        return {
-                          ...prev,
-                          bookingDate: e.target.value,
-                          tableId: null,
-                        };
-                      })
-                    }
-
+                    onChange={(e) => {
+                      const d = e.target.value;
+                      setEditedBooking(prev =>
+                        prev ? { ...prev, bookingDate: d, tableId: null } : prev
+                      );
+                      if (editedBooking?.startTime) {
+                        fetchAvailableTablesForEditing(
+                          d,
+                          editedBooking.startTime,
+                          editedBooking.tableId?._id || null
+                        );
+                      }
+                    }}
                     min={new Date().toISOString().split("T")[0]}
+                    max={new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split("T")[0]} // 👈 thêm dòng này
                     className="border px-2 py-1 rounded text-sm"
                   />
+
                 ) : (
                   booking?.bookingDate
                     ? new Date(booking.bookingDate).toLocaleDateString("vi-VN")
@@ -318,21 +362,24 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
                 {isEditing ? (
                   <select
                     value={editedBooking?.startTime || ""}
-                    onChange={(e) =>
-                      setEditedBooking((prev) => {
-                        if (!prev) return prev; // hoặc return null;
-                        return {
-                          ...prev,
-                          startTime: e.target.value,
-                          tableId: null,
-                        };
-                      })
-                    }
+                    onChange={(e) => {
+                      const t = e.target.value;
+                      setEditedBooking((prev) =>
+                        prev ? { ...prev, startTime: t, tableId: null } : prev
+                      );
 
+                      if (editedBooking?.bookingDate) {
+                        fetchAvailableTablesForEditing(
+                          editedBooking.bookingDate,
+                          t,
+                          editedBooking.tableId?._id || null
+                        );
+                      }
+                    }}
                     className="border px-2 py-1 rounded text-sm"
                   >
                     <option value="" disabled>Select time</option>
-                    {["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"].map((time) => (
+                    {filteredTimes.map((time) => (
                       <option key={time} value={time}>{time}</option>
                     ))}
                   </select>
@@ -636,12 +683,45 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
                         if (!booking) return;
 
                         const formattedDate = new Date(booking.bookingDate).toISOString().split("T")[0];
+                        const time = booking.startTime;
 
-                        setEditedBooking({
-                          ...booking,
-                          bookingDate: formattedDate,
-                          dishes: booking.dishes.map((d) => ({ ...d })), // deep clone
+                        const [nowHour, nowMinute] = new Date().toTimeString().split(":").map(Number);
+                        const now = new Date();
+                        now.setHours(nowHour, nowMinute, 0, 0);
+
+                        const todayStr = new Date().toISOString().split("T")[0];
+                        const allTimes = [
+                          "08:00", "09:00", "10:00", "11:00", "12:00",
+                          "13:00", "14:00", "15:00", "16:00", "17:00",
+                          "18:00", "19:00", "20:00"
+                        ];
+
+                        const filteredTimes = formattedDate === todayStr
+                          ? allTimes.filter((t) => {
+                            const [h, m] = t.split(":").map(Number);
+                            const slot = new Date();
+                            slot.setHours(h, m, 0, 0);
+                            return slot.getTime() - now.getTime() >= 60 * 60 * 1000;
+                          })
+                          : allTimes;
+
+                        const validStartTime = filteredTimes.includes(time) ? time : filteredTimes[0] || "";
+
+                        setEditedBooking((prev) => {
+                          if (!prev) return null;
+                          return {
+                            ...prev,
+                            bookingDate: formattedDate,
+                            startTime: validStartTime,
+                            dishes: booking.dishes.map((d) => ({ ...d })),
+                          };
                         });
+
+                        fetchAvailableTablesForEditing(
+                          formattedDate,
+                          validStartTime,
+                          booking.tableId?._id || null
+                        );
 
                         setIsEditing(true);
                       }}
