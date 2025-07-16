@@ -11,11 +11,22 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 
 const getCookie = (name: string) => {
+  console.log("[Login] getCookie called for:", name);
+  console.log("[Login] All cookies:", document.cookie);
+  
   const cookieArr = document.cookie.split("; ");
+  console.log("[Login] Cookie array:", cookieArr);
+  
   for (const cookie of cookieArr) {
     const [key, value] = cookie.split("=");
-    if (key === name) return decodeURIComponent(value);
+    console.log("[Login] Checking cookie:", key, "=", value);
+    if (key === name) {
+      console.log("[Login] Found cookie:", name, "=", decodeURIComponent(value));
+      return decodeURIComponent(value);
+    }
   }
+  
+  console.log("[Login] Cookie not found:", name);
   return null;
 };
 
@@ -39,6 +50,8 @@ const Login = () => {
     const errorMessage = urlParams.get("error");
 
     console.log("[Login] URL params - success:", successMessage, "error:", errorMessage);
+    console.log("[Login] Current URL:", window.location.href);
+    console.log("[Login] Document cookies:", document.cookie);
 
     if (successMessage) {
       console.log("[Login] Success message found, processing Google login");
@@ -74,6 +87,14 @@ const Login = () => {
             }
           } else {
             console.log("[Login] No token found in cookie");
+            console.log("[Login] Trying to get token from URL params...");
+            
+            const urlToken = urlParams.get("token");
+            if (urlToken) {
+              console.log("[Login] Token found in URL params, setting cookie");
+              document.cookie = `token=${urlToken}; path=/; max-age=86400`;
+              window.dispatchEvent(new Event('loginSuccess'));
+            }
           }
         } catch (error) {
           console.error("[Login] Error fetching user profile:", error);
