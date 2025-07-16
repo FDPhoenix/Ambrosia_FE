@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaComments, FaTimes, FaRobot, FaPaperPlane } from "react-icons/fa";
 
+
 const ChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<
@@ -13,13 +14,8 @@ const ChatWidget: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const history = localStorage.getItem("chatHistory");
-    if (history) setMessages(JSON.parse(history));
-  }, []);
 
   useEffect(() => {
-    localStorage.setItem("chatHistory", JSON.stringify(messages));
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
