@@ -66,10 +66,10 @@ const Login = () => {
             });
 
             if (response.ok) {
-              const data = await response.json();
+              await response.json();
               window.dispatchEvent(new Event("loginSuccess"));
             } else {
-              const errorText = await response.text();
+              await response.text();
             }
           } else {
             const urlToken = urlParams.get("token");
@@ -223,7 +223,7 @@ const Login = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json().catch((jsonError) => {
+      const data = await response.json().catch(() => {
         throw new Error("Invalid response from server.");
       });
 
