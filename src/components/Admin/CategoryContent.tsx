@@ -27,6 +27,16 @@ const CategoryContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1)
   const itemsPerPage = 6
 
+  const resetForm = () => {
+    setName("")
+    setDescription("")
+  }
+
+  const handleCloseModal = () => {
+    setModalIsOpen(false)
+    resetForm()
+  }
+
   const fetchCategories = async () => {
     try {
       const res = await fetch(`${API_BASE}/admin/all`, {
@@ -83,8 +93,7 @@ const CategoryContent: React.FC = () => {
       if (data.success) {
         toast.success("Category added successful!")
         fetchCategories()
-        setName("")
-        setDescription("")
+        resetForm()
         setModalIsOpen(false)
       } else {
         toast.error(`Failed to add category: ${data.message}`)
@@ -225,7 +234,7 @@ const CategoryContent: React.FC = () => {
 
       <Modal
         isOpen={modalIsOpen}
-        onRequestClose={() => setModalIsOpen(false)}
+        onRequestClose={handleCloseModal}
         style={customModalStyles}
         contentLabel="Add Category Modal"
       >
@@ -254,7 +263,7 @@ const CategoryContent: React.FC = () => {
             </button>
             <button
               className="flex-1 border border-[#ddd] py-2.5 px-5 rounded-md cursor-pointer text-sm transition-colors duration-200 bg-[rgb(240,240,240)] hover:bg-[#F09C42] font-medium text-black"
-              onClick={() => setModalIsOpen(false)}
+              onClick={handleCloseModal}
             >
               Cancel
             </button>
