@@ -21,7 +21,7 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || '${backendApiUrl}';
   const enterOtpForm = {
     title: "Enter The OTP",
     fields: [
@@ -40,7 +40,7 @@ const Register: React.FC = () => {
   const onVerifyOtp = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
     try {
-      const response = await axios.post(`http://localhost:3000/auth/verify-otp`, {
+      const response = await axios.post(`${backendApiUrl}/auth/verify-otp`, {
         email: formData.email,
         otp,
       });
@@ -141,7 +141,7 @@ const Register: React.FC = () => {
     if (validateForm()) {
       try {
         setLoading(true);
-        const response = await axios.post("http://localhost:3000/auth/register", {
+        const response = await axios.post(`${backendApiUrl}/auth/register`, {
           fullname: formData.fullName,
           email: formData.email,
           password: formData.password,
@@ -173,11 +173,11 @@ const Register: React.FC = () => {
   };
 
   const handleLoginGoogle = () => {
-    window.location.href = "http://localhost:3000/login/google";
+    window.location.href =`${backendApiUrl}/login/google`;
   };
 
   const handleLoginFacebook = () => {
-    window.location.href = "http://localhost:3000/facebook";
+    window.location.href = `${backendApiUrl}/facebook`;
   };
 
   return (

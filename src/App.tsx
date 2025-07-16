@@ -57,7 +57,6 @@ function App() {
       <Route path="/review-experience/:bookingId" element={<ReviewExperience closeModal={() => { }} bookingId={""} />} />
       <Route path="/feedback/:dishId" element={<DishFeedback />} />
       <Route path="/history" element={<HistoryDashboard />} />
-      {/* <Route path="/profile" element={<UserProfile />} /> */}
       <Route path="/change-password" element={<ChangePassword />} />
       <Route path="/ranks" element={<ViewRanks />} />
       <Route path="/manage/*" element={<AdminPage />} />

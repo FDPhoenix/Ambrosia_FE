@@ -37,7 +37,8 @@ const ChatWidget: React.FC = () => {
     setInput("");
 
     try {
-      const { data } = await axios.post("http://localhost:3000/api/chat/message", {
+      const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'
+      const { data } = await axios.post(`${backendApiUrl}/api/chat/message`, {
         message: userMsg,
       });
 

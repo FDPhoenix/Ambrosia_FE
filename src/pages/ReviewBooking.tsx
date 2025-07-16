@@ -43,6 +43,7 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
   const isOrderAtRestaurant = (isEditing ? editedBooking?.dishes?.length : booking?.dishes?.length) === 0;
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
 
 
   const calculateBill = (dishes: Dish[]) => {
@@ -63,7 +64,7 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        const response = await axios.get<Booking>(`http://localhost:3000/bookings/${bookingId}`);
+        const response = await axios.get<Booking>(`${backendApiUrl}/bookings/${bookingId}`);
         setBooking(response.data);
         setEditedBooking(response.data);
         setOriginalBooking(response.data);
@@ -84,7 +85,7 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
 
   const fetchBookingDetailsForEditing = async () => {
     try {
-      const response = await axios.get<Booking>(`http://localhost:3000/bookings/${bookingId}`);
+      const response = await axios.get<Booking>(`${backendApiUrl}/bookings/${bookingId}`);
       if (response.data.bookingDate) {
         response.data.bookingDate = new Date(response.data.bookingDate).toISOString().split("T")[0];
       }
@@ -103,13 +104,13 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
   const fetchAvailableTablesForEditing = async (date: string, time: string, currentTableId: string | null) => {
     try {
       if (!date || !time) return;
-      const response = await axios.get(`http://localhost:3000/bookings/available-tables`, {
+      const response = await axios.get(`${backendApiUrl}/bookings/available-tables`, {
         params: { bookingDate: date, startTime: time },
       });
       let filteredTables = (response.data as { isAvailable: boolean; _id: string; tableNumber: string }[])
         .filter((table) => table.isAvailable);
       if (currentTableId && !filteredTables.some((t) => t._id === currentTableId)) {
-        const currentTableResponse = await axios.get(`http://localhost:3000/tables/${currentTableId}`);
+        const currentTableResponse = await axios.get(`${backendApiUrl}/tables/${currentTableId}`);
         filteredTables.push(currentTableResponse.data);
       }
       setAvailableTables(filteredTables);
@@ -122,7 +123,7 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
   const handleUpdateBooking = async () => {
     try {
       if (!editedBooking) return;
-      const response = await axios.put(`http://localhost:3000/bookings/${bookingId}`, {
+      const response = await axios.put(`${backendApiUrl}/bookings/${bookingId}`, {
         tableId: editedBooking.tableId?._id,
         bookingDate: editedBooking.bookingDate,
         startTime: editedBooking.startTime,
@@ -162,7 +163,7 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
       console.log("Processing booking for bookingId:", bookingId);
 
       if (isOrderAtRestaurant) {
-        await axios.put(`http://localhost:3000/bookings/${bookingId}/confirm`);
+        await axios.put(`${backendApiUrl}/bookings/${bookingId}/confirm`);
         toast.success("Booking has been confirmed!");
         setTimeout(() => {
           navigate("/", { state: { bookingId, showReviewExperience: true } });
@@ -173,16 +174,16 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
           return;
         }
 
-        const checkoutResponse = await axios.post(`http://localhost:3000/payment/checkoutBooking`, {
+        const checkoutResponse = await axios.post(`${backendApiUrl}/payment/checkoutBooking`, {
           bookingId: bookingId,
         });
         const { orderId } = checkoutResponse.data;
 
-        await axios.put(`http://localhost:3000/bookings/${bookingId}/confirm`);
+        await axios.put(`${backendApiUrl}/bookings/${bookingId}/confirm`);
         toast.success("Booking has been confirmed. Redirecting to VNPay......");
 
         const paymentResponse = await axios.post(
-          `http://localhost:3000/payment/vnpay-create?orderId=${orderId}`
+          `${backendApiUrl}/payment/vnpay-create?orderId=${orderId}`
         );
 
         const paymentUrl = paymentResponse.data.paymentUrl;
@@ -207,7 +208,7 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
       return;
     }
     try {
-      const response = await axios.delete(`http://localhost:3000/bookings/${bookingId}`);
+      const response = await axios.delete(`${backendApiUrl}/bookings/${bookingId}`);
       console.log("Booking deleted:", response.data);
       toast.success("Booking has been cancelled!");
       closeModal();
@@ -663,7 +664,7 @@ const ReviewBooking: React.FC<ReviewBookingProps> = ({ bookingId, closeModal }) 
                     className="bg-[#e09f3e] hover:bg-[#cf8c2d]  text-white w-full py-2 rounded font-semibold text-base"
                     onClick={async () => {
                       try {
-                        const response = await axios.get(`http://localhost:3000/bookings/${bookingId}`);
+                        const response = await axios.get(`${backendApiUrl}/bookings/${bookingId}`);
                         setEditedBooking((prev) => {
                           if (!prev) return prev; // hoặc return null;
                           return {

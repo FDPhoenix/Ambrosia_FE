@@ -15,10 +15,12 @@ const ReviewExperience: React.FC<ReviewExperienceProps> = ({ bookingId, closeMod
     const [hover, setHover] = useState<number | null>(null);
     const [comment, setComment] = useState("");
     const [isOpen, setIsOpen] = useState(true);
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
+
 
     const handleSubmit = async () => {
         try {
-            await axios.post("http://localhost:3000/reviews/create", {
+            await axios.post(`${backendApiUrl}/reviews/create`, {
                 bookingId,
                 rating,
                 comment,

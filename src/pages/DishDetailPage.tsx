@@ -8,6 +8,7 @@ import CartSidebar from "../components/CartSideBar";
 import styles from "../css/PageCss/HomePage.module.css";
 import DishDetail from "../components/DishDetail";
 import { ToastContainer } from "react-toastify";
+import LoadingAnimation from "../components/LoadingAnimation";
 
 interface Dish {
     _id: string;
@@ -23,6 +24,7 @@ function DishDetailPage() {
     const { id } = useParams();
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [dish, setDish] = useState<Dish | null>(null);
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
     const link = [
         { id: 1, name: "menu", path: `/menu` },
@@ -32,7 +34,7 @@ function DishDetailPage() {
     useEffect(() => {
         const fetchDish = async () => {
             try {
-                const response = await fetch(`http://localhost:3000/dishes/detail/${id}`);
+                const response = await fetch(`${backendApiUrl}/dishes/detail/${id}`);
                 if (!response.ok) {
                     throw new Error("Network response wasn't ok");
                 }
@@ -54,7 +56,11 @@ function DishDetailPage() {
         <>
             <Header fixed={false} onCartToggle={toggleCart} />
             <LinkRoute links={link} />
-            {dish ? <DishDetail dishInfor={dish} /> : <p>Loading...</p>}
+            {dish ? <DishDetail dishInfor={dish} /> : (
+                <div className="h-[500px] flex items-center justify-center">
+                    <LoadingAnimation className="xl:scale-150"/>
+                </div>
+            )}
             <Contact />
             <Footer />
             <CartSidebar isOpen={isCartOpen} onClose={toggleCart} />

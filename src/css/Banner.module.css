@@ -1,13 +1,9 @@
-.hero {
-    width: 100%;
-    height: 400px;
-    /* position: relative; */
-    background-color: #f0f0f0;
-    margin-top: 69px;
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Herr+Von+Muellerhoff&display=swap');
+
+.fontCinzel {
+  font-family: 'Cinzel', sans-serif;
 }
 
-.heroImage {
-    width: 100%;
-    height: 100%;
-    object-fit: fill;
+.fontHerrVonMuellerhoff {
+  font-family: 'Herr Von Muellerhoff', sans-serif;
 }

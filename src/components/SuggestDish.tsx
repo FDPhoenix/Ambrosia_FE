@@ -16,6 +16,7 @@ function SuggestDish() {
   const [isLoading, setIsLoading] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
   const token = Cookies.get('token');
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const fetchSuggestedDishes = async () => {
@@ -23,7 +24,7 @@ function SuggestDish() {
 
       setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:3000/dishes/suggest', {
+        const response = await fetch(`${backendApiUrl}/dishes/suggest`, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,

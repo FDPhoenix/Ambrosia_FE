@@ -36,7 +36,7 @@ function HomePage() {
 
   return (
     <div>
-      <Header fixed={true} onCartToggle={toggleCart} />
+      <Header fixed={true} inheritBackground={true} onCartToggle={toggleCart} />
       <Banner />
       <About />
       <FAQ />
@@ -56,11 +56,8 @@ function HomePage() {
 
       <CartSidebar isOpen={isCartOpen} onClose={toggleCart} />
       {isCartOpen && <div className={styles.overlay} onClick={toggleCart}></div>}
-
       <Footer />
-
       <ChatWidget />
-
       <ToastContainer theme="colored" />
     </div>
   );

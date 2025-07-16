@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FaEdit, FaEye, FaEyeSlash, FaTimes } from 'react-icons/fa';
 import StatusBadge from './StatusBadge';
 import { toast } from 'react-toastify';
-
+import Pagination from '../Pagination';
 interface Ingredient {
   _id: string;
   dishId: { _id: string; name: string };
@@ -31,9 +31,16 @@ function IngredientContent() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [dishes, setDishes] = useState<any[]>([]);
   const [filterType, setFilterType] = useState<string>('');
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || '${backendApiUrl}';
+  const [currentIngredients, setCurrentIngredients] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+    const itemsPerPage = 4;
+    const handlePageChange = useCallback((paginatedDishes: any[], page: number) => {
+      setCurrentIngredients(paginatedDishes);
+      setCurrentPage(page);
+    }, []);
   const [ingredientData, setIngredientData] = useState<IngredientData>({
     name: '',
     status: 'Available',
@@ -50,7 +57,7 @@ function IngredientContent() {
 
   const fetchDishes = async () => {
     try {
-      const response = await fetch('http://localhost:3000/dishes/all?page=1&limit=10000');
+      const response = await fetch(`${backendApiUrl}/dishes/all?page=1&limit=10000`);
       if (!response.ok) throw new Error('Failed to fetch dishes');
       const data = await response.json();
       setDishes(data.dishes || []);
@@ -65,8 +72,8 @@ function IngredientContent() {
     setError(null);
     try {
       const url = type
-        ? `http://localhost:3000/ingredients/filter/type?type=${encodeURIComponent(type)}`
-        : 'http://localhost:3000/ingredients';
+        ? `${backendApiUrl}/ingredients/filter/type?type=${encodeURIComponent(type)}`
+        : `${backendApiUrl}/ingredients`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch ingredients');
       const data = await response.json();
@@ -90,7 +97,6 @@ function IngredientContent() {
   const handleAddOrUpdateIngredient = async () => {
     const nameRegex = /^[A-Za-z\s]+$/;
 
-    // Name validation
     if (!ingredientData.name.trim()) {
       toast.error('Ingredient name is required.');
       return;
@@ -102,19 +108,16 @@ function IngredientContent() {
       return;
     }
 
-    // Dish validation
     if (!ingredientData.dishId) {
       toast.error('Please select a dish.');
       return;
     }
 
-    // Type validation
     if (!ingredientData.type) {
       toast.error('Please select a type.');
       return;
     }
 
-    // Quantity validation
     const quantity = Number(ingredientData.quantity);
     if (!ingredientData.quantity || isNaN(quantity)) {
       toast.error('Quantity must be a number.');
@@ -126,8 +129,8 @@ function IngredientContent() {
 
     try {
       const url = isEditing
-        ? `http://localhost:3000/ingredients/update/${editIngredientId}`
-        : 'http://localhost:3000/ingredients/add';
+        ? `${backendApiUrl}/ingredients/update/${editIngredientId}`
+        : `${backendApiUrl}/ingredients/add`;
       const method = isEditing ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -184,7 +187,7 @@ function IngredientContent() {
 
   const handleHideIngredient = async (ingredientId: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/ingredients/hide/${ingredientId}`, {
+      const response = await fetch(`${backendApiUrl}/ingredients/hide/${ingredientId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -208,21 +211,33 @@ function IngredientContent() {
     fetchIngredients(type);
   };
 
+  useEffect(() => {
+    const totalPages = Math.ceil(ingredients.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    } else if (totalPages === 0) {
+      setCurrentPage(1);
+    }
+  
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedItems = ingredients.slice(startIndex, startIndex + itemsPerPage);
+    setCurrentIngredients(paginatedItems);
+  }, [ingredients, currentPage, itemsPerPage]);
   return (
-    <div className="max-w-8xl max-h-[567px] mx-auto bg-white p-6 rounded-xl shadow-md">
+    <div className="relative h-[567px] max-w-8xl mx-auto bg-white p-6 rounded-xl shadow-md">
       {loading ? (
         <div className="text-center">Loading...</div>
       ) : error ? (
         <div className="text-red-400">{error}</div>
       ) : (
         <>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold">List of Ingredients</h3>
-            <div>
+          <div className=" flex flex-row justify-between mb-4">
+            <h3 className=" text-xl font-semibold">List of Ingredients</h3>
+            <div className="flex flex-col sm:flex-row items-start mt-2 sm:mt-0">
               <select
                 value={filterType}
                 onChange={handleFilterChange}
-                className="mr-3 px-3 py-[5px] border border-gray-300 rounded-md"
+                className="mb-2 sm:mb-0 sm:mr-3 px-3 py-2 border border-gray-300 rounded-md"
               >
                 <option value="">All Types</option>
                 {INGREDIENT_TYPES.map((type) => (
@@ -231,47 +246,78 @@ function IngredientContent() {
               </select>
               <button
                 onClick={() => { setShowForm(true); setIsEditing(false); }}
-                className="px-3 py-[5px] bg-[#f0f0f0] text-black rounded-md border border-[#ddd] hover:bg-[#F0924C] transition"
+                className="px-3 py-2 bg-[#f0f0f0] text-black rounded-md border border-[#ddd] hover:bg-[#F0924C] transition"
               >
                 Add New
               </button>
             </div>
           </div>
 
-          <div className="overflow-auto max-h-[475px]">
+          <div className="h-[450px] overflow-auto sm:max-h-[475px]">
             {ingredients.length === 0 ? (
               <p className="text-center">No ingredients found.</p>
             ) : (
-              <table className="w-full text-center">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="p-4">No</th>
-                    <th className="p-4">Name</th>
-                    <th className="p-4">Description</th>
-                    <th className="p-4">Quantity</th>
-                    <th className="p-4">Type</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <>
+                <div className="hidden sm:block">
+                  <table className="w-full text-center">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="p-4">No</th>
+                        <th className="p-4">Name</th>
+                        <th className="p-4">Description</th>
+                        <th className="p-4">Quantity</th>
+                        <th className="p-4">Type</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentIngredients.map((ingredient, index) => (
+                        <tr key={ingredient._id} className="border-b">
+                          <td className="p-3">{(currentPage - 1) * itemsPerPage + index + 1}
+</td>
+                          <td className="p-3">{ingredient.name}</td>
+                          <td className="max-w-[250px] p-3">{ingredient.description || '-'}</td>
+                          <td className="p-3">{ingredient.quantity}</td>
+                          <td className="p-3">{ingredient.type || '-'}</td>
+                          <td className="p-3">
+                            <StatusBadge
+                              status={ingredient.status === 'Available'}
+                              caseTrue="Available"
+                              caseFalse="Unavailable"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <button
+                              className="text-lg mr-4 hover:text-orange-500 transition"
+                              onClick={() => handleEditIngredient(ingredient)}
+                            >
+                              <FaEdit />
+                            </button>
+                            <button
+                              className="text-lg hover:text-orange-500 transition"
+                              onClick={() => handleHideIngredient(ingredient._id)}
+                            >
+                              {ingredient.status === 'Available' ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="block sm:hidden">
                   {ingredients.map((ingredient, index) => (
-                    <tr key={ingredient._id} className="border-b">
-                      <td className="p-3">{index + 1}</td>
-                      <td className="p-3">{ingredient.name}</td>
-                      <td className="max-w-[250px] p-3">{ingredient.description || '-'}</td>
-                      <td className="p-3">{ingredient.quantity}</td>
-                      <td className="p-3">{ingredient.type || '-'}</td>
-                      <td className="p-3">
-                        <StatusBadge
-                          status={ingredient.status === 'Available'}
-                          caseTrue="Available"
-                          caseFalse="Unavailable"
-                        />
-                      </td>
-                      <td className="p-3">
+                    <div key={ingredient._id} className="p-4 mb-4 border rounded-lg shadow-sm">
+                      <p><strong>Order No:</strong> {index + 1}</p>
+                      <p><strong>Name:</strong> {ingredient.name}</p>
+                      <p><strong>Description:</strong> {ingredient.description || '-'}</p>
+                      <p><strong>Quantity:</strong> {ingredient.quantity}</p>
+                      <p><strong>Type:</strong> {ingredient.type || '-'}</p>
+                      <p><strong>Status:</strong> <StatusBadge status={ingredient.status === 'Available'} caseTrue="Available" caseFalse="Unavailable" /></p>
+                      <div className="mt-2">
                         <button
-                          className="text-lg mr-4 hover:text-orange-500 transition"
+                          className="text-lg mr-2 hover:text-orange-500 transition"
                           onClick={() => handleEditIngredient(ingredient)}
                         >
                           <FaEdit />
@@ -282,17 +328,18 @@ function IngredientContent() {
                         >
                           {ingredient.status === 'Available' ? <FaEyeSlash /> : <FaEye />}
                         </button>
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </>
             )}
           </div>
-
+          <Pagination items={ingredients} itemsPerPage={itemsPerPage} onPageChange={handlePageChange} />
+          
           {showForm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-              <div className="bg-white rounded-lg p-6 w-[400px]">
+              <div className="bg-white rounded-lg p-6 w-[90%] sm:w-[400px]">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold">
                     {isEditing ? 'Edit Ingredient' : 'Add New Ingredient'}

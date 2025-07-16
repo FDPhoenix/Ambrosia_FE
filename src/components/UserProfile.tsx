@@ -192,8 +192,8 @@ const EditProfile: React.FC<EditProfileProps> = ({ onChangePasswordClick, onBack
             }
 
             const updateResponse = await fetch(`${backendApiUrl}/user/profile`, {
+                method: "PUT",
                 headers: {
-                    method: "PUT",
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },

@@ -42,9 +42,14 @@ export default function StaffQRScanner() {
     const qrScannerRef = useRef<QrScanner | null>(null);
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [isDishModalOpen, setIsDishModalOpen] = useState(false);
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
     useEffect(() => {
-        if (mode === "camera" && !bookingInfo && videoRef.current) {
+        const setupScanner = async () => {
+            if (mode !== "camera" || bookingInfo || !videoRef.current) return;
+
+            await stopAndDestroyScanner();
+
             qrScannerRef.current = new QrScanner(
                 videoRef.current,
                 (result) => {
@@ -56,13 +61,30 @@ export default function StaffQRScanner() {
                     preferredCamera: facingMode,
                 }
             );
-            qrScannerRef.current.start();
 
-            return () => {
-                qrScannerRef.current?.stop();
-            };
-        }
+            await qrScannerRef.current.start();
+        };
+
+        setupScanner();
+
+        return () => {
+            stopAndDestroyScanner();
+        };
     }, [mode, facingMode, bookingInfo]);
+
+    const stopAndDestroyScanner = async () => {
+        if (qrScannerRef.current) {
+            await qrScannerRef.current.stop();
+            qrScannerRef.current.destroy();
+            qrScannerRef.current = null;
+        }
+
+        if (videoRef.current?.srcObject) {
+            const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+            tracks.forEach((track) => track.stop());
+            videoRef.current.srcObject = null;
+        }
+    };
 
     const handleExtractBooking = async (qrData: string) => {
         try {
@@ -79,7 +101,7 @@ export default function StaffQRScanner() {
             setBookingInfo(null);
 
             const res = await axios.get<{ success: boolean; booking: Booking }>(
-                `http://localhost:3000/api/employees/verify-booking/${bookingId}`
+                `${backendApiUrl}/api/employees/verify-booking/${bookingId}`
             );
 
             if (res.data && res.data.success) {
@@ -103,8 +125,6 @@ export default function StaffQRScanner() {
         setBookingInfo(null);
         setSelectedImage(file);
     };
-
-
 
     const handleScanImage = async () => {
         if (!selectedImage) return;
@@ -139,8 +159,6 @@ export default function StaffQRScanner() {
         if (typeof result === "object" && "data" in result) return result.data;
         return null;
     };
-
-
 
 
     const handleReset = () => {
@@ -281,8 +299,6 @@ export default function StaffQRScanner() {
                 </div>
             )}
 
-
-
             {loading && <p className="text-[#f0924c] font-medium mt-4">Scanning QR code...</p>}
 
             {bookingInfo && (
@@ -358,7 +374,7 @@ export default function StaffQRScanner() {
 
 
                         <div className="">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                                 <h4 className="text-base font-semibold text-gray-700 whitespace-nowrap">Ordered Dishes</h4>
 
                                 {bookingInfo.dishes.length > 0 ? (
