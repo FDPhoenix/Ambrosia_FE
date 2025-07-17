@@ -4,22 +4,18 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaComments, FaTimes, FaRobot, FaPaperPlane } from "react-icons/fa";
 
+
 const ChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<
-    { user: string; bot: string; buttons?: { dishId: string; title: string; price: string; image: string }[] }[]
+    { user: string; bot: string; buttons?: { dishId: string; title: string; price: string; image: string; link?: string; text?: string }[] }[]
   >([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const history = localStorage.getItem("chatHistory");
-    if (history) setMessages(JSON.parse(history));
-  }, []);
 
   useEffect(() => {
-    localStorage.setItem("chatHistory", JSON.stringify(messages));
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
@@ -101,19 +97,27 @@ const ChatWidget: React.FC = () => {
                         {msg.buttons.map((btn, i) => (
                           <div
                             key={i}
-                            className="flex items-center gap-2 mb-2 cursor-pointer hover:bg-gray-100 p-2 rounded-md"
-                            onClick={() => handleDishClick(btn.dishId)}
+                            className="flex items-center gap-2 mb-2 cursor-pointer bg-[#8ca9d2] hover:bg-[#66a5cc] p-2 rounded-md"
+                            onClick={() => btn.link ? window.open(btn.link, "_blank") : handleDishClick(btn.dishId)}
                           >
-                            <img
-                              src={btn.image}
-                              alt={btn.title}
-                              className="w-[80px] h-[80px] object-cover rounded-md"
-                              onError={(e) => {
-                                e.currentTarget.src = "https://via.placeholder.com/150";
-                              }}
-                            />
+                            {btn.image && btn.dishId && (
+                              <img
+                                src={btn.image}
+                                alt={btn.title}
+                                className="w-[80px] h-[80px] object-cover rounded-md"
+                                onError={(e) => {
+                                  e.currentTarget.src = "https://dummyimage.com/150";
+                                }}
+                              />
+                            )}
                             <div>
-                              <strong>{btn.title}</strong>
+                              {btn.title && btn.text ? (
+                                <strong>{btn.title} {btn.text}</strong>
+                              ) : btn.title ? (
+                                <strong>{btn.title}</strong>
+                              ) : btn.text ? (
+                                <span>{btn.text}</span>
+                              ) : null}
                               <p>{btn.price}</p>
                             </div>
                           </div>

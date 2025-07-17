@@ -25,7 +25,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
   const [dropdownView, setDropdownView] = useState<
     "main" | "editProfile" | "changePassword"
   >("main");
-  // const dropdownRef = useRef<HTMLDivElement>(null);
+  const [forceUpdate, setForceUpdate] = useState(0); // Thêm state để force re-render
   const navigate = useNavigate();
   const dropdownRefMobile = useRef<HTMLDivElement>(null);
   const dropdownRefDesktop = useRef<HTMLDivElement>(null);
@@ -38,24 +38,80 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
     }
   };
 
+
+  useEffect(() => {
+    const handleLoginSuccess = () => {
+      setForceUpdate(prev => prev + 1);
+    };
+
+    window.addEventListener('loginSuccess', handleLoginSuccess);
+    return () => {
+      window.removeEventListener('loginSuccess', handleLoginSuccess);
+    };
+  }, []);
+
+
+  useEffect(() => {
+    const checkTokenInterval = setInterval(() => {
+      const currentToken = Cookies.get("token") ?? null;
+      if (currentToken !== userToken) {
+        setUserToken(currentToken);
+        setForceUpdate(prev => prev + 1);
+      }
+    }, 1000); 
+
+    return () => clearInterval(checkTokenInterval);
+  }, [userToken]);
+
   useEffect(() => {
     const token = Cookies.get("token") ?? null;
     setUserToken(token);
 
     if (token) {
-      const decodedToken: any = jwtDecode(token);
-      setUserImage(decodedToken.image);
-      setIsAdmin(decodedToken.roleId == "67ac64afe072694cafa16e76");
+      const fetchUserInfo = async () => {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'}/user/profile`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: 'include', 
+          });
+
+         
+          if (response.ok) {
+            const data = await response.json();
+            setUserImage(data.user.profileImage);
+         
+            const userRoles = data.user.roles || [];
+            const isAdminUser = userRoles.some((role: any) => role.roleId === "67ac64afe072694cafa16e76");
+            setIsAdmin(isAdminUser);
+           
+          } else {
+           
+            const decodedToken: any = jwtDecode(token);
+            setUserImage(decodedToken.image);
+            setIsAdmin(decodedToken.roleId == "67ac64afe072694cafa16e76");
+          }
+        } catch (error) {
+          const decodedToken: any = jwtDecode(token);
+          setUserImage(decodedToken.image);
+          setIsAdmin(decodedToken.roleId == "67ac64afe072694cafa16e76");
+        }
+      };
+
+      fetchUserInfo();
     } else {
       setIsAdmin(false);
     }
-  }, [userToken]);
+  }, [userToken, forceUpdate]); 
 
   const handleLogout = () => {
     Cookies.remove("token");
     setUserToken(null);
     setIsDropdownOpen(false);
-    setDropdownView("main"); // Reset view on logout
+    setDropdownView("main");
     navigate("/login");
   };
 
@@ -68,12 +124,12 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
   };
 
   const handleBack = () => {
-    setDropdownView("main"); // Always return to main view
+    setDropdownView("main"); 
   };
 
   const handleAvatarClick = () => {
     if (!isDropdownOpen) {
-      setDropdownView("main"); // Reset to main when opening dropdown
+      setDropdownView("main"); 
     }
     setIsDropdownOpen(!isDropdownOpen);
   };

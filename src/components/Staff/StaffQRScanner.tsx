@@ -70,7 +70,7 @@ export default function StaffQRScanner() {
         return () => {
             stopAndDestroyScanner();
         };
-    }, [mode, facingMode, bookingInfo]);
+    }, [mode, bookingInfo]);
 
     const stopAndDestroyScanner = async () => {
         if (qrScannerRef.current) {
@@ -85,6 +85,23 @@ export default function StaffQRScanner() {
             videoRef.current.srcObject = null;
         }
     };
+
+    const toggleCamera = async () => {
+        const nextFacing = facingMode === "environment" ? "user" : "environment";
+
+        if (qrScannerRef.current) {
+            try {
+                await qrScannerRef.current.setCamera(nextFacing);
+                setFacingMode(nextFacing);
+            } catch (error) {
+                console.error("Không thể đổi camera:", error);
+            }
+        } else {
+            // Trường hợp scanner chưa khởi tạo
+            setFacingMode(nextFacing);
+        }
+    };
+
 
     const handleExtractBooking = async (qrData: string) => {
         try {
@@ -164,9 +181,12 @@ export default function StaffQRScanner() {
     const handleReset = () => {
         setBookingInfo(null);
         setError("");
+        setSelectedImage(null);
+
         if (mode === "camera" && videoRef.current && qrScannerRef.current) {
-            qrScannerRef.current.start();
-            setSelectedImage(null);
+            qrScannerRef.current.start().catch(err => {
+                console.error("Cannot restart scanner:", err);
+            });
         }
     };
 
@@ -209,9 +229,7 @@ export default function StaffQRScanner() {
 
                 {mode === "camera" && !bookingInfo && (
                     <button
-                        onClick={() =>
-                            setFacingMode((prev) => (prev === "environment" ? "user" : "environment"))
-                        }
+                        onClick={toggleCamera}
                         title="Switch Camera"
                         className="text-xl p-2 rounded-full hover:bg-gray-200 transition"
                     >

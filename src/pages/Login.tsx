@@ -1,6 +1,13 @@
 import type React from "react";
 import { useState, useEffect } from "react";
-import { FaGoogle, FaFacebook, FaEye, FaEyeSlash, FaGithub, FaLinkedinIn } from "react-icons/fa";
+import {
+  FaGoogle,
+  FaFacebook,
+  FaEye,
+  FaEyeSlash,
+  FaGithub,
+  FaLinkedinIn,
+} from "react-icons/fa";
 import { useNavigate } from "react-router";
 import FormModal from "../pages/common/form-modal";
 import axios from "axios";
@@ -14,7 +21,9 @@ const getCookie = (name: string) => {
   const cookieArr = document.cookie.split("; ");
   for (const cookie of cookieArr) {
     const [key, value] = cookie.split("=");
-    if (key === name) return decodeURIComponent(value);
+    if (key === name) {
+      return decodeURIComponent(value);
+    }
   }
   return null;
 };
@@ -32,7 +41,8 @@ const Login = () => {
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [lockoutTime, setLockoutTime] = useState(0);
   const token = getCookie("token");
-  const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
+  const backendApiUrl =
+    import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const successMessage = urlParams.get("success");
@@ -40,8 +50,47 @@ const Login = () => {
 
     if (successMessage) {
       toast.success(successMessage);
+
+      const fetchUserProfile = async () => {
+        try {
+          const token = getCookie("token");
+
+          if (token) {
+            const response = await fetch(`${backendApiUrl}/user/profile`, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              credentials: "include",
+            });
+
+            if (response.ok) {
+              await response.json();
+              window.dispatchEvent(new Event("loginSuccess"));
+            } else {
+              await response.text();
+            }
+          } else {
+            const urlToken = urlParams.get("token");
+            if (urlToken) {
+              document.cookie = `token=${urlToken}; path=/; max-age=86400`;
+              window.dispatchEvent(new Event("loginSuccess"));
+            }
+          }
+        } catch (error) {
+          console.error("[Login] Error fetching user profile:", error);
+        }
+      };
+
+      fetchUserProfile();
+
       setTimeout(() => {
-        window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
         navigate("/");
       }, 1500);
       return;
@@ -50,7 +99,11 @@ const Login = () => {
     if (errorMessage) {
       toast.error(errorMessage);
       setTimeout(() => {
-        window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
       }, 3000);
     }
 
@@ -80,7 +133,8 @@ const Login = () => {
         name: "otp",
         type: "text",
         required: true,
-        onChange: (e: { target: { value: React.SetStateAction<string> } }) => setOtp(e.target.value),
+        onChange: (e: { target: { value: React.SetStateAction<string> } }) =>
+          setOtp(e.target.value),
       },
     ],
     submitText: "Verify OTP",
@@ -94,13 +148,15 @@ const Login = () => {
         otp,
       });
       if (response.data.success) {
-        toast.success(response.data.message || "OTP verified successfully! Please login now.");
+        toast.success(
+          response.data.message ||
+            "OTP verified successfully! Please login now."
+        );
         setIsOtpFormOpen(false);
       } else {
         toast.error(response.data.message || "Failed to verify OTP.");
       }
     } catch (error) {
-      console.error("OTP verification error:", error);
       toast.error("An unexpected error occurred during OTP verification.");
     }
   };
@@ -118,8 +174,15 @@ const Login = () => {
       toast.error("Email and password are required.");
       return false;
     }
-    if (email.length < 6 || email.length > 50 || email.includes(" ") || !/\S+@\S+\.\S+/.test(email)) {
-      toast.error("Invalid email format or length (6-50 characters, no spaces).");
+    if (
+      email.length < 6 ||
+      email.length > 50 ||
+      email.includes(" ") ||
+      !/\S+@\S+\.\S+/.test(email)
+    ) {
+      toast.error(
+        "Invalid email format or length (6-50 characters, no spaces)."
+      );
       return false;
     }
     if (
@@ -128,7 +191,9 @@ const Login = () => {
       password.includes(" ") ||
       !/(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(password)
     ) {
-      toast.error("Password must be 6-50 characters, no spaces, and include letters, numbers, and special characters.");
+      toast.error(
+        "Password must be 6-50 characters, no spaces, and include letters, numbers, and special characters."
+      );
       return false;
     }
     return true;
@@ -158,15 +223,14 @@ const Login = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json().catch((jsonError) => {
-        console.error("Invalid JSON response:", jsonError);
+      const data = await response.json().catch(() => {
         throw new Error("Invalid response from server.");
       });
 
       if (response.status === 403) {
         if (data.code === 1001) {
           setError(data.message);
-          toast.error(data.message);
+          toast.error("Your account has been banned. Please contact support.");
         } else if (data.code === 1002) {
           setIsOtpFormOpen(true);
           toast.info("Please verify your email with the OTP sent.");
@@ -178,7 +242,6 @@ const Login = () => {
       }
 
       if (!response.ok) {
-        console.error("API Error:", response.status, data.message);
         toast.error(data.message || `Error: ${response.statusText}`);
         setLoginAttempts((prev) => prev + 1);
         return;
@@ -188,17 +251,19 @@ const Login = () => {
 
       const decodedToken: any = jwtDecode(data.token);
 
-      toast.success(data.message || `Welcome back, ${decodedToken.fullname || "User"}!`);
+      toast.success(
+        data.message || `Welcome back, ${decodedToken.fullname || "User"}!`
+      );
 
       setTimeout(() => {
         const roleMap: Record<string, string> = {
-          '67ac64afe072694cafa16e76': '/manage/dashboard', // admin
-          '67ac64c7e072694cafa16e7a': '/staff',            // staff
-          '67ac667ae072694cafa16e7c': '/chef',             // chef
-          '67ac64afe072694cafa16e79': '/',                 // customer or default
+          "67ac64afe072694cafa16e76": "/manage/dashboard", // admin
+          "67ac64c7e072694cafa16e7a": "/staff", // staff
+          "67ac667ae072694cafa16e7c": "/chef", // chef
+          "67ac64afe072694cafa16e79": "/", // customer or default
         };
 
-        let destination = '/';
+        let destination = "/";
 
         if (Array.isArray(decodedToken.roleId)) {
           for (const roleId of decodedToken.roleId) {
@@ -207,15 +272,13 @@ const Login = () => {
               break;
             }
           }
-        } else if (typeof decodedToken.roleId === 'string') {
-          destination = roleMap[decodedToken.roleId] || '/';
+        } else if (typeof decodedToken.roleId === "string") {
+          destination = roleMap[decodedToken.roleId] || "/";
         }
 
         navigate(destination);
       }, 1500);
-
     } catch (err) {
-      console.error("Unexpected error during login:", err);
       toast.error("An unexpected error occurred. Please try again later.");
       setLoginAttempts((prev) => prev + 1);
     } finally {
@@ -245,7 +308,10 @@ const Login = () => {
         theme="light"
       />
 
-      <div className="flex items-center justify-center -translate-y-5 cursor-pointer" onClick={() => navigate("/")}>
+      <div
+        className="flex items-center justify-center -translate-y-5 cursor-pointer"
+        onClick={() => navigate("/")}
+      >
         <img
           src={logo}
           alt="Ambrosia Logo"
@@ -256,8 +322,12 @@ const Login = () => {
 
       <div className="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl overflow-hidden shadow-xl min-h-[600px] md:min-h-[500px]">
         <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center flex-1 space-y-6">
-          <h2 className="text-2xl font-bold mb-10 text-gray-800 text-center md:text-left">Login</h2>
-          {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+          <h2 className="text-2xl font-bold mb-10 text-gray-800 text-center md:text-left">
+            Login
+          </h2>
+          {error && (
+            <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
+          )}
 
           <form onSubmit={handleSubmit} autoComplete="off">
             <div className="mb-4">
@@ -291,7 +361,11 @@ const Login = () => {
             </div>
 
             <div className="text-center text-sm mb-4">
-              <a href="#" onClick={() => navigate("/forgot-password")} className="text-gray-500 hover:text-gray-700">
+              <a
+                href="#"
+                onClick={() => navigate("/forgot-password")}
+                className="text-gray-500 hover:text-gray-700"
+              >
                 Forgot password?
               </a>
             </div>
@@ -307,7 +381,9 @@ const Login = () => {
 
           <div className="flex items-center my-4">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gray-200"></div>
-            <span className="px-4 text-sm text-gray-500 font-medium">or login with</span>
+            <span className="px-4 text-sm text-gray-500 font-medium">
+              or login with
+            </span>
             <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
           </div>
 
@@ -345,7 +421,10 @@ const Login = () => {
           </div>
           <div className="mt-3 text-center md:hidden">
             <p className="text-sm text-gray-600">Don't have an account?</p>
-            <button onClick={() => navigate("/register")} className="mt-1 text-[#a68a64] font-medium hover:underline">
+            <button
+              onClick={() => navigate("/register")}
+              className="mt-1 text-[#a68a64] font-medium hover:underline"
+            >
               Register
             </button>
           </div>
@@ -355,7 +434,9 @@ const Login = () => {
           className="hidden md:flex md:w-1/2 p-8 flex-col justify-center items-center text-white text-center"
           style={{ backgroundColor: "#a68a64" }}
         >
-          <h1 className="text-3xl font-bold mb-2">Hello, Welcome to Ambrosia!</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            Hello, Welcome to Ambrosia!
+          </h1>
           <p className="text-sm mb-8 opacity-90">Don't have an account?</p>
           <button
             onClick={() => navigate("/register")}
