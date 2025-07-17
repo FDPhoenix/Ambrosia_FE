@@ -566,58 +566,56 @@ const TableReservationList = () => {
                                     <span>{new Date(selectedBooking.bookingDate).toLocaleDateString()}</span>
                                 </div>
 
-                                {selectedBooking.tableId ? (
-                                    <>
-                                        <div className="flex justify-between border-b border-dashed py-2 text-base">
-                                            <strong>Start Time:</strong> <span>{selectedBooking.startTime}</span>
-                                        </div>
-                                        <div className="flex justify-between border-b border-dashed py-2 text-base">
-                                            <strong>End Time:</strong> <span>{selectedBooking.endTime}</span>
-                                        </div>
-                                        <div className="flex justify-between border-b border-dashed py-2 text-base items-center">
-                                            <strong>Table Number:</strong>
-
-                                            {isEditingTable && selectedBooking.tableId ? (
-                                                <select
-                                                    value={newTableId}
-                                                    onChange={(e) => setNewTableId(e.target.value)}
-                                                    className="border rounded px-2 py-1"
-                                                >
-                                                    <option value={selectedBooking.tableId._id}>
-                                                        {selectedBooking.tableId.tableNumber} (Current)
-                                                    </option>
-
-                                                    {availableTables
-                                                        .filter(
-                                                            (t) =>
-                                                                t._id !== selectedBooking.tableId!._id &&
-                                                                t.status === "available"
-                                                        )
-                                                        .map((table) => (
+                                <>
+                                    {selectedBooking.orderType === "dine-in" ? (
+                                        <>
+                                            <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                                <strong>Start Time:</strong> <span>{selectedBooking.startTime}</span>
+                                            </div>
+                                            <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                                <strong>End Time:</strong> <span>{selectedBooking.endTime}</span>
+                                            </div>
+                                            <div className="flex justify-between border-b border-dashed py-2 text-base items-center">
+                                                <strong>Table Number:</strong>
+                                                {isEditingTable ? (
+                                                    <select
+                                                        value={newTableId}
+                                                        onChange={(e) => setNewTableId(e.target.value)}
+                                                        className="border rounded px-2 py-1"
+                                                    >
+                                                        <option value="">Select a table</option>
+                                                        {availableTables.map((table) => (
                                                             <option key={table._id} value={table._id}>
                                                                 {table.tableNumber}
                                                             </option>
                                                         ))}
-                                                </select>
-                                            ) : (
-                                                <span>{selectedBooking.tableId?.tableNumber}</span>
-                                            )}
-                                        </div>
+                                                    </select>
+                                                ) : (
+                                                    <span
+                                                        className={
+                                                            selectedBooking.tableId
+                                                                ? "text-black"
+                                                                : "text-yellow-500 font-medium"
+                                                        }
+                                                    >
+                                                        {selectedBooking.tableId?.tableNumber || "Waiting for table assignment"}
+                                                    </span>
 
+                                                )}
+                                            </div>
+                                            <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                                <strong>Capacity:</strong>
+                                                <span>{getSelectedCapacity()}</span>
+                                            </div>
+                                        </>
+                                    ) : (
                                         <div className="flex justify-between border-b border-dashed py-2 text-base">
-                                            <strong>Capacity:</strong>
-                                            <span>{getSelectedCapacity()}</span>
+                                            <strong>Delivery Address:</strong>
+                                            <span className="text-right break-words max-w-[50%]">{selectedBooking.deliveryAddress || "N/A"}</span>
                                         </div>
+                                    )}
+                                </>
 
-
-                                    </>
-                                ) : (
-                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
-                                        <strong>Delivery Address:</strong>
-                                        <span className="text-right break-words max-w-[50%]">{selectedBooking.deliveryAddress || "N/A"}</span>
-                                    </div>
-
-                                )}
                             </div>
 
                             <h5 className="text-base font-semibold">Ordered Dishes List:</h5>
