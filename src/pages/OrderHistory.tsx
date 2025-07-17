@@ -10,6 +10,8 @@ import {
 import Cookies from "js-cookie";
 import Pagination from "../components/Pagination";
 import LoadingAnimation from "../components/LoadingAnimation";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface Dish {
   _id: string;
@@ -67,6 +69,7 @@ export default function OrderHistory() {
         const token = Cookies.get("token");
         if (!token) {
           setError("You need to log in to view order history");
+          toast.error("You need to log in to view order history");
           return;
         }
 
@@ -86,10 +89,12 @@ export default function OrderHistory() {
           setOrders(data.data);
         } else {
           setError(data.message || "An error occurred while loading data");
+          toast.error(data.message || "An error occurred while loading data");
         }
       } catch (error) {
         console.error("Error fetching order history:", error);
         setError("An error occurred while loading data");
+        toast.error("An error occurred while loading data");
       } finally {
         setIsLoading(false);
       }
@@ -103,6 +108,7 @@ export default function OrderHistory() {
       const token = Cookies.get("token");
       if (!token) {
         setError("You need to log in to view order details");
+        toast.error("You need to log in to view order details");
         return;
       }
 
@@ -121,10 +127,12 @@ export default function OrderHistory() {
         });
       } else {
         setError(data.message || "An error occurred while fetching order details");
+        toast.error(data.message || "An error occurred while fetching order details");
       }
     } catch (error) {
       console.error("Error fetching order details:", error);
       setError("An error occurred while fetching order details");
+      toast.error("An error occurred while fetching order details");
     }
   };
 
@@ -144,6 +152,7 @@ export default function OrderHistory() {
     const token = Cookies.get("token");
     if (!token) {
       setError("You need to log in to edit feedback");
+      toast.error("You need to log in to edit feedback");
       return;
     }
 
@@ -165,9 +174,12 @@ export default function OrderHistory() {
           setRating(data.feedback.rating);
           setComment(data.feedback.comment || "");
         }
+      } else {
+        toast.error("Error checking feedback");
       }
     } catch (error) {
       console.error("Error checking feedback:", error);
+      toast.error("Error checking feedback");
     }
   };
 
@@ -193,9 +205,12 @@ export default function OrderHistory() {
             }
           }));
         }
+      } else {
+        toast.error("Error checking feedback");
       }
     } catch (error) {
       console.error("Error checking feedback:", error);
+      toast.error("Error checking feedback");
     }
   };
 
@@ -237,6 +252,7 @@ export default function OrderHistory() {
       const token = Cookies.get("token");
       if (!token) {
         setFeedbackError("You need to log in to submit feedback");
+        toast.error("You need to log in to submit feedback");
         return;
       }
 
@@ -284,13 +300,15 @@ export default function OrderHistory() {
             }
           }));
         }
-        alert(isEditMode ? "Feedback updated successfully!" : "Feedback submitted successfully!");
+        toast.success(isEditMode ? "Feedback updated successfully!" : "Feedback submitted successfully!");
       } else {
         setFeedbackError(data.message || "An error occurred while submitting feedback");
+        toast.error(data.message || "An error occurred while submitting feedback");
       }
     } catch (error) {
       console.error("Error submitting feedback:", error);
       setFeedbackError("An error occurred while submitting feedback");
+      toast.error("An error occurred while submitting feedback");
     }
   };
 
@@ -499,6 +517,7 @@ export default function OrderHistory() {
       )}
 
       <Pagination items={orders} itemsPerPage={10} onPageChange={handlePageChange}/>
+      <ToastContainer theme="colored" autoClose={2000} />
     </div>
   );
 }
