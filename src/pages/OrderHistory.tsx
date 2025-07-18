@@ -10,6 +10,8 @@ import {
 import Cookies from "js-cookie";
 import Pagination from "../components/Pagination";
 import LoadingAnimation from "../components/LoadingAnimation";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface Dish {
   _id: string;
@@ -53,8 +55,12 @@ export default function OrderHistory() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentOrders, setCurrentOrders] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [userFeedbacks, setUserFeedbacks] = useState<{[dishId: string]: {hasFeedback: boolean, feedback: any}}>({});
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [editingFeedbackId, setEditingFeedbackId] = useState<string | null>(null);
   const itemsPerPage = 10;
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -63,6 +69,7 @@ export default function OrderHistory() {
         const token = Cookies.get("token");
         if (!token) {
           setError("You need to log in to view order history");
+          toast.error("You need to log in to view order history");
           return;
         }
 
@@ -82,10 +89,12 @@ export default function OrderHistory() {
           setOrders(data.data);
         } else {
           setError(data.message || "An error occurred while loading data");
+          toast.error(data.message || "An error occurred while loading data");
         }
       } catch (error) {
         console.error("Error fetching order history:", error);
         setError("An error occurred while loading data");
+        toast.error("An error occurred while loading data");
       } finally {
         setIsLoading(false);
       }
@@ -99,6 +108,7 @@ export default function OrderHistory() {
       const token = Cookies.get("token");
       if (!token) {
         setError("You need to log in to view order details");
+        toast.error("You need to log in to view order details");
         return;
       }
 
@@ -111,25 +121,114 @@ export default function OrderHistory() {
       const data = await response.json();
       if (data.success) {
         setSelectedOrder(data.data);
+        // Check feedback for all dishes in this order
+        data.data.items.forEach((item: OrderItem) => {
+          checkUserFeedback(item.dishId._id, order._id);
+        });
       } else {
         setError(data.message || "An error occurred while fetching order details");
+        toast.error(data.message || "An error occurred while fetching order details");
       }
     } catch (error) {
       console.error("Error fetching order details:", error);
       setError("An error occurred while fetching order details");
+      toast.error("An error occurred while fetching order details");
     }
   };
 
-  const openFeedbackModal = (dish: Dish) => {
+  const openFeedbackModal = (dish: Dish, orderId: string) => {
     setSelectedDish(dish);
     setFeedbackModalOpen(true);
     setSelectedOrder(null);
+    setIsEditMode(false);
+    setEditingFeedbackId(null);
+    setRating(0);
+    setComment("");
+    // Store orderId for later use in submit
+    setCurrentOrderId(orderId);
+  };
+
+  const openEditFeedbackModal = async (dish: Dish, orderId: string) => {
+    const token = Cookies.get("token");
+    if (!token) {
+      setError("You need to log in to edit feedback");
+      toast.error("You need to log in to edit feedback");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${backendApiUrl}/api/feedback/check/${dish._id}/${orderId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.hasFeedback) {
+          setSelectedDish(dish);
+          setFeedbackModalOpen(true);
+          setSelectedOrder(null);
+          setIsEditMode(true);
+          setEditingFeedbackId(data.feedback._id);
+          setRating(data.feedback.rating);
+          setComment(data.feedback.comment || "");
+        }
+      } else {
+        toast.error("Error checking feedback");
+      }
+    } catch (error) {
+      console.error("Error checking feedback:", error);
+      toast.error("Error checking feedback");
+    }
+  };
+
+  const checkUserFeedback = async (dishId: string, orderId: string) => {
+    const token = Cookies.get("token");
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${backendApiUrl}/api/feedback/check/${dishId}/${orderId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setUserFeedbacks(prev => ({
+            ...prev,
+            [`${dishId}_${orderId}`]: {
+              hasFeedback: data.hasFeedback,
+              feedback: data.feedback
+            }
+          }));
+        }
+      } else {
+        toast.error("Error checking feedback");
+      }
+    } catch (error) {
+      console.error("Error checking feedback:", error);
+      toast.error("Error checking feedback");
+    }
+  };
+
+  const closeFeedbackModal = () => {
+    setFeedbackModalOpen(false);
+    setIsEditMode(false);
+    setEditingFeedbackId(null);
+    setRating(0);
+    setComment("");
+    setFeedbackError(null);
+    setCurrentOrderId(null);
+    setSelectedDish(null);
+    // Không reset selectedOrder để giữ modal order detail
   };
 
   const closeModal = () => {
     if (feedbackModalOpen) {
-      setFeedbackModalOpen(false);
-      setSelectedOrder(selectedOrder);
+      closeFeedbackModal();
     } else {
       setSelectedOrder(null);
       setFeedbackModalOpen(false);
@@ -137,6 +236,9 @@ export default function OrderHistory() {
       setRating(0);
       setComment("");
       setFeedbackError(null);
+      setIsEditMode(false);
+      setEditingFeedbackId(null);
+      setCurrentOrderId(null);
     }
   };
 
@@ -150,32 +252,63 @@ export default function OrderHistory() {
       const token = Cookies.get("token");
       if (!token) {
         setFeedbackError("You need to log in to submit feedback");
+        toast.error("You need to log in to submit feedback");
         return;
       }
 
-      const response = await fetch(`${backendApiUrl}/api/feedback/add`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          dish_id: selectedDish?._id,
-          rating,
-          comment,
-        }),
-      });
+      let response;
+      if (isEditMode && editingFeedbackId) {
+        // Update existing feedback
+        response = await fetch(`${backendApiUrl}/api/feedback/update/${editingFeedbackId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            rating,
+            comment,
+          }),
+        });
+      } else {
+        // Add new feedback
+        response = await fetch(`${backendApiUrl}/api/feedback/add`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            dish_id: selectedDish?._id,
+            orderId: currentOrderId,
+            rating,
+            comment,
+          }),
+        });
+      }
 
       const data = await response.json();
       if (data.success) {
-        setFeedbackModalOpen(false);
-        alert("Feedback submitted successfully!");
+        closeFeedbackModal();
+        // Update the userFeedbacks state
+        if (selectedDish && currentOrderId) {
+          setUserFeedbacks(prev => ({
+            ...prev,
+            [`${selectedDish._id}_${currentOrderId}`]: {
+              hasFeedback: true,
+              feedback: data.feedback
+            }
+          }));
+        }
+        toast.success(isEditMode ? "Feedback updated successfully!" : "Feedback submitted successfully!");
       } else {
         setFeedbackError(data.message || "An error occurred while submitting feedback");
+        toast.error(data.message || "An error occurred while submitting feedback");
       }
     } catch (error) {
       console.error("Error submitting feedback:", error);
       setFeedbackError("An error occurred while submitting feedback");
+      toast.error("An error occurred while submitting feedback");
     }
   };
 
@@ -196,7 +329,7 @@ export default function OrderHistory() {
   return (
     <div className="relative max-w-6xl mx-auto p-5 font-sans min-h-[380px] pb-[4.5rem]">
       {orders.length > 0 ? (
-        <div>
+        <>
           <table className="w-full border-collapse bg-white shadow-md rounded-lg overflow-hidden">
             <thead>
               <tr>
@@ -231,107 +364,113 @@ export default function OrderHistory() {
             </tbody>
           </table>
 
+          {/* Modal order detail */}
           {selectedOrder && (
-            <div className="fixed inset-0 px-3 bg-black bg-opacity-50 flex justify-center items-center z-[1000]" onClick={closeModal}>
-              <div className="bg-white p-5 rounded-lg w-full max-w-4xl max-h-[80vh] overflow-y-auto relative shadow-lg [&::-webkit-scrollbar]:hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="fixed inset-0 px-1 sm:px-3 bg-black bg-opacity-50 flex justify-center items-center z-[1000]">
+              <div className="bg-white p-2 sm:p-5 rounded-lg sm:rounded-lg w-full max-w-lg sm:max-w-4xl max-h-[90vh] overflow-y-auto relative shadow-lg [&::-webkit-scrollbar]:hidden" onClick={(e) => e.stopPropagation()}>
                 <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl" onClick={closeModal}>
                   <FontAwesomeIcon icon={faTimes} />
                 </button>
-                <h3 className="mb-4 text-xl font-semibold">🧾 Order Details</h3>
-
-                <p className="mb-1 text-sm md:text-base">
+                <h3 className="mb-4 text-lg sm:text-xl font-semibold">🧾 Order Details</h3>
+                <p className="mb-1 text-xs sm:text-sm md:text-base">
                   <strong>Order ID:</strong> {selectedOrder._id}
                 </p>
-
-                <p className="mb-1 text-sm md:text-base">
+                <p className="mb-1 text-xs sm:text-sm md:text-base">
                   <strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleDateString()}
                 </p>
-
-                <p className="mb-1 text-sm md:text-base">
+                <p className="mb-1 text-xs sm:text-sm md:text-base">
                   <strong>Total Amount:</strong> {selectedOrder.totalAmount.toLocaleString()} VND
                 </p>
-
-                <p className="mb-1 text-sm md:text-base">
+                <p className="mb-1 text-xs sm:text-sm md:text-base">
                   <strong>Payment Status:</strong> {selectedOrder.paymentStatus}
                 </p>
-
-                <p className="mb-1 text-sm md:text-base">
+                <p className="mb-1 text-xs sm:text-sm md:text-base">
                   <strong>Payment Method:</strong> {selectedOrder.paymentMethod}
                 </p>
                 {selectedOrder.bookingId && (
                   <>
-                    <p className="mb-1 text-sm md:text-base">
+                    <p className="mb-1 text-xs sm:text-sm md:text-base">
                       <strong>Order Type:</strong> {selectedOrder.bookingId.orderType}
                     </p>
-                    <p className="mb-1 text-sm md:text-base">
+                    <p className="mb-1 text-xs sm:text-sm md:text-base">
                       <strong>Booking Date:</strong>{" "}
                       {new Date(selectedOrder.bookingId.bookingDate).toLocaleDateString()}
                     </p>
-                    <p className="mb-4 text-sm md:text-base">
+                    <p className="mb-4 text-xs sm:text-sm md:text-base">
                       <strong>Booking Status:</strong> {selectedOrder.bookingId.status}
                     </p>
                   </>
                 )}
-
-                <table className="w-full border-collapse bg-white shadow-md rounded-lg">
-                  <thead>
-                    <tr>
-                      <th className="p-2 md:p-4 text-left bg-[#A2845E] text-white font-bold">Dish Name</th>
-                      <th className="p-2 md:p-4 text-left bg-[#A2845E] text-white font-bold">Quantity</th>
-                      <th className="p-2 md:p-4 text-left bg-[#A2845E] text-white font-bold">Price</th>
-                      <th className="p-2 md:p-4 text-left bg-[#A2845E] text-white font-bold hidden md:block">Subtotal</th>
-                      <th className="p-2 md:p-4 text-left bg-[#A2845E] text-white font-bold">Feedback</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {selectedOrder.items.map((item) => {
-                      const price = item.dishId.price ?? 0;
-                      const quantity = item.quantity ?? 0;
-                      const subtotal = price * quantity;
-
-                      const orderDate = selectedOrder.createdAt ? new Date(selectedOrder.createdAt) : new Date();
-                      const now = new Date();
-                      const diffMs = !isNaN(orderDate.getTime()) ? now.getTime() - orderDate.getTime() : 0;
-                      const diffHours = diffMs / (1000 * 60 * 60);
-
-                      return (
-                        <tr key={item._id}>
-                          <td className="p-2 text-sm md:text-base md:p-4 border-b border-gray-200">{item.dishId.name}</td>
-                          <td className="p-2 text-sm md:text-base md:p-4 border-b border-gray-200 text-center">{quantity}</td>
-                          <td className="p-2 text-sm md:text-base md:p-4 border-b border-gray-200">{price.toLocaleString()} VND</td>
-                          <td className="p-2 text-sm md:text-base md:p-4 border-b border-gray-200 hidden md:block">{subtotal.toLocaleString()} VND</td>
-                          <td className="p-2 text-sm md:text-base md:p-4 border-b border-gray-200">
-                            {selectedOrder.paymentStatus === "Success" ? (
-                              diffHours > 24 ? (
-                                <span className="text-red-400 italic">Feedback expired</span>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse bg-white shadow-md rounded-lg table-fixed text-xs sm:text-sm md:text-base">
+                    <thead>
+                      <tr>
+                        <th className="p-2 md:p-4 text-left bg-[#A2845E] text-white font-bold w-2/6">Dish Name</th>
+                        <th className="p-2 md:p-4 text-left bg-[#A2845E] text-white font-bold w-1/12">Quantity</th>
+                        <th className="p-2 md:p-4 text-center bg-[#A2845E] text-white font-bold w-1/5">Price</th>
+                        <th className="p-2 md:p-4 text-left bg-[#A2845E] text-white font-bold w-1/5 hidden md:table-cell">Subtotal</th>
+                        <th className="p-2 md:p-4 text-left bg-[#A2845E] text-white font-bold w-1/5">Feedback</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedOrder.items.map((item) => {
+                        const price = item.dishId.price ?? 0;
+                        const quantity = item.quantity ?? 0;
+                        const subtotal = price * quantity;
+                        return (
+                          <tr key={item._id}>
+                            <td className="p-2 text-xs sm:text-sm md:text-base md:p-4 border-b border-gray-200">{item.dishId.name}</td>
+                            <td className="p-2 text-xs sm:text-sm md:text-base md:p-4 border-b border-gray-200 text-center">{quantity}</td>
+                            <td className="p-2 text-xs sm:text-sm md:text-base md:p-4 border-b border-gray-200">{price.toLocaleString()} VND</td>
+                            <td className="p-2 text-xs sm:text-sm md:text-base md:p-4 border-b border-gray-200 hidden md:table-cell">{subtotal.toLocaleString()} VND</td>
+                            <td className="p-2 text-xs sm:text-sm md:text-base md:p-4 border-b border-gray-200">
+                              {selectedOrder.paymentStatus === "Success" ? (
+                                (() => {
+                                  const userFeedback = userFeedbacks[`${item.dishId._id}_${selectedOrder._id}`];
+                                  if (userFeedback && userFeedback.hasFeedback) {
+                                    return (
+                                      <button
+                                        className="px-2 py-1 bg-[#A2845E] text-white rounded-md hover:bg-amber-800 min-w-[70px] sm:min-w-[90px] text-xs sm:text-sm"
+                                        onClick={() => openEditFeedbackModal(item.dishId, selectedOrder._id)}
+                                      >
+                                        Update
+                                      </button>
+                                    );
+                                  } else {
+                                    return (
+                                      <button
+                                        className="px-2 py-1 bg-[#A2845E] text-white rounded-md hover:bg-amber-800 min-w-[70px] sm:min-w-[90px] text-xs sm:text-sm"
+                                        onClick={() => openFeedbackModal(item.dishId, selectedOrder._id)}
+                                      >
+                                        Feedback
+                                      </button>
+                                    );
+                                  }
+                                })()
                               ) : (
-                                <button
-                                  className="px-2 py-1 bg-[#A2845E] text-white rounded-md hover:bg-amber-800"
-                                  onClick={() => openFeedbackModal(item.dishId)}
-                                >
-                                  Feedback
-                                </button>
-                              )
-                            ) : (
-                              <span className="text-gray-400">—</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                                <span className="text-gray-400">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
 
+          {/* Modal feedback luôn render sau modal detail */}
           {feedbackModalOpen && (
-            <div className="fixed inset-0 px-3 bg-black bg-opacity-50 flex justify-center items-center z-[1000]" onClick={closeModal}>
+            <div className="fixed inset-0 px-3 bg-black bg-opacity-50 flex justify-center items-center z-[9999]" onClick={closeFeedbackModal}>
               <div className="bg-white p-5 rounded-lg w-full max-w-4xl relative shadow-lg" onClick={(e) => e.stopPropagation()}>
-                <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl" onClick={closeModal}>
+                <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl" onClick={closeFeedbackModal}>
                   <FontAwesomeIcon icon={faTimes} />
                 </button>
+                <h3 className="mb-4 text-xl font-semibold">
+                  {isEditMode ? "Edit Feedback" : "Add Feedback"} - {selectedDish?.name}
+                </h3>
                 <div>
                   <label className="font-bold text-gray-800 mb-1 block">Rating:</label>
                   <div className="flex gap-1 mb-4">
@@ -361,12 +500,12 @@ export default function OrderHistory() {
                   </div>
                 )}
                 <button className="px-4 py-2 bg-[#A2845E] text-white rounded-md hover:bg-amber-800" onClick={handleFeedbackSubmit}>
-                  Submit Feedback
+                  {isEditMode ? "Update Feedback" : "Submit Feedback"}
                 </button>
               </div>
             </div>
           )}
-        </div>
+        </>
       ) : isLoading ? (
         <div className="min-h-[150px] flex justify-center items-center mt-28">
           <LoadingAnimation />
@@ -378,6 +517,7 @@ export default function OrderHistory() {
       )}
 
       <Pagination items={orders} itemsPerPage={10} onPageChange={handlePageChange}/>
+      <ToastContainer theme="colored" autoClose={2000} />
     </div>
   );
 }
