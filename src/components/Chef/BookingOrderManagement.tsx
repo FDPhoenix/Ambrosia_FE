@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import Modal from "react-modal";
 import axios from "axios";
 import { FaInfoCircle } from 'react-icons/fa';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Booking {
     _id: string;
@@ -53,6 +55,9 @@ const BookingOrderManagement = () => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState<number>(1);
     const limit = 6;
+    const [pendingStatusChange, setPendingStatusChange] = useState<{ id: string; status: string } | null>(null);
+    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+
 
     useEffect(() => {
         const hasApplied =
@@ -97,7 +102,7 @@ const BookingOrderManagement = () => {
             if (customFilters.status) queryParams.append("status", customFilters.status);
             if (customFilters.searchText.trim()) queryParams.append("searchText", customFilters.searchText.trim());
 
-            const response = await axios.get(`${backendApiUrl}/reservation/filters?${queryParams.toString()}`);
+            const response = await axios.get(`${backendApiUrl}/reservation/filter?${queryParams.toString()}`);
             const { data, totalPages } = response.data;
 
             setBookings(data);
@@ -130,16 +135,34 @@ const BookingOrderManagement = () => {
         setIsModalOpen(true);
     };
 
+    const handleUpdateStatus = async (id: string, newStatus: string) => {
+        try {
+            await axios.put(`${backendApiUrl}/reservation/${id}/status`, { status: newStatus });
+
+            setBookings(prevBookings =>
+                prevBookings.map(booking =>
+                    booking._id === id ? { ...booking, status: newStatus } : booking
+                )
+            );
+
+            toast.success("Status updated successfully!");
+        } catch (error: unknown) {
+            console.error("Error updating status:", error);
+
+            if (axios.isAxiosError(error)) {
+                toast.error(error.response?.data?.message || "Failed to update status. Please try again.");
+            } else if (error instanceof Error) {
+                toast.error(`Error: ${error.message}`);
+            } else {
+                toast.error("An unexpected error occurred.");
+            }
+        }
+    };
+
+
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedBooking(null);
-    };
-
-    const statusModelStyles = {
-        Confirmed: { color: "green" },
-        Pending: { color: "#ffad00" },
-        Canceled: { color: "red" },
-        Unknown: { color: "rgb(147 147 147)" }
     };
 
     const getStatus = (status: string) => {
@@ -147,8 +170,35 @@ const BookingOrderManagement = () => {
         if (normalizedStatus === "confirmed") return "Confirmed";
         if (normalizedStatus === "pending") return "Pending";
         if (normalizedStatus === "canceled") return "Canceled";
+        if (normalizedStatus === "cooking") return "Cooking";
+        if (normalizedStatus === "ready") return "Ready";
+        if (normalizedStatus === "completed") return "Completed";
         return "Unknown";
     };
+
+    const statusModelStyles: Record<string, { color: string }> = {
+        Confirmed: { color: "green" },
+        Pending: { color: "#ffd54f" },
+        Canceled: { color: "red" },
+        Completed: { color: "#a84300" },
+        Ready: { color: "#0d6efd" },
+        Cooking: { color: "#f0924c" },
+        Unknown: { color: "rgb(147 147 147)" }
+    };
+
+
+    const getValidNextStatuses = (currentStatus: string) => {
+        const status = currentStatus.toLowerCase();
+
+        if (status === "confirmed") return ["Cooking", "Ready"];
+        if (status === "cooking") return ["Ready"];
+
+        return [];
+    };
+    const isStatusLocked = (status: string) => {
+        return getValidNextStatuses(status).length === 0;
+    };
+
 
     return (
         <div className="mx-auto bg-white px-6 pt-5 pb-5 rounded-xl shadow-md min-h-[82vh]">
@@ -187,6 +237,9 @@ const BookingOrderManagement = () => {
                         <option value="">All Status</option>
                         <option value="Confirmed">Confirmed</option>
                         <option value="Canceled">Canceled</option>
+                        <option value="Cooking">Cooking</option>
+                        <option value="Ready">Ready</option>
+                        <option value="Completed">Completed</option>
                     </select>
 
                     <button
@@ -236,20 +289,69 @@ const BookingOrderManagement = () => {
                                                 {booking.orderType}
                                             </span>
                                         </td>
-                                        <td className="p-5">
-                                            <div className={`inline-flex items-center px-4 py-1 rounded-full font-bold text-sm w-fit ${getStatus(booking.status) === 'Confirmed' ? 'bg-green-100 text-green-700' :
-                                                getStatus(booking.status) === 'Pending' ? 'bg-yellow-100 text-yellow-600' :
-                                                    getStatus(booking.status) === 'Canceled' ? 'bg-red-100 text-red-700' :
-                                                        'bg-gray-200 text-gray-600'
-                                                }`}>
-                                                <span className={`w-2 h-2 rounded-full mr-2 ${getStatus(booking.status) === 'Confirmed' ? 'bg-green-700' :
-                                                    getStatus(booking.status) === 'Pending' ? 'bg-yellow-600' :
-                                                        getStatus(booking.status) === 'Canceled' ? 'bg-red-700' :
-                                                            'bg-gray-600'
-                                                    }`}></span>
-                                                {getStatus(booking.status)}
-                                            </div>
+                                        <td className="p-5 whitespace-nowrap">
+                                            {isStatusLocked(booking.status) ? (
+                                                <span
+                                                    className="w-[121px] inline-flex items-center gap-2 px-4 py-[4px] rounded-full font-bold text-sm justify-center"
+                                                    style={{
+                                                        backgroundColor:
+                                                            getStatus(booking.status) === 'Confirmed' ? '#d4edda' :
+                                                                getStatus(booking.status) === 'Pending' ? '#fff3cd' :
+                                                                    getStatus(booking.status) === 'Canceled' ? '#fee2e2' :
+                                                                        getStatus(booking.status) === 'Cooking' ? '#ffe0b2' :
+                                                                            getStatus(booking.status) === 'Ready' ? '#dbeafe' :
+                                                                                '#ffcc80',
+                                                        color:
+                                                            getStatus(booking.status) === 'Confirmed' ? '#155724' :
+                                                                getStatus(booking.status) === 'Pending' ? '#856404' :
+                                                                    getStatus(booking.status) === 'Canceled' ? '#b91c1c' :
+                                                                        getStatus(booking.status) === 'Cooking' ? '#a84300' :
+                                                                            getStatus(booking.status) === 'Ready' ? '#0d6efd' :
+                                                                                '#8b4500',
+                                                    }}
+                                                >
+                                                    <span className="text-lg leading-none">●</span>
+                                                    {getStatus(booking.status)}
+                                                </span>
+                                            ) : (
+                                                <select
+                                                    className="w-[121px] rounded-full px-4 py-[4px] font-bold text-sm text-center item-center cursor-pointer focus:outline-none border border-gray-100"
+                                                    value={getStatus(booking.status)}
+                                                    onChange={(e) => {
+                                                        const newStatus = e.target.value;
+                                                        if (newStatus !== getStatus(booking.status)) {
+                                                            setPendingStatusChange({ id: booking._id, status: newStatus });
+                                                            setConfirmModalOpen(true);
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        backgroundColor:
+                                                            getStatus(booking.status) === 'Confirmed' ? '#d4edda' :
+                                                                getStatus(booking.status) === 'Pending' ? '#fff3cd' :
+                                                                    getStatus(booking.status) === 'Canceled' ? '#fee2e2' :
+                                                                        getStatus(booking.status) === 'Cooking' ? '#ffe0b2' :
+                                                                            getStatus(booking.status) === 'Ready' ? '#dbeafe' :
+                                                                                '#ffcc80',
+                                                        color:
+                                                            getStatus(booking.status) === 'Confirmed' ? '#155724' :
+                                                                getStatus(booking.status) === 'Pending' ? '#856404' :
+                                                                    getStatus(booking.status) === 'Canceled' ? '#b91c1c' :
+                                                                        getStatus(booking.status) === 'Cooking' ? '#a84300' :
+                                                                            getStatus(booking.status) === 'Ready' ? '#0d6efd' :
+                                                                                '#8b4500',
+                                                        textAlignLast: 'center',
+                                                    }}
+                                                >
+                                                    <option value={getStatus(booking.status)} disabled>
+                                                        {getStatus(booking.status)}
+                                                    </option>
+                                                    {getValidNextStatuses(booking.status).map((statusOpt) => (
+                                                        <option key={statusOpt} value={statusOpt}>{statusOpt}</option>
+                                                    ))}
+                                                </select>
+                                            )}
                                         </td>
+
                                         <td className="p-5 whitespace-nowrap">
                                             <button
                                                 onClick={() => handleViewDetails(booking)}
@@ -267,16 +369,16 @@ const BookingOrderManagement = () => {
                         <div className="md:hidden space-y-4 mt-4">
                             {bookings.map((booking, index) => (
                                 <div key={booking._id} className="bg-white rounded-md p-4 shadow border">
-                                    <div className="mb-2">
+                                    <div className="mb-2 whitespace-nowrap">
                                         <span className="font-semibold">Order No:</span> {(currentPage - 1) * limit + index + 1}
                                     </div>
-                                    <div className="mb-2">
+                                    <div className="mb-2 whitespace-nowrap">
                                         <span className="font-semibold">Customer:</span> {booking.userId?.fullname || booking.guest?.name || "Unknown"}
                                     </div>
-                                    <div className="mb-2">
+                                    <div className="mb-2 whitespace-nowrap">
                                         <span className="font-semibold">Booking Date:</span> {new Date(booking.bookingDate).toLocaleDateString()}
                                     </div>
-                                    <div className="mb-2">
+                                    <div className="mb-2 whitespace-nowrap">
                                         <span className="font-semibold">Order Type:</span>{" "}
                                         <span className={`capitalize font-semibold ${booking.orderType.toLowerCase() === 'delivery' ? 'text-blue-900' :
                                             booking.orderType.toLowerCase() === 'dine-in' ? 'text-green-700' :
@@ -285,22 +387,75 @@ const BookingOrderManagement = () => {
                                             {booking.orderType}
                                         </span>
                                     </div>
-                                    <div className="mb-2">
-                                        <span className="font-semibold">Status:</span>{" "}
-                                        <div className={`inline-flex items-center px-3 py-1 rounded-full font-bold text-sm w-fit mt-1 ${getStatus(booking.status) === 'Confirmed' ? 'bg-green-100 text-green-700' :
-                                            getStatus(booking.status) === 'Pending' ? 'bg-yellow-100 text-yellow-600' :
-                                                getStatus(booking.status) === 'Canceled' ? 'bg-red-100 text-red-700' :
-                                                    'bg-gray-200 text-gray-600'
-                                            }`}>
-                                            <span className={`w-2 h-2 rounded-full mr-2 ${getStatus(booking.status) === 'Confirmed' ? 'bg-green-700' :
-                                                getStatus(booking.status) === 'Pending' ? 'bg-yellow-600' :
-                                                    getStatus(booking.status) === 'Canceled' ? 'bg-red-700' :
-                                                        'bg-gray-600'
-                                                }`}></span>
-                                            {getStatus(booking.status)}
+                                    <div className="mb-2 flex items-center gap-2 whitespace-nowrap">
+                                        <span className="font-semibold">Status:</span>
+                                        <div className="mt-1 ">
+                                            {isStatusLocked(booking.status) ? (
+                                                <span
+                                                    className="inline-flex w-[121px] py-1 items-center justify-center gap-2 px-3 py-1 rounded-full font-bold text-sm text-center"
+                                                    style={{
+                                                        backgroundColor:
+                                                            getStatus(booking.status) === 'Confirmed' ? '#d4edda' :
+                                                                getStatus(booking.status) === 'Pending' ? '#fff3cd' :
+                                                                    getStatus(booking.status) === 'Canceled' ? '#f8d7da' :
+                                                                        getStatus(booking.status) === 'Cooking' ? '#ffe0b2' :
+                                                                            getStatus(booking.status) === 'Ready' ? '#dbeafe' :
+                                                                                '#ffcc80',
+                                                        color:
+                                                            getStatus(booking.status) === 'Confirmed' ? '#155724' :
+                                                                getStatus(booking.status) === 'Pending' ? '#856404' :
+                                                                    getStatus(booking.status) === 'Canceled' ? '#721c24' :
+                                                                        getStatus(booking.status) === 'Cooking' ? '#a84300' :
+                                                                            getStatus(booking.status) === 'Ready' ? '#0d6efd' :
+                                                                                '#8b4500',
+                                                    }}
+                                                >
+                                                    <span className="text-lg leading-none">●</span>
+                                                    {getStatus(booking.status)}
+                                                </span>
+                                            ) : (
+                                                <select
+                                                    className="w-[121px] rounded-full py-1 font-bold text-sm text-center cursor-pointer focus:outline-none border-none"
+                                                    value={getStatus(booking.status)}
+                                                    onChange={(e) => {
+                                                        const newStatus = e.target.value;
+                                                        if (newStatus !== getStatus(booking.status)) {
+                                                            setPendingStatusChange({ id: booking._id, status: newStatus });
+                                                            setConfirmModalOpen(true);
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        backgroundColor:
+                                                            getStatus(booking.status) === 'Confirmed' ? '#d4edda' :
+                                                                getStatus(booking.status) === 'Pending' ? '#fff3cd' :
+                                                                    getStatus(booking.status) === 'Canceled' ? '#f8d7da' :
+                                                                        getStatus(booking.status) === 'Cooking' ? '#ffe0b2' :
+                                                                            getStatus(booking.status) === 'Ready' ? '#dbeafe' :
+                                                                                '#ffcc80',
+                                                        color:
+                                                            getStatus(booking.status) === 'Confirmed' ? '#155724' :
+                                                                getStatus(booking.status) === 'Pending' ? '#856404' :
+                                                                    getStatus(booking.status) === 'Canceled' ? '#721c24' :
+                                                                        getStatus(booking.status) === 'Cooking' ? '#a84300' :
+                                                                            getStatus(booking.status) === 'Ready' ? '#0d6efd' :
+                                                                                '#8b4500',
+                                                        textAlignLast: 'center',
+                                                    }}
+                                                >
+                                                    <option value={getStatus(booking.status)} disabled>
+                                                        {getStatus(booking.status)}
+                                                    </option>
+                                                    {getValidNextStatuses(booking.status).map((statusOpt) => (
+                                                        <option key={statusOpt} value={statusOpt}>{statusOpt}</option>
+                                                    ))}
+                                                </select>
+                                            )}
                                         </div>
+
                                     </div>
-                                    <div className="mt-4 flex justify-end">
+
+
+                                    <div className="mt-6 flex justify-end">
                                         <button
                                             onClick={() => handleViewDetails(booking)}
                                             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-[#f09c42] hover:scale-110 hover:text-white transition duration-200"
@@ -487,6 +642,43 @@ const BookingOrderManagement = () => {
                     </button>
                 </div>
             )}
+
+            <Modal
+                isOpen={confirmModalOpen}
+                onRequestClose={() => setConfirmModalOpen(false)}
+                className="bg-white p-6 rounded-lg shadow-lg max-w-[600px] w-[88%] max-h-[82vh] animate-fadeInModal"
+                overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]"
+
+                ariaHideApp={false}
+            >
+                <div className="text-center space-y-4">
+                    <h2 className="text-lg font-semibold">Confirm Status Change</h2>
+                    <p>Are you sure you want to change the status to <span className="font-bold">{pendingStatusChange?.status}</span>?</p>
+                    <div className="flex justify-center gap-4 mt-6">
+                        <button
+                            className="bg-orange-400 text-white px-9 py-2 rounded hover:bg-orange-500"
+                            onClick={() => {
+                                if (pendingStatusChange) {
+                                    handleUpdateStatus(pendingStatusChange.id, pendingStatusChange.status);
+                                }
+                                setConfirmModalOpen(false);
+                                setPendingStatusChange(null);
+                            }}
+                        >
+                            Yes
+                        </button>
+                        <button
+                            className="bg-gray-300 text-black px-6 py-2 rounded hover:bg-gray-400"
+                            onClick={() => {
+                                setConfirmModalOpen(false);
+                                setPendingStatusChange(null);
+                            }}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
         </div>
     );
