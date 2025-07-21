@@ -123,7 +123,7 @@ const ManageRank: React.FC = () => {
         } catch (error: any) {
             console.error("Error saving rank", error);
             if (error.response?.data?.message) {
-                toast.error(`Error: ${error.response.data.message}`);
+                toast.error(`${error.response.data.message}`);
             } else {
                 toast.error("An error occurred while saving the rank");
             }
