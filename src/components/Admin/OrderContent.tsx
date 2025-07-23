@@ -65,7 +65,7 @@ const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:
 
 function OrderContent() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [paymentStatus, setPaymentStatus] = useState<string>("");
+  const [paymentStatus,] = useState<string>("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -78,7 +78,7 @@ function OrderContent() {
     orderType: "",
     status: "",
   });
-  const [appliedFilters, setAppliedFilters] = useState({
+  const [, setAppliedFilters] = useState({
     dateRange: "",
     fromDate: "",
     toDate: "",
