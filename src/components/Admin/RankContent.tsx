@@ -69,54 +69,54 @@ const ManageRank: React.FC = () => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         let { name, value } = e.target;
-        
+
         if (name === "minSpending") {
             if (value === "") {
                 setFormData({ ...formData, [name]: null });
                 return;
             }
-            
+
             const numValue = parseFloat(value);
             if (!isNaN(numValue) && numValue >= 0) {
                 setFormData({ ...formData, [name]: numValue });
             }
             return;
         }
-        
+
         setFormData({ ...formData, [name]: value });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!formData.rankName.trim()) {
             toast.error("Rank name is required");
             return;
         }
-        
+
         if (formData.minSpending === null || formData.minSpending < 0) {
             toast.error("Min spending must be a positive number");
             return;
         }
-        
+
         try {
             const dataToSend = {
                 ...formData,
                 minSpending: formData.minSpending === null ? 0 : formData.minSpending
             };
-            
+
             if (editingRank) {
                 const response = await axios.put(`${backendApiUrl}/rank/${editingRank._id}`, dataToSend);
                 toast.success("Rank updated successfully!");
-                
-                const updatedRanks = ranks.map(rank => 
+
+                const updatedRanks = ranks.map(rank =>
                     rank._id === editingRank._id ? response.data.rank : rank
                 );
                 setRanks(updatedRanks);
             } else {
                 const response = await axios.post(`${backendApiUrl}/rank/add`, dataToSend);
                 toast.success("Rank created successfully!");
-                
+
                 setRanks([...ranks, response.data.rank]);
             }
             setModalOpen(false);
@@ -136,7 +136,7 @@ const ManageRank: React.FC = () => {
                 <h3 className="text-xl font-semibold text-[#2e2422]">List of Rank</h3>
                 <button
                     onClick={() => openModal()}
-                    className="bg-[#f0924c] text-white px-4 py-2 rounded hover:opacity-90 transition"
+                    className="px-4 py-[7px] text-sm rounded border border-gray-300 bg-[#f0f0f0] hover:bg-[#F0924C] hover:text-white transition duration-200 shadow-sm"
                 >
                     Add Rank
                 </button>
@@ -226,8 +226,8 @@ const ManageRank: React.FC = () => {
                     </div>
                 </div>
             )}
-            
-            <ToastContainer 
+
+            <ToastContainer
                 position="top-right"
                 autoClose={2000}
                 hideProgressBar={false}

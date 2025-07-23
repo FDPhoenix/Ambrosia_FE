@@ -1,9 +1,30 @@
 import { useEffect, useState } from "react";
 import { FaInfoCircle } from "react-icons/fa";
 
+interface CustomerInfo {
+  type: "User" | "Guest" | "Unknown";
+  name: string;
+  email: string;
+  contactPhone: string;
+  deliveryAddress?: string;
+  notes?: string;
+}
+
+interface BookingInfo {
+  bookingDate?: string;
+  startTime?: string;
+  endTime?: string;
+  table?: string | null;
+  orderType?: string;
+  deliveryAddress?: string;
+  notes?: string;
+}
+
 interface User {
   _id: string;
+  fullname?: string;
   email: string;
+  phoneNumber?: string;
 }
 
 interface Order {
@@ -15,8 +36,30 @@ interface Order {
   paymentStatus: string;
   remainingAmount?: number;
   createdAt: string;
-  bookingId?: { orderType?: string } | null;
+
+  bookingId?: {
+    _id: string;
+    orderType?: string;
+    bookingDate?: string;
+    startTime?: string;
+    endTime?: string;
+    contactPhone?: string;
+    deliveryAddress?: string;
+    notes?: string;
+    tableId?: {
+      tableNumber?: string;
+      capacity?: number;
+    } | null;
+  } | null;
+
+  // Thêm các field format cho đồng nhất với getOrders
+  customerInfo?: CustomerInfo;
+  bookingInfo?: BookingInfo;
+
+  // Bổ sung orderType cho dễ truy cập
+  orderType?: string;
 }
+
 
 const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
 
@@ -118,7 +161,7 @@ function OrderContent() {
 
   return (
     <div className="bg-white rounded-[15px] shadow-md p-6 overflow-hidden min-h-[80vh]">
-      <div className="flex flex-wrap items-center gap-3 mb-2 justify-between">
+      <div className="flex flex-wrap items-center gap-3 mb-2 justify-end">
         <div className="flex flex-wrap items-center gap-3">
           <select
             className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-orange-400 cursor-pointer transition"
@@ -171,7 +214,7 @@ function OrderContent() {
           <thead className="bg-gray-100">
             <tr>
               <th className="p-3 border-b">Order ID</th>
-              <th className="p-3 border-b">Customer Email</th>
+              <th className="p-3 border-b">Customer Name</th>
               <th className="p-3 border-b">Order Type</th>
               <th className="p-3 border-b">Payment Method</th>
               <th className="p-3 border-b">Status</th>
@@ -183,7 +226,7 @@ function OrderContent() {
           <tbody>
             {orders.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-6 text-gray-500">
+                <td colSpan={8} className="text-center py-6 text-gray-500">
                   No orders found.
                 </td>
               </tr>
@@ -191,8 +234,22 @@ function OrderContent() {
               orders.map((order) => (
                 <tr key={order._id} className="hover:bg-gray-50 text-center">
                   <td className="p-3 border-b whitespace-nowrap">{order._id.slice(-4)}</td>
-                  <td className="p-3 border-b whitespace-nowrap">{order.userId?.email || "N/A"}</td>
-                  <td className="p-3 border-b whitespace-nowrap">{order.bookingId?.orderType ? order.bookingId.orderType.charAt(0).toUpperCase() + order.bookingId.orderType.slice(1) : "N/A"}</td>
+                  <td className="p-3 border-b whitespace-nowrap">
+                    {order.customerInfo?.name || "Guest"}
+                  </td>
+                  <td
+                    className={`p-3 border-b whitespace-nowrap capitalize font-semibold ${order.bookingId?.orderType === "dine-in"
+                      ? "text-green-700"
+                      : order.bookingId?.orderType === "delivery"
+                        ? "text-blue-900"
+                        : ""
+                      }`}
+                  >
+                    {order.bookingId?.orderType
+                      ? order.bookingId.orderType.charAt(0).toUpperCase() +
+                      order.bookingId.orderType.slice(1)
+                      : "N/A"}
+                  </td>
                   <td className="p-3 border-b whitespace-nowrap">{order.paymentMethod}</td>
                   <td className="p-3 border-b whitespace-nowrap">
                     {order.paymentStatus === "Deposited" ? (
@@ -250,13 +307,27 @@ function OrderContent() {
         </table>
       </div>
 
+
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4 mt-4">
         {orders.map((order) => (
           <div key={order._id} className="bg-gray-50 p-4 rounded shadow">
-            <div><strong>Order ID:</strong> {order._id}</div>
-            <div><strong>Email:</strong> {order.userId?.email || "N/A"}</div>
-            <div><strong>Order Type:</strong> {order.bookingId?.orderType ? order.bookingId.orderType.charAt(0).toUpperCase() + order.bookingId.orderType.slice(1) : "N/A"}</div>
+            <div><strong>Order ID:</strong> {order._id.slice(-4)}</div>
+            <div><strong>Customer Name: </strong>{order.customerInfo?.name || "Guest"}</div>
+            <div><strong>Order Type:</strong>  <span
+              className={`${order.bookingId?.orderType === "dine-in"
+                ? "text-green-700 font-semibold"
+                : order.bookingId?.orderType === "delivery"
+                  ? "text-blue-900 font-semibold"
+                  : "text-gray-600"
+                }`}
+            >
+              {order.bookingId?.orderType
+                ? order.bookingId.orderType.charAt(0).toUpperCase() +
+                order.bookingId.orderType.slice(1)
+                : "N/A"}
+            </span>
+            </div>
             <div><strong>Method:</strong> {order.paymentMethod}</div><div className="mt-2">
               <strong>Status:</strong>{" "}
               {order.paymentStatus === "Deposited" ? (
@@ -344,14 +415,78 @@ function OrderContent() {
           <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-md animate-fadeInModal">
             <h3 className="text-lg font-bold text-center mb-4">Order Details</h3>
             <div className="space-y-2 text-sm text-gray-800">
-              <p><strong>Order ID:</strong> {selectedOrder._id}</p>
-              <p><strong>Email:</strong> {selectedOrder.userId?.email || "N/A"}</p>
-              <p><strong>Order Type:</strong> {selectedOrder.bookingId?.orderType ? selectedOrder.bookingId.orderType.charAt(0).toUpperCase() + selectedOrder.bookingId.orderType.slice(1) : "N/A"}</p>
+              <p><strong>Order ID:</strong> {selectedOrder._id.slice(-4)}</p>
+              <p>
+                <strong>Name:</strong>{" "}
+                {selectedOrder.customerInfo?.name ? (
+                  selectedOrder.customerInfo.name
+                ) : (
+                  <span className="italic ">No user information</span>
+                )}
+              </p>
+              <p>
+                <strong>Email:</strong>{" "}
+                {selectedOrder.customerInfo?.email ? (
+                  selectedOrder.customerInfo.email
+                ) : (
+                  <span className="italic ">No user information</span>
+                )}
+              </p>
+              <p>
+                <strong>Phone:</strong>{" "}
+                {selectedOrder.customerInfo?.contactPhone ? (
+                  selectedOrder.customerInfo.contactPhone
+                ) : (
+                  <span className="italic">No phone number provided</span>
+                )}
+              </p>
+              <p>
+                <strong>Delivery Address:</strong>{" "}
+                {selectedOrder.customerInfo?.deliveryAddress ? (
+                  selectedOrder.customerInfo.deliveryAddress
+                ) : (
+                  <span className="italic">No delivery address provided</span>
+                )}
+              </p>
+              <p>
+                <strong>Note:</strong>{" "}
+                {selectedOrder.customerInfo?.notes ? (
+                  selectedOrder.customerInfo.notes
+                ) : (
+                  <span className="italic">No notes available</span>
+                )}
+              </p>
+
+              {/* Other Order Info */}
+              <p className="text-sm flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <strong>Order Type:</strong>
+                <span
+                  className={`${selectedOrder.orderType === "dine-in"
+                    ? "text-green-700 font-semibold"
+                    : selectedOrder.orderType === "delivery"
+                      ? "text-blue-900 font-semibold"
+                      : "text-gray-600"
+                    }`}
+                >
+                  {selectedOrder.orderType
+                    ? selectedOrder.orderType.charAt(0).toUpperCase() + selectedOrder.orderType.slice(1)
+                    : "N/A"}
+                </span>
+              </p>
+
               <p><strong>Payment Method:</strong> {selectedOrder.paymentMethod}</p>
               <p><strong>Status:</strong> {selectedOrder.paymentStatus}</p>
               <p><strong>Total Amount:</strong> {selectedOrder.totalAmount.toLocaleString()} VND</p>
-              <p><strong>Prepaid:</strong> {selectedOrder.paymentStatus === "Success" ? selectedOrder.totalAmount.toLocaleString() : (selectedOrder.prepaidAmount ?? 0).toLocaleString()} VND</p>
-              <p><strong>Remaining:</strong> {selectedOrder.paymentStatus === "Success" ? "0" : (selectedOrder.remainingAmount ?? selectedOrder.totalAmount - (selectedOrder.prepaidAmount ?? 0)).toLocaleString()} VND</p>
+              <p><strong>Prepaid: </strong>
+                {selectedOrder.paymentStatus === "Success"
+                  ? selectedOrder.totalAmount.toLocaleString()
+                  : (selectedOrder.prepaidAmount ?? 0).toLocaleString()} VND
+              </p>
+              <p><strong>Remaining: </strong>
+                {selectedOrder.paymentStatus === "Success"
+                  ? "0"
+                  : (selectedOrder.remainingAmount ?? selectedOrder.totalAmount - (selectedOrder.prepaidAmount ?? 0)).toLocaleString()} VND
+              </p>
               <p><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleDateString()}</p>
             </div>
             <button
@@ -363,6 +498,7 @@ function OrderContent() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
