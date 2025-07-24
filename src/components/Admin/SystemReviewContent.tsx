@@ -6,6 +6,7 @@ import { FaInfoCircle, FaStar } from 'react-icons/fa';
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from 'react-toastify';
 import Pagination from "../Pagination";
+import LoadingAnimation from '../LoadingAnimation';
 
 interface Review {
   id: string;
@@ -200,8 +201,7 @@ function SystemReviewContent() {
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="text-white text-center">
-            <div className="animate-spin h-12 w-12 border-4 border-gray-200 border-t-gray-600 rounded-full mx-auto"></div>
-            <p className="mt-4">Sending feedback...</p>
+            <LoadingAnimation />
           </div>
         </div>
       )}
@@ -333,7 +333,7 @@ function SystemReviewContent() {
                 </div>
               </div>
             </div>
-            
+
             {/* Show existing reply if already replied */}
             {selectedReview.isReplied && selectedReview.replyContent && (
               <div className="mt-4">
@@ -408,7 +408,7 @@ function SystemReviewContent() {
                   <p className="text-gray-700 italic break-words">"{selectedReview.comment || "No comment"}"</p>
                 </div>
               </div>
-              
+
               {/* Reply Section */}
               {selectedReview.isReplied && selectedReview.replyContent && (
                 <div className="flex flex-col border-b border-dashed border-gray-300 py-3 px-2 text-base">
@@ -423,7 +423,7 @@ function SystemReviewContent() {
                   </div>
                 </div>
               )}
-              
+
               {!selectedReview.isReplied && (
                 <div className="flex flex-col py-3 px-2 text-base">
                   <strong className="text-[#222] mb-2">Reply Status:</strong>

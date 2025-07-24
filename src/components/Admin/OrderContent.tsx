@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { FaInfoCircle } from "react-icons/fa";
+import { useLocation } from "react-router";
 
 interface CustomerInfo {
   type: "User" | "Guest" | "Unknown";
@@ -70,6 +71,7 @@ function OrderContent() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const location = useLocation();
   const limit = 6;
   const [filters, setFilters] = useState({
     dateRange: "",
@@ -159,9 +161,22 @@ function OrderContent() {
     }
   };
 
+  const getContainerClass = () => {
+    if (location.pathname.startsWith("/staff")) {
+      return "mx-auto bg-white px-7 pt-6 pb-4 rounded-lg shadow-md flex flex-col min-h-[80vh]";
+    }
+    switch (location.pathname) {
+      case "/manage":
+        return "relative w-[1200px] h-[570px] p-5 max-w-[1210px] bg-white rounded-2xl shadow-md";
+      default:
+        return "bg-white p-5 rounded-2xl shadow-md";
+    }
+  };
+
   return (
-    <div className="bg-white rounded-[15px] shadow-md p-6 overflow-hidden min-h-[80vh]">
-      <div className="flex flex-wrap items-center gap-3 mb-2 justify-end">
+    <div className={getContainerClass()}>
+      <div className="flex flex-wrap items-center gap-3 mb-2 justify-between">
+        <h3 className="text-2xl font-bold text-gray-800 mb-4">List of Order</h3>
         <div className="flex flex-wrap items-center gap-3">
           <select
             className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-orange-400 cursor-pointer transition"
@@ -233,12 +248,12 @@ function OrderContent() {
             ) : (
               orders.map((order) => (
                 <tr key={order._id} className="hover:bg-gray-50 text-center">
-                  <td className="p-3 border-b whitespace-nowrap">{order._id.slice(-4)}</td>
-                  <td className="p-3 border-b whitespace-nowrap">
+                  <td className="p-4 border-b whitespace-nowrap">{order._id.slice(-4)}</td>
+                  <td className="p-4 border-b whitespace-nowrap">
                     {order.customerInfo?.name || "Guest"}
                   </td>
                   <td
-                    className={`p-3 border-b whitespace-nowrap capitalize font-semibold ${order.bookingId?.orderType === "dine-in"
+                    className={`p-4 border-b whitespace-nowrap capitalize font-semibold ${order.bookingId?.orderType === "dine-in"
                       ? "text-green-700"
                       : order.bookingId?.orderType === "delivery"
                         ? "text-blue-900"
@@ -250,13 +265,13 @@ function OrderContent() {
                       order.bookingId.orderType.slice(1)
                       : "N/A"}
                   </td>
-                  <td className="p-3 border-b whitespace-nowrap">{order.paymentMethod}</td>
-                  <td className="p-3 border-b whitespace-nowrap">
+                  <td className="p-4 border-b whitespace-nowrap">{order.paymentMethod}</td>
+                  <td className="p-4 border-b whitespace-nowrap">
                     {order.paymentStatus === "Deposited" ? (
                       <select
                         value={order.paymentStatus}
                         onChange={(e) => handleChangeStatus(order._id, e.target.value)}
-                        className="px-2 py-1 border rounded"
+                        className="px-4 py-1 border rounded"
                       >
                         <option value="Deposited">Deposited</option>
                         <option value="Success">Success</option>
@@ -286,13 +301,13 @@ function OrderContent() {
                       </span>
                     )}
                   </td>
-                  <td className="p-3 border-b whitespace-nowrap">
+                  <td className="p-4 border-b whitespace-nowrap">
                     {order.totalAmount.toLocaleString()} VND
                   </td>
-                  <td className="p-3 border-b whitespace-nowrap">
+                  <td className="p-4 border-b whitespace-nowrap">
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="p-5 whitespace-nowrap">
+                  <td className="p-4 whitespace-nowrap">
                     <button
                       className="flex items-center gap-1 hover:scale-110 hover:text-[#f0924c] bg-none"
                       onClick={() => fetchOrderDetails(order._id)}
@@ -375,7 +390,7 @@ function OrderContent() {
         <button
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
-          className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
+          className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50 text-sm md:text-base"
         >
           &laquo; Prev
         </button>
@@ -403,7 +418,7 @@ function OrderContent() {
         <button
           onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages}
-          className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
+          className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50 text-sm md:text-base"
         >
           Next &raquo;
         </button>

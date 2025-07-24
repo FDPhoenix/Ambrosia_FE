@@ -339,7 +339,7 @@ const BookingPage = () => {
                                         min={new Date().toISOString().split("T")[0]}
                                         max={new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split("T")[0]}
                                         inputMode="none"
-                                        className="w-full p-3 border border-gray-300 rounded-lg text-base bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-2 py-2 border rounded bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                                 {/* <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={new Date().toISOString().split("T")[0]} className="w-full p-2 border rounded" /> */}
@@ -349,7 +349,7 @@ const BookingPage = () => {
                                         setSelectedTime(e.target.value);
                                         setSelectedTableId(null);
                                     }}
-                                    className="w-full p-2 border rounded"
+                                    className="w-full p-2 py-3 border rounded"
                                 >
                                     <option value="">Select time</option>
                                     {filteredTimes.map((time) => (

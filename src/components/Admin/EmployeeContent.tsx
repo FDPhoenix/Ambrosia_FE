@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import StatusBadge from "./StatusBadge";
 import { AxiosError } from 'axios';
 import Pagination from "../Pagination";
+import LoadingAnimation from '../LoadingAnimation';
 
 interface Employee {
   _id: string;
@@ -218,7 +219,9 @@ export default function EmployeeContext() {
       {/* List of employees */}
       <div className="max-h-[424px] overflow-y-auto scrollbar-hide px-4">
         {loading ? (
-          <div className="flex items-center justify-center h-[457px] text-gray-500 text-lg">Loading...</div>
+          <div className="flex items-center justify-center h-[457px]">
+            <LoadingAnimation />
+          </div>
         ) : employees.length > 0 ? (
           <table className="table-auto w-full text-center border-collapse">
             <thead className="bg-gray-100 text-base">
