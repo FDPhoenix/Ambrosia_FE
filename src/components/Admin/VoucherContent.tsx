@@ -236,6 +236,7 @@ function VoucherContent() {
                     id="expiresAt"
                     value={formData.expiresAt}
                     onChange={handleInputChange}
+                    min={new Date().toISOString().split("T")[0]}
                     className="w-full p-3 border border-gray-300 rounded-md mt-1 mb-4"
                   />
 
