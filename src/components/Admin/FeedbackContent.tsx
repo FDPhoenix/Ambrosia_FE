@@ -2,6 +2,7 @@ import type React from "react"
 import { useEffect, useState, useCallback } from "react"
 import Pagination from "../Pagination"
 import Cookies from "js-cookie";
+import LoadingAnimation from "../LoadingAnimation"
 
 interface Category {
   _id: string
@@ -50,6 +51,9 @@ const FeedbackContent: React.FC = () => {
   const [currentFeedbackPage, setCurrentFeedbackPage] = useState<number>(1)
   const feedbacksPerPage = 6
 
+  const [loadingDishes, setLoadingDishes] = useState<boolean>(false)
+  const [loadingCategories, setLoadingCategories] = useState<boolean>(false)
+
   useEffect(() => {
     fetchDishes()
     fetchCategories()
@@ -69,6 +73,7 @@ const FeedbackContent: React.FC = () => {
   }, [dishes, currentPage, itemsPerPage])
 
   const fetchDishes = () => {
+    setLoadingDishes(true)
     const apiUrl = selectedCategory
       ? `${backendApiUrl}/api/feedback/allDishes?categoryId=${selectedCategory}`
       : `${backendApiUrl}/api/feedback/allDishes`
@@ -77,13 +82,16 @@ const FeedbackContent: React.FC = () => {
       .then((res) => res.json())
       .then((data) => setDishes(Array.isArray(data) ? data : []))
       .catch((error) => console.error("Error fetching dishes:", error))
+      .finally(() => setLoadingDishes(false))
   }
 
   const fetchCategories = () => {
+    setLoadingCategories(true)
     fetch(`${backendApiUrl}/category/all`)
       .then((res) => res.json())
       .then((data) => setCategories(Array.isArray(data.categories) ? data.categories : []))
       .catch((error) => console.error("Error fetching categories:", error))
+      .finally(() => setLoadingCategories(false))
   }
 
   const fetchFeedbacks = (dishId: string) => {
@@ -169,29 +177,35 @@ const FeedbackContent: React.FC = () => {
       </select>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 overflow-y-auto pr-2 scrollbar-hide">
-        {currentDishes.map((dish) => (
-          <div
-            key={dish._id}
-            className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-105"
-            onClick={() => handleDishClick(dish)}
-          >
-            <img
-              src={
-                dish.imageUrl
-                  ? dish.imageUrl.startsWith("http")
-                    ? dish.imageUrl
-                    : `${BASE_IMAGE_URL}${dish.imageUrl}`
-                  : "https://tse4.mm.bing.net/th?id=OIP.1QDPhOmFezmjXmeTYkbOagHaE8&pid=Api&P=0&h=180"
-              }
-              alt={dish.name}
-              className="w-full h-[120px] sm:h-[140px] object-cover border-b border-gray-100"
-            />
-            <div className="p-2.5 text-center">
-              <h2 className="text-sm sm:text-base font-semibold my-1.5 truncate">{dish.name}</h2>
-              <p className="text-xs sm:text-sm text-gray-500">{dish.price.toLocaleString()} VND</p>
-            </div>
+        {(loadingDishes || loadingCategories) ? (
+          <div className="col-span-full flex justify-center items-center h-[200px]">
+            <LoadingAnimation />
           </div>
-        ))}
+        ) : (
+          currentDishes.map((dish) => (
+            <div
+              key={dish._id}
+              className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-105"
+              onClick={() => handleDishClick(dish)}
+            >
+              <img
+                src={
+                  dish.imageUrl
+                    ? dish.imageUrl.startsWith("http")
+                      ? dish.imageUrl
+                      : `${BASE_IMAGE_URL}${dish.imageUrl}`
+                    : "https://tse4.mm.bing.net/th?id=OIP.1QDPhOmFezmjXmeTYkbOagHaE8&pid=Api&P=0&h=180"
+                }
+                alt={dish.name}
+                className="w-full h-[120px] sm:h-[140px] object-cover border-b border-gray-100"
+              />
+              <div className="p-2.5 text-center">
+                <h2 className="text-sm sm:text-base font-semibold my-1.5 truncate">{dish.name}</h2>
+                <p className="text-xs sm:text-sm text-gray-500">{dish.price.toLocaleString()} VND</p>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {!selectedDish && (
@@ -230,7 +244,8 @@ const FeedbackContent: React.FC = () => {
               </div>
 
               {loadingFeedback ? (
-                <p className="text-center text-sm sm:text-base text-blue-500 mt-5">Loading...</p>
+                // <p className="text-center text-sm sm:text-base text-blue-500 mt-5">Loading...</p>
+                <LoadingAnimation />
               ) : filteredFeedbacks.length > 0 ? (
                 <>
                   <div className="overflow-x-auto">

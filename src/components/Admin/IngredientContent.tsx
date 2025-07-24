@@ -3,6 +3,8 @@ import { FaEdit, FaEye, FaEyeSlash, FaTimes } from 'react-icons/fa';
 import StatusBadge from './StatusBadge';
 import { toast } from 'react-toastify';
 import Pagination from '../Pagination';
+import LoadingAnimation from '../LoadingAnimation';
+
 interface Ingredient {
   _id: string;
   dishId: { _id: string; name: string };
@@ -226,7 +228,7 @@ function IngredientContent() {
   return (
     <div className="relative h-[567px] max-w-8xl mx-auto bg-white p-6 rounded-xl shadow-md">
       {loading ? (
-        <div className="text-center">Loading...</div>
+        <LoadingAnimation />
       ) : error ? (
         <div className="text-red-400">{error}</div>
       ) : (
