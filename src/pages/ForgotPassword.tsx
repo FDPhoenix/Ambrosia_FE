@@ -83,7 +83,7 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post(`${backendApiUrl}/auth/verify-otp`, { email, otp });
+      const response = await axios.post(`${backendApiUrl}/auth/verify-forgot-password-otp`, { email, otp });
       if (response.data.success) {
         toast.success(response.data.message || 'OTP verified successfully.');
         setStep(3);
@@ -152,9 +152,14 @@ const ForgotPassword = () => {
             <h2 className="text-2xl font-bold mb-4 text-[#5b3b1a] text-center">Enter OTP</h2>
             <input
               type="text"
-              placeholder="Enter OTP"
+              placeholder="Enter 6-digit OTP"
               value={otp}
-              onChange={(e) => setOtp(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                setOtp(value);
+              }}
+              maxLength={6}
+              pattern="[0-9]{6}"
               required
               className="w-full px-4 py-2 border border-[#c19b76] rounded-md mb-3"
             />

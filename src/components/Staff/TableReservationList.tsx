@@ -153,19 +153,120 @@ const TableReservationList = () => {
         }
     };
 
-    const statusModelStyles = {
+    const statusModelStyles: Record<string, { color: string }> = {
         Confirmed: { color: "green" },
-        Pending: { color: "#ffad00" },
+        Pending: { color: "#ffd54f" },
         Canceled: { color: "red" },
+        Cooking: { color: "#f0924c" },
+        Ready: { color: "#0d6efd" },
+        Completed: { color: "#a84300" },
         Unknown: { color: "rgb(147 147 147)" }
     };
 
-    const getStatus = (status: string) => {
+    const getStatus = (
+        status: string
+    ): "Pending" | "Confirmed" | "Canceled" | "Completed" | "Ready" | "Cooking" | "Unknown" => {
         const normalizedStatus = status?.toLowerCase();
-        if (normalizedStatus === "confirmed") return "Confirmed";
-        if (normalizedStatus === "pending") return "Pending";
-        if (normalizedStatus === "canceled") return "Canceled";
-        return "Unknown";
+
+        switch (normalizedStatus) {
+            case "pending":
+                return "Pending";
+            case "confirmed":
+                return "Confirmed";
+            case "canceled":
+                return "Canceled";
+            case "completed":
+                return "Completed";
+            case "ready":
+                return "Ready";
+            case "cooking":
+                return "Cooking";
+            default:
+                return "Unknown";
+        }
+    };
+
+    const getValidNextStatuses = (currentStatus: string): string[] => {
+        const normalized = currentStatus.toLowerCase();
+
+        switch (normalized) {
+            case "pending":
+                return ["Confirmed", "Canceled"];
+            case "confirmed":
+                return ["Canceled"];
+            case "cooking":
+                return [];
+            case "ready":
+                return ["Completed"];
+            case "canceled":
+            case "completed":
+                return [];
+            default:
+                return [];
+        }
+    };
+
+    const renderStatusComponent = (
+        status: string,
+        onChange?: (newStatus: string) => void,
+        bookingId?: string
+    ) => {
+        const current = getStatus(status);
+        const canChange = getValidNextStatuses(current).length > 0;
+
+        const backgroundColor =
+            current === "Confirmed" ? "#d4edda" :
+                current === "Pending" ? "#fff3cd" :
+                    current === "Canceled" ? "#fee2e2" :
+                        current === "Cooking" ? "#ffe0b2" :
+                            current === "Ready" ? "#dbeafe" :
+                                current === "Completed" ? "#ffcc80" :
+                                    "#eeeeee";
+
+        const textColor =
+            current === "Confirmed" ? "#155724" :
+                current === "Pending" ? "#856404" :
+                    current === "Canceled" ? "#b91c1c" :
+                        current === "Cooking" ? "#a84300" :
+                            current === "Ready" ? "#0d6efd" :
+                                current === "Completed" ? "#8b4500" :
+                                    "#444";
+
+        if (canChange && bookingId && onChange) {
+            return (
+                <select className="rounded-full w-[121px] px-4 py-[4px] font-bold text-sm text-center cursor-pointer border-none focus:outline-none focus:ring-0 border-none"
+                    value={current}
+                    onChange={(e) => {
+                        if (e.target.value !== current) {
+                            onChange(e.target.value);
+                        }
+                    }}
+                    style={{
+                        backgroundColor,
+                        color: textColor,
+                    }}
+                >
+                    <option value={current} disabled>{current}</option>
+                    {getValidNextStatuses(current).map((statusOpt) => (
+                        <option key={statusOpt} value={statusOpt}>{statusOpt}</option>
+                    ))}
+                </select>
+            );
+        } else {
+            return (
+                <span
+                    className="rounded-full w-[121px] px-4 py-[4px] font-bold text-sm flex items-center justify-center gap-2 mx-auto"
+
+                    style={{
+                        backgroundColor,
+                        color: textColor,
+                    }}
+                >
+                    <span className="w-[9px] h-[8px] rounded-full" style={{ backgroundColor: textColor }}></span>
+                    {current}
+                </span>
+            );
+        }
     };
 
     const fetchAvailableTables = async (bookingDate: string, startTime: string) => {
@@ -255,7 +356,7 @@ const TableReservationList = () => {
     };
 
     return (
-        <div className="mx-auto bg-white p-6 rounded-lg shadow-md flex flex-col min-h-[82vh]">
+        <div className="mx-auto bg-white px-7 pt-6 pb-4 rounded-lg shadow-md flex flex-col min-h-[82vh]">
             <div className="flex flex-wrap items-center gap-3 mb-2 flex justify-between">
                 <h3 className="text-2xl font-bold text-gray-800 mb-1">List of Reservation</h3>
                 <div className="flex flex-wrap items-center gap-3">
@@ -284,14 +385,17 @@ const TableReservationList = () => {
                     </select>
 
                     <select
-                        className="px-4 py-2 text-sm border border-gray-300 rounded bg-white hover:border-orange-400 cursor-pointer transition"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-orange-400 cursor-pointer transition"
                         onChange={(e) => setFilters({ ...filters, status: e.target.value })}
                         value={filters.status}
                     >
                         <option value="">All Status</option>
-                        <option value="Confirmed">Confirmed</option>
                         <option value="Pending">Pending</option>
+                        <option value="Confirmed">Confirmed</option>
                         <option value="Canceled">Canceled</option>
+                        <option value="Cooking">Cooking</option>
+                        <option value="Ready">Ready</option>
+                        <option value="Completed">Completed</option>
                     </select>
 
                     <button
@@ -312,76 +416,67 @@ const TableReservationList = () => {
                         </div>
                     </div>
                 ) : (
-                    <><table className="hidden md:table w-full min-w-[800px] table-auto border-gray-200 text-base">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th className="p-4 font-bold">Reservation Number</th>
-                                <th className="p-4 font-bold">Customer Name</th>
-                                <th className="p-4 font-bold">Booking Date</th>
-                                <th className="p-4 font-bold">Order Type</th>
-                                <th className="p-4 font-bold">Status</th>
-                                <th className="p-4 font-bold">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Array.isArray(bookings) && bookings.map((booking, index) => (
-                                <tr key={booking._id} className="text-center border-y hover:bg-gray-100 transition duration-200">
-                                    <td className="p-5">  {(currentPage - 1) * limit + index + 1}</td>
-                                    <td className="p-5">{booking.userId?.fullname || booking.guest?.name || "Unknown"}</td>
-                                    <td className="p-5">{new Date(booking.bookingDate).toLocaleDateString()}</td>
-                                    <td
-                                        className={`p-5 capitalize font-semibold ${booking.orderType.toLowerCase() === 'delivery'
-                                            ? 'text-blue-900'
-                                            : booking.orderType.toLowerCase() === 'dine-in'
-                                                ? 'text-green-700'
-                                                : 'text-gray-600'}`}
-                                    >
-                                        {booking.orderType}
-                                    </td>
-
-                                    <td className="p-5">
-                                        <select
-                                            className="rounded-full px-4 py-1 font-bold text-sm text-center cursor-pointer focus:outline-none border-none"
-                                            value={getStatus(booking.status)}
-                                            onChange={(e) => {
-                                                const newStatus = e.target.value;
-                                                setPendingStatusChange({ id: booking._id, status: newStatus });
-                                                setConfirmModalOpen(true);
-                                            }}
-                                            style={{
-                                                backgroundColor: getStatus(booking.status) === 'Confirmed' ? '#d4edda' :
-                                                    getStatus(booking.status) === 'Pending' ? '#fff3cd' :
-                                                        getStatus(booking.status) === 'Canceled' ? '#f8d7da' : '#ffcc80',
-                                                color: getStatus(booking.status) === 'Confirmed' ? '#155724' :
-                                                    getStatus(booking.status) === 'Pending' ? '#856404' :
-                                                        getStatus(booking.status) === 'Canceled' ? '#721c24' : '#8b4500'
-                                            }}
-                                        >
-                                            <option value="Confirmed">Confirmed</option>
-                                            <option value="Pending">Pending</option>
-                                            <option value="Canceled">Canceled</option>
-                                        </select>
-                                    </td>
-                                    <td className="p-5 whitespace-nowrap">
-                                        <button className=" flex items-center gap-1 hover:scale-110 hover:text-[#f0924c] bg-none pl-5" onClick={() => {
-                                            setSelectedBooking(booking);
-                                            setIsModalOpen(true);
-                                        }}
-                                        >
-                                            <FaInfoCircle className="text-sm" /> View Details
-                                        </button>
-                                    </td>
+                    <>
+                        {/* Desktop Table */}
+                        <table className="hidden md:table w-full min-w-[800px] table-auto border-gray-200 text-base">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="p-4 font-bold">Reservation Number</th>
+                                    <th className="p-4 font-bold">Customer Name</th>
+                                    <th className="p-4 font-bold">Booking Date</th>
+                                    <th className="p-4 font-bold">Order Type</th>
+                                    <th className="p-4 font-bold">Status</th>
+                                    <th className="p-4 font-bold">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {Array.isArray(bookings) && bookings.map((booking, index) => (
+                                    <tr key={booking._id} className="text-center border-y hover:bg-gray-100 transition duration-200">
+                                        <td className="p-5">  {(currentPage - 1) * limit + index + 1}</td>
+                                        <td className="p-5">{booking.userId?.fullname || booking.guest?.name || "Unknown"}</td>
+                                        <td className="p-5">{new Date(booking.bookingDate).toLocaleDateString()}</td>
+                                        <td
+                                            className={`p-5 capitalize font-semibold ${booking.orderType.toLowerCase() === 'delivery'
+                                                ? 'text-blue-900'
+                                                : booking.orderType.toLowerCase() === 'dine-in'
+                                                    ? 'text-green-700'
+                                                    : 'text-gray-600'}`}
+                                        >
+                                            {booking.orderType}
+                                        </td>
+
+                                        <td className="p-5">
+                                            {renderStatusComponent(
+                                                booking.status,
+                                                (newStatus) => {
+                                                    setPendingStatusChange({ id: booking._id, status: newStatus });
+                                                    setConfirmModalOpen(true);
+                                                },
+                                                booking._id
+                                            )}
+                                        </td>
+                                        <td className="p-5 whitespace-nowrap">
+                                            <button className=" flex items-center gap-1 hover:scale-110 hover:text-[#f0924c] bg-none pl-5" onClick={() => {
+                                                setSelectedBooking(booking);
+                                                setIsModalOpen(true);
+                                            }}
+                                            >
+                                                <FaInfoCircle className="text-sm" /> View Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {/* Mobile Cards */}
                         <div className="md:hidden space-y-4 mt-4">
                             {Array.isArray(bookings) && bookings.map((booking, index) => (
                                 <div key={booking._id} className="bg-gray-50 border rounded-lg p-4 shadow-sm">
                                     <div className="mb-2">
                                         <span className="font-semibold">Reservation No:</span>   {(currentPage - 1) * limit + index + 1}
                                     </div>
-                                    <div className="mb-2">
+                                    <div className="mb-2 flex items-center gap-2 whitespace-nowrap">
                                         <span className="font-semibold">Customer:</span> {booking.userId?.fullname || booking.guest?.name || "Unknown"}
                                     </div>
                                     <div className="mb-2">
@@ -397,31 +492,21 @@ const TableReservationList = () => {
                                             {booking.orderType}
                                         </span>
                                     </div>
-                                    <div className="mb-2">
+                                    <div className="mb-4 flex items-center gap-2 whitespace-nowrap">
                                         <span className="font-semibold">Status:</span>{" "}
-                                        <select
-                                            className="rounded-full px-4 py-1 font-bold text-sm text-center cursor-pointer focus:outline-none border-none mt-1"
-                                            value={getStatus(booking.status)}
-                                            onChange={(e) => {
-                                                const newStatus = e.target.value;
-                                                setPendingStatusChange({ id: booking._id, status: newStatus });
-                                                setConfirmModalOpen(true);
-                                            }}
-                                            style={{
-                                                backgroundColor: getStatus(booking.status) === 'Confirmed' ? '#d4edda' :
-                                                    getStatus(booking.status) === 'Pending' ? '#fff3cd' :
-                                                        getStatus(booking.status) === 'Canceled' ? '#f8d7da' : '#ffcc80',
-                                                color: getStatus(booking.status) === 'Confirmed' ? '#155724' :
-                                                    getStatus(booking.status) === 'Pending' ? '#856404' :
-                                                        getStatus(booking.status) === 'Canceled' ? '#721c24' : '#8b4500'
-                                            }}
-                                        >
-                                            <option value="Confirmed">Confirmed</option>
-                                            <option value="Pending">Pending</option>
-                                            <option value="Canceled">Canceled</option>
-                                        </select>
+                                        <div className="mt-1">
+                                            {renderStatusComponent(
+                                                booking.status,
+                                                (newStatus) => {
+                                                    setPendingStatusChange({ id: booking._id, status: newStatus });
+                                                    setConfirmModalOpen(true);
+                                                },
+                                                booking._id
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="mt-4 flex justify-end">
+
+                                    <div className="mt-6 flex justify-end">
                                         <button
                                             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-[#f09c42] hover:scale-110 hover:text-white transition duration-200"
                                             onClick={() => {
@@ -566,58 +651,60 @@ const TableReservationList = () => {
                                     <span>{new Date(selectedBooking.bookingDate).toLocaleDateString()}</span>
                                 </div>
 
-                                {selectedBooking.tableId ? (
-                                    <>
-                                        <div className="flex justify-between border-b border-dashed py-2 text-base">
-                                            <strong>Start Time:</strong> <span>{selectedBooking.startTime}</span>
-                                        </div>
-                                        <div className="flex justify-between border-b border-dashed py-2 text-base">
-                                            <strong>End Time:</strong> <span>{selectedBooking.endTime}</span>
-                                        </div>
-                                        <div className="flex justify-between border-b border-dashed py-2 text-base items-center">
-                                            <strong>Table Number:</strong>
-
-                                            {isEditingTable && selectedBooking.tableId ? (
-                                                <select
-                                                    value={newTableId}
-                                                    onChange={(e) => setNewTableId(e.target.value)}
-                                                    className="border rounded px-2 py-1"
-                                                >
-                                                    <option value={selectedBooking.tableId._id}>
-                                                        {selectedBooking.tableId.tableNumber} (Current)
-                                                    </option>
-
-                                                    {availableTables
-                                                        .filter(
-                                                            (t) =>
-                                                                t._id !== selectedBooking.tableId!._id &&
-                                                                t.status === "available"
-                                                        )
-                                                        .map((table) => (
+                                <>
+                                    {selectedBooking.orderType === "dine-in" ? (
+                                        <>
+                                            <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                                <strong>Start Time:</strong> <span>{selectedBooking.startTime}</span>
+                                            </div>
+                                            <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                                <strong>End Time:</strong> <span>{selectedBooking.endTime}</span>
+                                            </div>
+                                            <div className="flex justify-between border-b border-dashed py-2 text-base items-center">
+                                                <strong>Table Number:</strong>
+                                                {isEditingTable ? (
+                                                    <select
+                                                        value={newTableId}
+                                                        onChange={(e) => setNewTableId(e.target.value)}
+                                                        className="border rounded px-1 py-1 text-center"
+                                                    >
+                                                        <option value={selectedBooking.tableId?._id || ""} disabled>
+                                                            {selectedBooking.tableId?.tableNumber
+                                                                ? `Current: ${selectedBooking.tableId.tableNumber}`
+                                                                : "Select a table"}
+                                                        </option>
+                                                        {availableTables.map((table) => (
                                                             <option key={table._id} value={table._id}>
-                                                                {table.tableNumber}
+                                                                {table.tableNumber} (capacity: {table.capacity})
                                                             </option>
                                                         ))}
-                                                </select>
-                                            ) : (
-                                                <span>{selectedBooking.tableId?.tableNumber}</span>
-                                            )}
-                                        </div>
+                                                    </select>
+                                                ) : (
+                                                    <span
+                                                        className={
+                                                            selectedBooking.tableId
+                                                                ? "text-black"
+                                                                : "text-yellow-500 font-medium"
+                                                        }
+                                                    >
+                                                        {selectedBooking.tableId?.tableNumber || "Waiting for table assignment"}
+                                                    </span>
 
+                                                )}
+                                            </div>
+                                            <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                                <strong>Capacity:</strong>
+                                                <span>{getSelectedCapacity()}</span>
+                                            </div>
+                                        </>
+                                    ) : (
                                         <div className="flex justify-between border-b border-dashed py-2 text-base">
-                                            <strong>Capacity:</strong>
-                                            <span>{getSelectedCapacity()}</span>
+                                            <strong>Delivery Address:</strong>
+                                            <span className="text-right break-words max-w-[50%]">{selectedBooking.deliveryAddress || "N/A"}</span>
                                         </div>
+                                    )}
+                                </>
 
-
-                                    </>
-                                ) : (
-                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
-                                        <strong>Delivery Address:</strong>
-                                        <span className="text-right break-words max-w-[50%]">{selectedBooking.deliveryAddress || "N/A"}</span>
-                                    </div>
-
-                                )}
                             </div>
 
                             <h5 className="text-base font-semibold">Ordered Dishes List:</h5>

@@ -104,8 +104,21 @@ const TableContent: React.FC = () => {
       return toast.warn("Please fill in all required fields!");
     }
 
-    if (customTable && (customTable.length < 1 || customTable.length > 10)) {
-      return toast.error("Table name must be between 1 and 10 characters!");
+    const isValidFormat = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+$/.test(finalTableNumber);
+    if (!isValidFormat) {
+      return toast.error("Table name must contain at least one letter and one number, with no special characters.");
+    }
+
+    if (finalTableNumber.length > 10) {
+      return toast.error("Table name must not exceed 10 characters!");
+    }
+
+    const isDuplicate = tables.some(
+      (t) => t.tableNumber.trim().toLowerCase() === finalTableNumber.toLowerCase()
+    );
+    if (isDuplicate) {
+      toast.error("Table name already exists!");
+      return;
     }
 
     try {
@@ -254,12 +267,26 @@ const TableContent: React.FC = () => {
             placeholder="Or enter table number"
             value={customTable}
             onChange={(e) => {
-              const value = e.target.value;
-              if (value.length > 10) {
+              const raw = e.target.value;
+
+              const trimmed = raw.trim();
+
+              if (raw.length > 0 && trimmed === "") {
+                toast.error("Table name cannot be just spaces!");
+                return;
+              }
+
+              if (/\s/.test(raw)) {
+                toast.error("Table name cannot contain spaces!");
+                return;
+              }
+
+              if (raw.length > 10) {
                 toast.error("Table name cannot exceed 10 characters!");
                 return;
               }
-              setCustomTable(value);
+
+              setCustomTable(raw);
             }}
             disabled={tableNumber !== ""}
           />

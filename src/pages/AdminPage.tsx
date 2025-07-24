@@ -19,6 +19,7 @@ import { ToastContainer } from "react-toastify";
 import VoucherContent from "../components/Admin/VoucherContent";
 import NewsContent from "../components/Admin/NewsContent";
 import { useState } from "react";
+import TableReservationList from "../components/Staff/TableReservationList";
 
 function AdminPage() {
   const location = useLocation();
@@ -34,6 +35,9 @@ function AdminPage() {
   };
 
   const getTitle = () => {
+    if (location.pathname.startsWith("/manage/reservation")) {
+      return "Reservation Management";
+    }
     switch (location.pathname) {
       case "/manage/user":
         return "User Management";
@@ -65,6 +69,9 @@ function AdminPage() {
   };
 
   const getContentComponent = () => {
+    if (location.pathname.startsWith("/manage/reservation")) {
+      return <TableReservationList />;
+    }
     switch (location.pathname) {
       case "/manage/user":
         return <UserContent />;

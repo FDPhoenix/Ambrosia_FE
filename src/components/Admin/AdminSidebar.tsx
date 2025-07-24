@@ -14,6 +14,7 @@ import OrderIcon from '../../assets/checklist.png';
 import VoucherIcon from '../../assets/coupon.png';
 import NewsIcon from '../../assets/news.png';
 import LogoutIcon from '../../assets/logout.png';
+import StaffReservationIcon from '../../assets/Staffreservation.png';
 import styles from '../../css/AdminCss/AdminSidebar.module.css';
 import { Dispatch, SetStateAction } from 'react';
 
@@ -80,6 +81,7 @@ function AdminSidebar({ setShowLogoutModal }: AdminSidebarProps) {
               { path: '/manage/ingredient', icon: IngredientIcon, label: 'Ingredient' },
               { path: '/manage/voucher', icon: VoucherIcon, label: 'Voucher' },
               { path: '/manage/news', icon: NewsIcon, label: 'News' },
+              { path: '/manage/reservation', icon: StaffReservationIcon, label: 'Reservation Order' },
             ].map(({ path, icon, label }) => (
               <li key={path}>
                 <Link to={path} className={`flex items-center gap-3 p-3 rounded-md text-gray-700 hover:bg-[#F09C42] ${location.pathname === path ? 'bg-[#F09C42]' : ''}`}>

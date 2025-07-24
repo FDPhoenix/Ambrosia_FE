@@ -23,6 +23,8 @@ interface Review {
   rating: number;
   comment: string;
   isReplied: boolean;
+  replyContent?: string;
+  replyDate?: string;
 }
 
 function SystemReviewContent() {
@@ -39,6 +41,7 @@ function SystemReviewContent() {
   const [currentReviews, setCurrentReviews] = useState<Review[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 5;
+  const maxReplyLength = 300;
   useEffect(() => {
     const start = (currentPage - 1) * itemsPerPage;
     setCurrentReviews(reviews.slice(start, start + itemsPerPage));
@@ -56,6 +59,12 @@ function SystemReviewContent() {
 
     if (reviewId) {
       setSelectedReview({ ...review, id: reviewId });
+      // Load existing reply content if already replied
+      if (review.isReplied && review.replyContent) {
+        setReplyContent(review.replyContent);
+      } else {
+        setReplyContent("");
+      }
       setReplyModalOpen(true);
     } else {
       console.error("Review or reviewId is missing!", review);
@@ -115,6 +124,11 @@ function SystemReviewContent() {
   const handleSendReply = async () => {
     if (!replyContent.trim()) {
       toast.error("Reply content cannot be blank!");
+      return;
+    }
+
+    if (replyContent.length > maxReplyLength) {
+      toast.error(`Reply content cannot exceed ${maxReplyLength} characters!`);
       return;
     }
 
@@ -301,21 +315,46 @@ function SystemReviewContent() {
 
             <div>
               <label className="font-bold mb-1 text-base">Enter Feedback:</label>
-              <textarea
-                className="w-full p-3 text-base leading-6 border border-gray-300 rounded-lg bg-[#f9f9f9] text-gray-800 resize-y min-h-[140px] max-h-[190px] overflow-y-auto mt-4 focus:outline-none focus:border-[#f7a327] focus:bg-white focus:shadow-[0_0_8px_rgba(208,118,15,0.4)] placeholder:italic placeholder:text-gray-500 transition duration-300 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
-                rows={3}
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Enter your response..."
-              />
+              <div className="relative">
+                <textarea
+                  className="w-full p-3 text-base leading-6 border border-gray-300 rounded-lg bg-[#f9f9f9] text-gray-800 resize-y min-h-[140px] max-h-[190px] overflow-y-auto mt-4 focus:outline-none focus:border-[#f7a327] focus:bg-white focus:shadow-[0_0_8px_rgba(208,118,15,0.4)] placeholder:italic placeholder:text-gray-500 transition duration-300 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
+                  rows={3}
+                  value={replyContent}
+                  onChange={(e) => {
+                    if (e.target.value.length <= maxReplyLength) {
+                      setReplyContent(e.target.value);
+                    }
+                  }}
+                  placeholder={selectedReview.isReplied ? "Update your response..." : "Enter your response..."}
+                  maxLength={maxReplyLength}
+                />
+                <div className="absolute bottom-2 right-2 text-xs text-gray-500">
+                  {replyContent.length}/{maxReplyLength}
+                </div>
+              </div>
             </div>
+            
+            {/* Show existing reply if already replied */}
+            {selectedReview.isReplied && selectedReview.replyContent && (
+              <div className="mt-4">
+                <label className="font-bold mb-1 text-base text-gray-600">Previous Reply:</label>
+                <div className="bg-gray-100 p-3 rounded-lg border-l-4 border-gray-400 max-h-[100px] overflow-y-auto">
+                  <p className="text-gray-700 italic break-words">"{selectedReview.replyContent}"</p>
+                  {selectedReview.replyDate && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Sent on: {new Date(selectedReview.replyDate).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-end gap-3 mt-4">
               <button
                 onClick={handleSendReply}
                 className="bg-[#f0924c] text-white py-2 px-10 rounded-lg font-bold hover:bg-[#f4832c] shadow-md hover:shadow-lg transition-all"
               >
-                Send
+                {selectedReview.isReplied ? "Update Reply" : "Send Reply"}
               </button>
               <button
                 onClick={closeModal}
@@ -332,7 +371,7 @@ function SystemReviewContent() {
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={closeModal}
-        className="bg-white p-5 rounded-[10px] shadow-[0px_5px_15px_rgba(0,0,0,0.3)] max-w-[90%] w-[400px] max-h-[80vh] overflow-y-auto relative mx-auto animate-fadeInModal"
+        className="bg-white p-5 rounded-[10px] shadow-[0px_5px_15px_rgba(0,0,0,0.3)] max-w-[90%] w-[500px] max-h-[80vh] overflow-y-auto relative mx-auto animate-fadeInModal"
         overlayClassName="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center p-4 animate-fadeInOverlay"
         shouldCloseOnOverlayClick={false}
         ariaHideApp={false}
@@ -363,18 +402,36 @@ function SystemReviewContent() {
                 <strong className="text-[#222]">Rating:</strong>
                 <span>{renderStars(selectedReview.rating)}</span>
               </div>
-              <div className="flex justify-between border-b border-dashed border-gray-300 py-3 px-2 text-base">
-                <strong className="text-[#222]">Comment:</strong>
-                <span className="max-w-[66%] text-right break-words">
-                  {selectedReview.comment || "No comment"}
-                </span>
+              <div className="flex flex-col border-b border-dashed border-gray-300 py-3 px-2 text-base">
+                <strong className="text-[#222] mb-2">Comment:</strong>
+                <div className="bg-gray-50 p-3 rounded-lg max-h-[120px] overflow-y-auto">
+                  <p className="text-gray-700 italic break-words">"{selectedReview.comment || "No comment"}"</p>
+                </div>
               </div>
-              <div className="flex justify-between border-b border-dashed border-gray-300 py-3 px-2 text-base">
-                <strong className="text-[#222]">Status:</strong>
-                <span className={selectedReview.isReplied ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-                  {selectedReview.isReplied ? 'Replied' : 'Not Replied'}
-                </span>
-              </div>
+              
+              {/* Reply Section */}
+              {selectedReview.isReplied && selectedReview.replyContent && (
+                <div className="flex flex-col border-b border-dashed border-gray-300 py-3 px-2 text-base">
+                  <strong className="text-[#222] mb-2">Your Reply:</strong>
+                  <div className="bg-green-50 p-3 rounded-lg border-l-4 border-green-500 max-h-[120px] overflow-y-auto">
+                    <p className="text-gray-700 italic break-words">"{selectedReview.replyContent}"</p>
+                    {selectedReview.replyDate && (
+                      <p className="text-xs text-gray-500 mt-2">
+                        Replied on: {new Date(selectedReview.replyDate).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {!selectedReview.isReplied && (
+                <div className="flex flex-col py-3 px-2 text-base">
+                  <strong className="text-[#222] mb-2">Reply Status:</strong>
+                  <div className="bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-500">
+                    <p className="text-gray-700">No reply sent yet</p>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex justify-center mt-4">
               <button

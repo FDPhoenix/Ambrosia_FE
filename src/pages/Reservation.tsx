@@ -19,7 +19,7 @@ import { toast, ToastContainer } from 'react-toastify';
 
 interface Table {
     _id: string;
-    tableNumber: number;
+    tableNumber: string;
     isAvailable: boolean;
     capacity: number;
 }
@@ -108,9 +108,21 @@ const BookingPage = () => {
         })
         : allTimes;
     const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
+    // const sortedTables = [...availableTables].sort((a, b) => a.capacity - b.capacity);
+    const sortedTables = [...availableTables].sort((a, b) => {
+        if (a.capacity !== b.capacity) {
+            return a.capacity - b.capacity;
+        }
+
+        if (a.tableNumber.length !== b.tableNumber.length) {
+            return a.tableNumber.length - b.tableNumber.length;
+        }
+
+        return a.tableNumber.localeCompare(b.tableNumber);
+    });
 
     const totalPages = Math.ceil(availableTables.length / tablesPerPage);
-    const paginatedTables = availableTables.slice(
+    const paginatedTables = sortedTables.slice(
         (currentPage - 1) * tablesPerPage,
         currentPage * tablesPerPage
     );
