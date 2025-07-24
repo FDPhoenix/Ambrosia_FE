@@ -193,8 +193,6 @@ function SystemReviewContent() {
     setIsLoading(false);
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
   return (
     // <div className="w-[1200px] h-[567px] mx-auto bg-white p-8 rounded-lg shadow-md">
     <div className="relative w-[1200px] h-[567px] p-5 max-w-[1210px] bg-white rounded-2xl shadow-md">
@@ -243,50 +241,56 @@ function SystemReviewContent() {
       </div>
 
       <div className="overflow-y-auto max-h-[425px] h-[451px]">
-        <table className="w-full border border-collapse text-base">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border px-4 py-3 text-center">No</th>
-              <th className="border px-4 py-3 text-center">User Name</th>
-              <th className="border px-4 py-3 text-center">Rating</th>
-              <th className="border px-4 py-3 w-[30%] text-center">Feedback</th>
-              <th className="border px-4 py-3 text-center">Status</th>
-              <th className="border px-4 py-3 text-center">Detail</th>
-              <th className="border px-4 py-3 text-center">Reply</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentReviews.length > 0 ? (
-              currentReviews.map((review, index) => (
-                <tr key={review.id} className="hover:bg-gray-100">
-                  <td className="border px-4 py-5 text-center">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                  <td className="border px-4 py-5 text-center">{review.userId ? review.userId.fullname : review.guestId?.name || "Unknown"}</td>
-                  <td className="border px-4 py-5 text-center">{renderStars(review.rating)}</td>
-                  <td className="border px-4 py-5 text-center">{review.comment}</td>
-                  <td className="border px-4 py-5 text-center">
-                    <StatusBadge status={review.isReplied} caseTrue="Replied" caseFalse="No Replied" />
-                  </td>
-                  <td className="border px-4 py-5 text-center">
-                    <button onClick={() => openModal(review)} className="bg-none border-none text-sm flex items-center justify-center hover:scale-110 hover:text-[#f0924c] transition pl-4">
-                      <FaInfoCircle /> <span className="ml-1">View Details</span>
-                    </button>
-                  </td>
-                  <td className="border px-4 py-2 text-center">
-                    <button onClick={() => openReplyModal(review)} className="bg-orange-400 text-white px-3 py-2 rounded hover:bg-orange-500">
-                      →
-                    </button>
+        {loading ? (
+          <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
+            <LoadingAnimation />
+          </div>
+        ) : (
+          <table className="w-full border border-collapse text-base">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-4 py-3 text-center">No</th>
+                <th className="border px-4 py-3 text-center">User Name</th>
+                <th className="border px-4 py-3 text-center">Rating</th>
+                <th className="border px-4 py-3 w-[30%] text-center">Feedback</th>
+                <th className="border px-4 py-3 text-center">Status</th>
+                <th className="border px-4 py-3 text-center">Detail</th>
+                <th className="border px-4 py-3 text-center">Reply</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentReviews.length > 0 ? (
+                currentReviews.map((review, index) => (
+                  <tr key={review.id} className="hover:bg-gray-100">
+                    <td className="border px-4 py-5 text-center">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                    <td className="border px-4 py-5 text-center">{review.userId ? review.userId.fullname : review.guestId?.name || "Unknown"}</td>
+                    <td className="border px-4 py-5 text-center">{renderStars(review.rating)}</td>
+                    <td className="border px-4 py-5 text-center">{review.comment}</td>
+                    <td className="border px-4 py-5 text-center">
+                      <StatusBadge status={review.isReplied} caseTrue="Replied" caseFalse="No Replied" />
+                    </td>
+                    <td className="border px-4 py-5 text-center">
+                      <button onClick={() => openModal(review)} className="bg-none border-none text-sm flex items-center justify-center hover:scale-110 hover:text-[#f0924c] transition pl-4">
+                        <FaInfoCircle /> <span className="ml-1">View Details</span>
+                      </button>
+                    </td>
+                    <td className="border px-4 py-2 text-center">
+                      <button onClick={() => openReplyModal(review)} className="bg-orange-400 text-white px-3 py-2 rounded hover:bg-orange-500">
+                        →
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="text-center p-6 text-red-500 font-semibold h-[371px]">
+                    No results found.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={7} className="text-center p-6 text-red-500 font-semibold h-[371px]">
-                  No results found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Reply Modal */}

@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Modal from "react-modal";
 import axios from "axios";
 import { FaInfoCircle } from 'react-icons/fa';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useLocation } from "react-router";
+import LoadingAnimation from "../LoadingAnimation";
 
 interface Booking {
     _id: string;
@@ -39,6 +40,7 @@ const TableReservationList = () => {
         searchText: "",
     });
     const [noResultsFound, setNoResultsFound] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
     const [pendingStatusChange, setPendingStatusChange] = useState<{ id: string, status: string } | null>(null);
     const [isEditingTable, setIsEditingTable] = useState(false);
@@ -54,7 +56,6 @@ const TableReservationList = () => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState<number>(1);
     const limit = 6;
-
     const [appliedFilters, setAppliedFilters] = useState({
         dateRange: "",
         fromDate: "",
@@ -63,6 +64,7 @@ const TableReservationList = () => {
         status: "",
         searchText: "",
     });
+    const firstLoad = useRef(true);
 
     useEffect(() => {
         const hasApplied =
@@ -73,15 +75,19 @@ const TableReservationList = () => {
             appliedFilters.status ||
             appliedFilters.searchText.trim();
 
+        const showLoading = firstLoad.current;
+        firstLoad.current = false;
+
         if (hasApplied) {
-            handleApplyFilter(currentPage, appliedFilters);
+            handleApplyFilter(currentPage, appliedFilters, showLoading);
         } else {
-            fetchTables(currentPage);
+            fetchTables(currentPage, showLoading);
         }
     }, [currentPage]);
 
-    const fetchTables = async (page = 1) => {
+    const fetchTables = async (page = 1, showLoading = true) => {
         try {
+            if (showLoading) setLoading(true);
             const response = await axios.get(`${backendApiUrl}/reservation?page=${page}&limit=${limit}`);
             const { data, totalPages } = response.data;
 
@@ -95,11 +101,18 @@ const TableReservationList = () => {
         } catch (error) {
             console.error("Error fetching bookings:", error);
             setBookings([]);
+        } finally {
+            if (showLoading) setLoading(false);
         }
     };
 
-    const handleApplyFilter = async (page = 1, customFilters = filters) => {
+    const handleApplyFilter = async (
+        page = 1,
+        customFilters = filters,
+        showLoading = true
+    ) => {
         try {
+            if (showLoading) setLoading(false);
             setAppliedFilters(customFilters);
 
             const queryParams = new URLSearchParams();
@@ -123,6 +136,8 @@ const TableReservationList = () => {
             setFilterModalOpen(false);
         } catch (error) {
             console.error("Error filtering reservations:", error);
+        } finally {
+            if (showLoading) setLoading(false);
         }
     };
 
@@ -371,7 +386,7 @@ const TableReservationList = () => {
 
     return (
         <div className={getContainerClass()}>
-            <div className="flex flex-wrap items-center gap-3 mb-2 flex justify-between">
+            <div className="flex flex-wrap items-center gap-3 mb-2 justify-between">
                 <h3 className="text-2xl font-bold text-gray-800 mb-4">List of Reservation</h3>
                 <div className="flex flex-wrap items-center gap-3">
                     <select
@@ -422,14 +437,20 @@ const TableReservationList = () => {
                 </div>
             </div>
 
-            <div className="overflow-x-auto scrollbar-hide">{/*  max-h-[62vh]  */}
-                {noResultsFound ? (
-                    <div className="flex items-center justify-center h-[62vh]">
+            <div className="relative min-h-[300px] overflow-x-auto scrollbar-hide">
+                {loading && (
+                    <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center relative h-[64vh]">
+                        <LoadingAnimation />
+                    </div>
+                )}
+
+                {!loading && noResultsFound ? (
+                    <div className="flex items-center justify-center h-[52vh] sm:h-[62vh]">
                         <div className="text-center text-red-500 font-semibold text-[18px]">
                             No results found
                         </div>
                     </div>
-                ) : (
+                ) : !loading && (
                     <>
                         {/* Desktop Table */}
                         <table className="hidden md:table w-full min-w-[800px] table-auto border-gray-200 text-base py-1">
@@ -535,7 +556,6 @@ const TableReservationList = () => {
                             ))}
                         </div>
                     </>
-
                 )}
             </div>
 

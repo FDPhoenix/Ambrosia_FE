@@ -4,6 +4,7 @@ import axios from "axios";
 import Modal from "react-modal";
 import { FaInfoCircle } from "react-icons/fa";
 import { MdFlipCameraAndroid } from "react-icons/md";
+import LoadingAnimation from "../LoadingAnimation";
 
 Modal.setAppElement('#root');
 
@@ -97,7 +98,6 @@ export default function StaffQRScanner() {
                 console.error("Không thể đổi camera:", error);
             }
         } else {
-            // Trường hợp scanner chưa khởi tạo
             setFacingMode(nextFacing);
         }
     };
@@ -317,14 +317,34 @@ export default function StaffQRScanner() {
                 </div>
             )}
 
-            {loading && <p className="text-[#f0924c] font-medium mt-4">Scanning QR code...</p>}
+            {loading && <p className="text-[#f0924c] font-medium mt-4"><LoadingAnimation /></p>}
 
             {bookingInfo && (
                 <div>
                     <div className="bg-white rounded-xl shadow-lg p-5 border border-gray-200 space-y-6 text-base text-gray-800">
                         <div className="flex items-center justify-between border-b pb-2">
                             <h2 className="text-xl font-semibold">Booking Information</h2>
-                            <span className="text-sm font-medium bg-green-100 text-green-700 px-3 py-1 rounded-full capitalize">
+                            <span
+                                className="text-sm font-medium px-3 py-1 rounded-full capitalize"
+                                style={{
+                                    backgroundColor:
+                                        bookingInfo.status === "Confirmed" ? "#d4edda" :
+                                            bookingInfo.status === "Pending" ? "#fff3cd" :
+                                                bookingInfo.status === "Canceled" ? "#fee2e2" :
+                                                    bookingInfo.status === "Cooking" ? "#ffe0b2" :
+                                                        bookingInfo.status === "Ready" ? "#dbeafe" :
+                                                            bookingInfo.status === "Completed" ? "#ffcc80" :
+                                                                "#eeeeee",
+                                    color:
+                                        bookingInfo.status === "Confirmed" ? "#155724" :
+                                            bookingInfo.status === "Pending" ? "#856404" :
+                                                bookingInfo.status === "Canceled" ? "#b91c1c" :
+                                                    bookingInfo.status === "Cooking" ? "#a84300" :
+                                                        bookingInfo.status === "Ready" ? "#0d6efd" :
+                                                            bookingInfo.status === "Completed" ? "#8b4500" :
+                                                                "#444"
+                                }}
+                            >
                                 {bookingInfo.status}
                             </span>
                         </div>

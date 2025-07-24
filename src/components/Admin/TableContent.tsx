@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import Pagination from "../Pagination";
+import LoadingAnimation from "../LoadingAnimation";
 
 interface Table {
   tableNumber: string;
@@ -25,6 +26,7 @@ const TableContent: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = useState<{ tableNumber: string | null }>({ tableNumber: null });
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [currentTables, setCurrentTables] = useState<Table[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const itemsPerPage = 5;
   useEffect(() => {
     const sorted = [...tables].sort((a, b) => {
@@ -62,12 +64,15 @@ const TableContent: React.FC = () => {
 
   const fetchTables = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(`${backendApiUrl}/api/tables`);
       if (response.data.success) {
         setTables(response.data.tables);
       }
     } catch (error) {
       console.error("Error fetching tables:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -202,39 +207,45 @@ const TableContent: React.FC = () => {
       </div>
 
       <div className="max-h-[425px] overflow-y-auto scrollbar-hide">
-        <table className="w-full border-collapse text-center">
-          <thead className="bg-gray-100 font-bold">
-            <tr>
-              <th className="p-5">No</th>
-              <th className="p-5 cursor-pointer" onClick={() => handleSort("tableNumber")}>Table Name </th>
-              <th className="p-5 cursor-pointer" onClick={() => handleSort("capacity")}>Number of seats </th>
-              <th className="p-5">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentTables.map((table, index) => (
-              <tr key={table.tableNumber} className="hover:bg-[rgba(186,163,146,0.205)] border-b">
-                <td className="p-5">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                <td className="p-5">{table.tableNumber}</td>
-                <td className="p-5">{table.capacity}</td>
-                <td className="py-6 px-5">
-                  <div className="flex justify-center items-center gap-5 text-xl text-gray-700">
-                    <button onClick={() => { setSelectedTable(table); setIsUpdateModalOpen(true); }} title="Edit">
-                      <FaEdit className="transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]" />
-                    </button>
-
-                    <button
-                      onClick={() => setConfirmDelete({ tableNumber: table.tableNumber })}
-                      title="Delete"
-                    >
-                      <FaTrash className="transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]" />
-                    </button>
-                  </div>
-                </td>
+        {loading ? (
+          <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
+            <LoadingAnimation />
+          </div>
+        ) : (
+          <table className="w-full border-collapse text-center">
+            <thead className="bg-gray-100 font-bold">
+              <tr>
+                <th className="p-5">No</th>
+                <th className="p-5 cursor-pointer" onClick={() => handleSort("tableNumber")}>Table Name </th>
+                <th className="p-5 cursor-pointer" onClick={() => handleSort("capacity")}>Number of seats </th>
+                <th className="p-5">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentTables.map((table, index) => (
+                <tr key={table.tableNumber} className="hover:bg-[rgba(186,163,146,0.205)] border-b">
+                  <td className="p-5">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                  <td className="p-5">{table.tableNumber}</td>
+                  <td className="p-5">{table.capacity}</td>
+                  <td className="py-6 px-5">
+                    <div className="flex justify-center items-center gap-5 text-xl text-gray-700">
+                      <button onClick={() => { setSelectedTable(table); setIsUpdateModalOpen(true); }} title="Edit">
+                        <FaEdit className="transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]" />
+                      </button>
+
+                      <button
+                        onClick={() => setConfirmDelete({ tableNumber: table.tableNumber })}
+                        title="Delete"
+                      >
+                        <FaTrash className="transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Modal Add Table */}

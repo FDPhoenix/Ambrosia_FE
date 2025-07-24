@@ -219,7 +219,7 @@ export default function EmployeeContext() {
       {/* List of employees */}
       <div className="max-h-[424px] overflow-y-auto scrollbar-hide px-4">
         {loading ? (
-          <div className="flex items-center justify-center h-[457px]">
+          <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
             <LoadingAnimation />
           </div>
         ) : employees.length > 0 ? (
