@@ -1,9 +1,30 @@
 import { useEffect, useState } from "react";
 import { FaInfoCircle } from "react-icons/fa";
 
+interface CustomerInfo {
+  type: "User" | "Guest" | "Unknown";
+  name: string;
+  email: string;
+  contactPhone: string;
+  deliveryAddress?: string;
+  notes?: string;
+}
+
+interface BookingInfo {
+  bookingDate?: string;
+  startTime?: string;
+  endTime?: string;
+  table?: string | null;
+  orderType?: string;
+  deliveryAddress?: string;
+  notes?: string;
+}
+
 interface User {
   _id: string;
+  fullname?: string;
   email: string;
+  phoneNumber?: string;
 }
 
 interface Order {
@@ -15,18 +36,55 @@ interface Order {
   paymentStatus: string;
   remainingAmount?: number;
   createdAt: string;
+
+  bookingId?: {
+    _id: string;
+    orderType?: string;
+    bookingDate?: string;
+    startTime?: string;
+    endTime?: string;
+    contactPhone?: string;
+    deliveryAddress?: string;
+    notes?: string;
+    tableId?: {
+      tableNumber?: string;
+      capacity?: number;
+    } | null;
+  } | null;
+
+  // Thêm các field format cho đồng nhất với getOrders
+  customerInfo?: CustomerInfo;
+  bookingInfo?: BookingInfo;
+
+  // Bổ sung orderType cho dễ truy cập
+  orderType?: string;
 }
+
 
 const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
 
 function OrderContent() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [paymentStatus, setPaymentStatus] = useState<string>("");
+  const [paymentStatus,] = useState<string>("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const limit = 6;
+  const [filters, setFilters] = useState({
+    dateRange: "",
+    fromDate: "",
+    toDate: "",
+    orderType: "",
+    status: "",
+  });
+  const [, setAppliedFilters] = useState({
+    dateRange: "",
+    fromDate: "",
+    toDate: "",
+    orderType: "",
+    status: "",
+  });
 
   const fetchOrders = async (status: string, page = 1) => {
     try {
@@ -42,8 +100,23 @@ function OrderContent() {
     }
   };
 
+  const handleApplyFilter = async (page = 1, customFilters = filters) => {
+    setAppliedFilters(customFilters);
+    let url = `${backendApiUrl}/orders?page=${page}&limit=${limit}`;
+    if (customFilters.status) url += `&paymentStatus=${encodeURIComponent(customFilters.status)}`;
+    if (customFilters.orderType) url += `&orderType=${encodeURIComponent(customFilters.orderType)}`;
+    if (customFilters.dateRange) url += `&dateRange=${encodeURIComponent(customFilters.dateRange)}`;
+    if (customFilters.fromDate) url += `&fromDate=${encodeURIComponent(customFilters.fromDate)}`;
+    if (customFilters.toDate) url += `&toDate=${encodeURIComponent(customFilters.toDate)}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    setOrders(data.orders);
+    setTotalPages(data.totalPages || 1);
+    setCurrentPage(page);
+  };
+
   useEffect(() => {
-    fetchOrders(paymentStatus, currentPage);
+    handleApplyFilter(currentPage, filters);
   }, [paymentStatus, currentPage]);
 
   const fetchOrderDetails = async (orderId: string) => {
@@ -88,25 +161,50 @@ function OrderContent() {
 
   return (
     <div className="bg-white rounded-[15px] shadow-md p-6 overflow-hidden min-h-[80vh]">
-      <div className="flex flex-wrap justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold text-gray-800">Order List</h3>
-        <div className="flex items-center gap-2">
-          <label htmlFor="filter">Payment Status:</label>
+      <div className="flex flex-wrap items-center gap-3 mb-2 justify-end">
+        <div className="flex flex-wrap items-center gap-3">
           <select
-            id="filter"
-            value={paymentStatus}
-            onChange={(e) => {
-              setCurrentPage(1);
-              setPaymentStatus(e.target.value);
-            }}
-            className="px-3 py-1 border border-gray-300 rounded"
+            className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-orange-400 cursor-pointer transition"
+            onChange={(e) => setFilters({ ...filters, dateRange: e.target.value, fromDate: '', toDate: '' })}
+            value={filters.dateRange}
+            disabled={!!filters.fromDate || !!filters.toDate}
           >
-            <option value="">All</option>
+            <option value="">All Dates</option>
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="last7days">Last 7 Days</option>
+            <option value="thisMonth">This Month</option>
+            <option value="lastMonth">Last Month</option>
+          </select>
+
+          <select
+            className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-orange-400 cursor-pointer transition"
+            onChange={(e) => setFilters({ ...filters, orderType: e.target.value })}
+            value={filters.orderType}
+          >
+            <option value="">All Orders</option>
+            <option value="dine-in">Dine-In</option>
+            <option value="delivery">Delivery</option>
+          </select>
+
+          <select
+            className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-orange-400 cursor-pointer transition"
+            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            value={filters.status}
+          >
+            <option value="">All Status</option>
             <option value="Success">Success</option>
             <option value="Deposited">Deposited</option>
             <option value="Failure">Failure</option>
             <option value="Expired">Expired</option>
           </select>
+
+          <button
+            className="px-4 py-[7px] text-sm rounded border border-gray-300 bg-[#f0f0f0] hover:bg-[#F0924C] hover:text-white transition duration-200 shadow-sm"
+            onClick={() => handleApplyFilter(1, filters)}
+          >
+            Apply Filters
+          </button>
         </div>
       </div>
 
@@ -116,7 +214,8 @@ function OrderContent() {
           <thead className="bg-gray-100">
             <tr>
               <th className="p-3 border-b">Order ID</th>
-              <th className="p-3 border-b">Customer Email</th>
+              <th className="p-3 border-b">Customer Name</th>
+              <th className="p-3 border-b">Order Type</th>
               <th className="p-3 border-b">Payment Method</th>
               <th className="p-3 border-b">Status</th>
               <th className="p-3 border-b">Total Amount</th>
@@ -127,15 +226,30 @@ function OrderContent() {
           <tbody>
             {orders.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-6 text-gray-500">
+                <td colSpan={8} className="text-center py-6 text-gray-500">
                   No orders found.
                 </td>
               </tr>
             ) : (
               orders.map((order) => (
                 <tr key={order._id} className="hover:bg-gray-50 text-center">
-                  <td className="p-3 border-b whitespace-nowrap">{order._id}</td>
-                  <td className="p-3 border-b whitespace-nowrap">{order.userId?.email || "N/A"}</td>
+                  <td className="p-3 border-b whitespace-nowrap">{order._id.slice(-4)}</td>
+                  <td className="p-3 border-b whitespace-nowrap">
+                    {order.customerInfo?.name || "Guest"}
+                  </td>
+                  <td
+                    className={`p-3 border-b whitespace-nowrap capitalize font-semibold ${order.bookingId?.orderType === "dine-in"
+                      ? "text-green-700"
+                      : order.bookingId?.orderType === "delivery"
+                        ? "text-blue-900"
+                        : ""
+                      }`}
+                  >
+                    {order.bookingId?.orderType
+                      ? order.bookingId.orderType.charAt(0).toUpperCase() +
+                      order.bookingId.orderType.slice(1)
+                      : "N/A"}
+                  </td>
                   <td className="p-3 border-b whitespace-nowrap">{order.paymentMethod}</td>
                   <td className="p-3 border-b whitespace-nowrap">
                     {order.paymentStatus === "Deposited" ? (
@@ -193,12 +307,27 @@ function OrderContent() {
         </table>
       </div>
 
+
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4 mt-4">
         {orders.map((order) => (
           <div key={order._id} className="bg-gray-50 p-4 rounded shadow">
-            <div><strong>Order ID:</strong> {order._id}</div>
-            <div><strong>Email:</strong> {order.userId?.email || "N/A"}</div>
+            <div><strong>Order ID:</strong> {order._id.slice(-4)}</div>
+            <div><strong>Customer Name: </strong>{order.customerInfo?.name || "Guest"}</div>
+            <div><strong>Order Type:</strong>  <span
+              className={`${order.bookingId?.orderType === "dine-in"
+                ? "text-green-700 font-semibold"
+                : order.bookingId?.orderType === "delivery"
+                  ? "text-blue-900 font-semibold"
+                  : "text-gray-600"
+                }`}
+            >
+              {order.bookingId?.orderType
+                ? order.bookingId.orderType.charAt(0).toUpperCase() +
+                order.bookingId.orderType.slice(1)
+                : "N/A"}
+            </span>
+            </div>
             <div><strong>Method:</strong> {order.paymentMethod}</div><div className="mt-2">
               <strong>Status:</strong>{" "}
               {order.paymentStatus === "Deposited" ? (
@@ -286,13 +415,78 @@ function OrderContent() {
           <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-md animate-fadeInModal">
             <h3 className="text-lg font-bold text-center mb-4">Order Details</h3>
             <div className="space-y-2 text-sm text-gray-800">
-              <p><strong>Order ID:</strong> {selectedOrder._id}</p>
-              <p><strong>Email:</strong> {selectedOrder.userId?.email || "N/A"}</p>
+              <p><strong>Order ID:</strong> {selectedOrder._id.slice(-4)}</p>
+              <p>
+                <strong>Name:</strong>{" "}
+                {selectedOrder.customerInfo?.name ? (
+                  selectedOrder.customerInfo.name
+                ) : (
+                  <span className="italic ">No user information</span>
+                )}
+              </p>
+              <p>
+                <strong>Email:</strong>{" "}
+                {selectedOrder.customerInfo?.email ? (
+                  selectedOrder.customerInfo.email
+                ) : (
+                  <span className="italic ">No user information</span>
+                )}
+              </p>
+              <p>
+                <strong>Phone:</strong>{" "}
+                {selectedOrder.customerInfo?.contactPhone ? (
+                  selectedOrder.customerInfo.contactPhone
+                ) : (
+                  <span className="italic">No phone number provided</span>
+                )}
+              </p>
+              <p>
+                <strong>Delivery Address:</strong>{" "}
+                {selectedOrder.customerInfo?.deliveryAddress ? (
+                  selectedOrder.customerInfo.deliveryAddress
+                ) : (
+                  <span className="italic">No delivery address provided</span>
+                )}
+              </p>
+              <p>
+                <strong>Note:</strong>{" "}
+                {selectedOrder.customerInfo?.notes ? (
+                  selectedOrder.customerInfo.notes
+                ) : (
+                  <span className="italic">No notes available</span>
+                )}
+              </p>
+
+              {/* Other Order Info */}
+              <p className="text-sm flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <strong>Order Type:</strong>
+                <span
+                  className={`${selectedOrder.orderType === "dine-in"
+                    ? "text-green-700 font-semibold"
+                    : selectedOrder.orderType === "delivery"
+                      ? "text-blue-900 font-semibold"
+                      : "text-gray-600"
+                    }`}
+                >
+                  {selectedOrder.orderType
+                    ? selectedOrder.orderType.charAt(0).toUpperCase() + selectedOrder.orderType.slice(1)
+                    : "N/A"}
+                </span>
+              </p>
+
               <p><strong>Payment Method:</strong> {selectedOrder.paymentMethod}</p>
               <p><strong>Status:</strong> {selectedOrder.paymentStatus}</p>
               <p><strong>Total Amount:</strong> {selectedOrder.totalAmount.toLocaleString()} VND</p>
-              <p><strong>Prepaid:</strong> {selectedOrder.paymentStatus === "Success" ? selectedOrder.totalAmount.toLocaleString() : (selectedOrder.prepaidAmount ?? 0).toLocaleString()} VND</p>
-              <p><strong>Remaining:</strong> {selectedOrder.paymentStatus === "Success" ? "0" : (selectedOrder.remainingAmount ?? selectedOrder.totalAmount - (selectedOrder.prepaidAmount ?? 0)).toLocaleString()} VND</p>
+              <p><strong>Prepaid: </strong>
+                {selectedOrder.paymentStatus === "Success"
+                  ? selectedOrder.totalAmount.toLocaleString()
+                  : (selectedOrder.prepaidAmount ?? 0).toLocaleString()} VND
+              </p>
+              <p><strong>Remaining: </strong>
+                {selectedOrder.paymentStatus === "Success"
+                  ? "0"
+                  : (selectedOrder.remainingAmount ?? selectedOrder.totalAmount - (selectedOrder.prepaidAmount ?? 0)).toLocaleString()} VND
+              </p>
               <p><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleDateString()}</p>
             </div>
             <button
@@ -304,6 +498,7 @@ function OrderContent() {
           </div>
         </div>
       )}
+
     </div>
   );
 }

@@ -121,9 +121,9 @@ function VoucherContent() {
   };
 
   const handlePageChange = useCallback((paginatedVoucher: any[], page: number) => {
-      setCurrentVoucher(paginatedVoucher);
-      setCurrentPage(page);
-    }, []);
+    setCurrentVoucher(paginatedVoucher);
+    setCurrentPage(page);
+  }, []);
 
   return (
     <div className="relative w-[1200px] max-w-[1210px] h-[567px] p-5 bg-white rounded-2xl shadow-md">
@@ -131,7 +131,7 @@ function VoucherContent() {
         <h3 className="my-auto text-xl font-semibold">List of Voucher</h3>
         <button
           onClick={() => setShowForm(true)}
-          className="py-2 px-3 border border-gray-300 rounded-md hover:bg-[#F0924C] hover:border-[#F0924C] transition-colors duration-200"
+          className="px-4 py-[7px] text-sm rounded border border-gray-300 bg-[#f0f0f0] hover:bg-[#F0924C] hover:text-white transition duration-200 shadow-sm"
         >
           Add voucher
         </button>
@@ -176,7 +176,7 @@ function VoucherContent() {
         </table>
       </div>
 
-      <Pagination items={voucher} itemsPerPage={itemsPerPage} onPageChange={handlePageChange}/>
+      <Pagination items={voucher} itemsPerPage={itemsPerPage} onPageChange={handlePageChange} />
 
       {showForm && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center">
