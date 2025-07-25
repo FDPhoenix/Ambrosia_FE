@@ -259,7 +259,8 @@ const TableReservationList = () => {
 
         if (canChange && bookingId && onChange) {
             return (
-                <select className="rounded-full w-[121px] px-4 py-[4px] font-bold text-sm text-center cursor-pointer border-none focus:outline-none focus:ring-0 border-none"
+                <select
+                    className="rounded-full w-[121px] h-[26px] px-4 font-bold text-sm text-center cursor-pointer border-none focus:outline-none focus:ring-0 leading-none"
                     value={current}
                     onChange={(e) => {
                         if (e.target.value !== current) {
@@ -280,8 +281,7 @@ const TableReservationList = () => {
         } else {
             return (
                 <span
-                    className="rounded-full w-[121px] px-4 py-[4px] font-bold text-sm flex items-center justify-center gap-2 mx-auto"
-
+                    className="rounded-full w-[121px] h-[26px] px-4 font-bold text-sm flex items-center justify-center gap-2 mx-auto leading-none"
                     style={{
                         backgroundColor,
                         color: textColor,
@@ -292,6 +292,7 @@ const TableReservationList = () => {
                 </span>
             );
         }
+
     };
 
     const fetchAvailableTables = async (bookingDate: string, startTime: string) => {
@@ -387,20 +388,22 @@ const TableReservationList = () => {
 
     const getContainerClass = () => {
         if (location.pathname.startsWith("/staff")) {
-            return "mx-auto bg-white px-7 pt-6 pb-4 rounded-lg shadow-md flex flex-col min-h-[79vh]";
+            return "mx-auto bg-white px-7 pt-6 pb-4 rounded-lg shadow-md flex flex-col min-h-[567px]";
         }
         switch (location.pathname) {
-            case "/manage":
-                return "relative w-[1200px] h-[570px] p-6 max-w-[1210px] bg-white rounded-2xl shadow-md";
+            case "/manage/reservation":
+                return "relative w-[1200px] h-[567px] p-6 max-w-[1210px] bg-white rounded-2xl shadow-md";
+            case "/staff/reservation":
+                return "mx-auto bg-white p-6 rounded-lg shadow-md flex flex-col min-h-[567px]";
             default:
-                return "bg-white p-5 rounded-2xl shadow-md";
+                return "relative bg-white p-5 rounded-2xl shadow-md";
         }
     };
 
     return (
         <div className={getContainerClass()}>
-            <div className="flex flex-wrap items-center gap-3 mb-5 justify-between">
-                <h3 className="text-2xl font-bold text-gray-800 mb-4">List of Reservation</h3>
+            <div className="flex flex-wrap items-center gap-3 mb-3 justify-between">
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">List of Reservation</h3>
                 <div className="flex flex-wrap items-center gap-3">
                     <select
                         className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-orange-400 cursor-pointer transition"
@@ -450,7 +453,7 @@ const TableReservationList = () => {
                 </div>
             </div>
 
-            <div className="relative min-h-[300px] overflow-x-auto scrollbar-hide">
+            <div className="relative overflow-x-auto scrollbar-hide ">
                 {loading && (
                     <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center relative h-[63vh]">
                         <LoadingAnimation />
@@ -466,23 +469,24 @@ const TableReservationList = () => {
                 ) : !loading && (
                     <>
                         {/* Desktop Table */}
-                        <table className="hidden md:table w-full min-w-[800px] table-auto border-gray-200 text-base py-1">
+                        <table className="hidden md:table w-full min-w-[800px] table-auto border-gray-200 text-base py-1 border-collapse mb-1">
+
                             <thead className="bg-gray-100">
                                 <tr>
-                                    <th className="p-4 font-bold">Reservation Number</th>
-                                    <th className="p-4 font-bold">Customer Name</th>
-                                    <th className="p-4 font-bold">Booking Date</th>
-                                    <th className="p-4 font-bold">Order Type</th>
-                                    <th className="p-4 font-bold">Status</th>
-                                    <th className="p-4 font-bold">Actions</th>
+                                    <th className="p-4 font-bold align-middle">Reservation Number</th>
+                                    <th className="p-4 font-bold align-middle">Customer Name</th>
+                                    <th className="p-4 font-bold align-middle">Booking Date</th>
+                                    <th className="p-4 font-bold align-middle">Order Type</th>
+                                    <th className="p-4 font-bold align-middle">Status</th>
+                                    <th className="p-4 font-bold align-middle">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {Array.isArray(bookings) && bookings.map((booking, index) => (
                                     <tr key={booking._id} className="text-center border-y hover:bg-gray-100 transition duration-200">
-                                        <td className="p-4">  {(currentPage - 1) * limit + index + 1}</td>
-                                        <td className="p-4">{booking.userId?.fullname || booking.guest?.name || "Unknown"}</td>
-                                        <td className="p-4">{new Date(booking.bookingDate).toLocaleDateString()}</td>
+                                        <td className="p-4 align-middle leading-tight">  {(currentPage - 1) * limit + index + 1}</td>
+                                        <td className="p-4 align-middle leading-tight">{booking.userId?.fullname || booking.guest?.name || "Unknown"}</td>
+                                        <td className="p-4 align-middle leading-tight">{new Date(booking.bookingDate).toLocaleDateString()}</td>
                                         <td
                                             className={`p-4 capitalize font-semibold ${booking.orderType.toLowerCase() === 'delivery'
                                                 ? 'text-blue-900'
@@ -493,7 +497,7 @@ const TableReservationList = () => {
                                             {booking.orderType}
                                         </td>
 
-                                        <td className="p-4">
+                                        <td className="p-4 align-middle leading-tight">
                                             {renderStatusComponent(
                                                 booking.status,
                                                 (newStatus) => {
@@ -503,7 +507,7 @@ const TableReservationList = () => {
                                                 booking._id
                                             )}
                                         </td>
-                                        <td className="p-4 whitespace-nowrap">
+                                        <td className="p-4 whitespace-nowrap align-middle leading-tight">
                                             <button className=" flex items-center gap-1 hover:scale-110 hover:text-[#f0924c] bg-none pl-5" onClick={() => {
                                                 setSelectedBooking(booking);
                                                 setIsModalOpen(true);
