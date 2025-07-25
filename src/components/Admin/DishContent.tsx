@@ -5,6 +5,7 @@ import StatusBadge from './StatusBadge';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import Pagination from '../Pagination';
+import LoadingAnimation from '../LoadingAnimation';
 
 function DishContent() {
   const [dishes, setDishes] = useState<any[]>([]);
@@ -14,6 +15,7 @@ function DishContent() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
   const [currentDishes, setCurrentDishes] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 4;
@@ -36,6 +38,8 @@ function DishContent() {
   });
 
   const fetchDishes = () => {
+    setFetching(true);
+
     fetch(`${backendApiUrl}/dishes/admin/all`, {
       method: "GET",
       headers: {
@@ -50,7 +54,7 @@ function DishContent() {
       })
       .catch((err) => {
         console.error("Error fetching dishes:", err);
-      });
+      }).finally(() => setFetching(false));
   };
 
   const fetchCategory = () => {
@@ -243,17 +247,17 @@ function DishContent() {
   }, []);
 
   useEffect(() => {
-  const totalPages = Math.ceil(dishes.length / itemsPerPage);
-  if (currentPage > totalPages && totalPages > 0) {
-    setCurrentPage(totalPages);
-  } else if (totalPages === 0) {
-    setCurrentPage(1);
-  }
+    const totalPages = Math.ceil(dishes.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    } else if (totalPages === 0) {
+      setCurrentPage(1);
+    }
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedItems = dishes.slice(startIndex, startIndex + itemsPerPage);
-  setCurrentDishes(paginatedItems);
-}, [dishes, currentPage, itemsPerPage]);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedItems = dishes.slice(startIndex, startIndex + itemsPerPage);
+    setCurrentDishes(paginatedItems);
+  }, [dishes, currentPage, itemsPerPage]);
 
   useEffect(() => {
     fetchDishes();
@@ -268,65 +272,73 @@ function DishContent() {
 
   return (
     <div className="relative w-[1200px] h-[567px] p-5 max-w-[1210px] bg-white rounded-2xl shadow-md">
-      <div className="flex justify-between mb-4">
-        <h3 className="text-xl font-bold my-auto">List of Dish</h3>
-        <button
-          className="py-1 px-3 border border-gray-300 rounded-md transition-colors duration-200 bg-gray-100 hover:bg-[#F0924C]"
-          onClick={() => setShowForm(true)}
-        >
-          Add dish
-        </button>
-      </div>
+      {fetching ? (
+        <div className='w-full h-[567px] flex justify-center items-center'>
+          <LoadingAnimation className='scale-150' />
+        </div>
+      ) : (
+        <div>
+          <div className="flex justify-between mb-4">
+            <h3 className="text-xl font-bold my-auto">List of Dish</h3>
+            <button
+              className="py-1 px-3 border border-gray-300 rounded-md transition-colors duration-200 bg-gray-100 hover:bg-[#F0924C]"
+              onClick={() => setShowForm(true)}
+            >
+              Add dish
+            </button>
+          </div>
 
-      <div className="max-h-[440px] overflow-y-auto">
-        <table className="w-full border-collapse text-left">
-          <thead className="bg-gray-100 border-b border-gray-300">
-            <tr>
-              <th className="p-4 text-center">No</th>
-              <th className="p-4 text-center">Image</th>
-              <th className="p-4 text-center">Name</th>
-              <th className="p-4 text-center">Category</th>
-              <th className="p-4 text-center">Price (VND)</th>
-              <th className="p-4 text-center">Status</th>
-              <th className="p-4 text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentDishes.map((dish: any, index) => (
-              <tr key={dish._id} className='border-b border-gray-300 last:border-b-0'>
-                <td className="p-3 text-center">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                <td className="p-3 text-center">
-                  <img src={dish.imageUrl} alt={''} className="w-[70px] h-[70px] rounded-md mx-auto" />
-                </td>
-                <td className="p-3 text-center w-[387px]">{dish.name}</td>
-                <td className="p-3 text-center">{dish.categoryName}</td>
-                <td className="p-3 text-center">{dish.price.toLocaleString()}</td>
-                <td className="p-3 text-center">
-                  <div style={{ width: '106px', margin: '0 auto' }}>
-                    <StatusBadge status={dish.isAvailable} caseTrue={"Available"} caseFalse={"Unavailable"} />
-                  </div>
-                </td>
-                <td className="p-3 text-center">
-                  <button
-                    className="bg-none text-xl cursor-pointer mr-2.5 transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]"
-                    onClick={() => handleEditDish(dish)}
-                  >
-                    <FaEdit title='Edit' />
-                  </button>
-                  <button
-                    className="bg-none text-xl cursor-pointer transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]"
-                    onClick={() => handleHideDish(dish._id)}
-                  >
-                    {dish.isAvailable ? <FaEyeSlash title='Hide' /> : <FaEye title='Show' />}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          <div className="max-h-[440px] overflow-y-auto">
+            <table className="w-full border-collapse text-left">
+              <thead className="bg-gray-100 border-b border-gray-300">
+                <tr>
+                  <th className="p-4 text-center">No</th>
+                  <th className="p-4 text-center">Image</th>
+                  <th className="p-4 text-center">Name</th>
+                  <th className="p-4 text-center">Category</th>
+                  <th className="p-4 text-center">Price (VND)</th>
+                  <th className="p-4 text-center">Status</th>
+                  <th className="p-4 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentDishes.map((dish: any, index) => (
+                  <tr key={dish._id} className='border-b border-gray-300 last:border-b-0'>
+                    <td className="p-3 text-center">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                    <td className="p-3 text-center">
+                      <img src={dish.imageUrl} alt={''} className="w-[70px] h-[70px] rounded-md mx-auto" />
+                    </td>
+                    <td className="p-3 text-center w-[387px]">{dish.name}</td>
+                    <td className="p-3 text-center">{dish.categoryName}</td>
+                    <td className="p-3 text-center">{dish.price.toLocaleString()}</td>
+                    <td className="p-3 text-center">
+                      <div style={{ width: '106px', margin: '0 auto' }}>
+                        <StatusBadge status={dish.isAvailable} caseTrue={"Available"} caseFalse={"Unavailable"} />
+                      </div>
+                    </td>
+                    <td className="p-3 text-center">
+                      <button
+                        className="bg-none text-xl cursor-pointer mr-2.5 transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]"
+                        onClick={() => handleEditDish(dish)}
+                      >
+                        <FaEdit title='Edit' />
+                      </button>
+                      <button
+                        className="bg-none text-xl cursor-pointer transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]"
+                        onClick={() => handleHideDish(dish._id)}
+                      >
+                        {dish.isAvailable ? <FaEyeSlash title='Hide' /> : <FaEye title='Show' />}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-      <Pagination items={dishes} itemsPerPage={itemsPerPage} onPageChange={handlePageChange} />
+          <Pagination items={dishes} itemsPerPage={itemsPerPage} onPageChange={handlePageChange} />
+        </div>
+      )}
 
       {showForm && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center">

@@ -116,7 +116,7 @@ function AdminPage() {
         {showLogoutModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-[9999]">
             <div className="bg-white rounded-2xl p-7 w-[360px] max-w-[90%] text-center shadow-2xl animate-fade-in">
-              <h3 className="text-xl font-semibold mb-2 text-gray-900">Confirm Log Out</h3>
+              <h3 className="text-xl font-semibold mb-2 text-gray-900">Logout</h3>
               <p className="text-gray-600 mb-6">Are you sure you want to log out?</p>
               <div className="flex justify-center gap-4">
                 <button

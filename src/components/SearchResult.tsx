@@ -1,10 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaCartPlus } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { jwtDecode } from 'jwt-decode';
 import cookies from 'js-cookie';
-import Pagination from './Pagination';
 
 function SearchResult() {
     const [results, setResults] = useState<any[]>([]);
@@ -12,31 +11,22 @@ function SearchResult() {
     const location = useLocation();
     const [category, setCategory] = useState('');
     const [categories, setCategories] = useState<any[]>([]);
+    const [priceRange, setPriceRange] = useState('');
     const params = new URLSearchParams(location.search);
     const name = params.get("name");
     const token = cookies.get("token");
-    const [currentResults, setCurrentResults] = useState<any[]>([]);
-    const [currentPage, setCurrentPage] = useState<number>(1);
-    const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [limit, setLimit] = useState(10);
     const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
     const updateItemsPerPage = () => {
-        if (window.innerWidth < 1280) { 
-            setItemsPerPage(8);
+        if (window.innerWidth < 1280) {
+            setLimit(8);
         } else {
-            setItemsPerPage(10);
+            setLimit(10);
         }
     };
-
-    
-    useEffect(() => {
-        updateItemsPerPage();
-        window.addEventListener('resize', updateItemsPerPage); 
-
-        return () => {
-            window.removeEventListener('resize', updateItemsPerPage);
-        };
-    }, []);
 
     const fetchCategories = () => {
         fetch(`${backendApiUrl}/category/all`)
@@ -53,20 +43,32 @@ function SearchResult() {
 
     useEffect(() => {
         fetchCategories();
+        updateItemsPerPage();
+        window.addEventListener('resize', updateItemsPerPage);
+
+        return () => {
+            window.removeEventListener('resize', updateItemsPerPage);
+        };
     }, []);
 
     useEffect(() => {
-        if (!name && !category) return;
+        if (!name && !category && !priceRange) return;
 
         const query = new URLSearchParams();
         if (name) query.append("name", name);
         if (category) query.append("categoryId", category);
+        if (priceRange) query.append("priceRange", priceRange);
+
+        query.append("page", currentPage.toString());
+        query.append("limit", limit.toString());
 
         fetch(`${backendApiUrl}/dishes?${query.toString()}`)
             .then((res) => res.json())
             .then((data) => {
                 if (data.success) {
                     setResults(data.dishes);
+                    setCurrentPage(data.currentPage);
+                    setTotalPages(data.totalPages)
                     setError("");
                 } else {
                     setResults([]);
@@ -77,7 +79,7 @@ function SearchResult() {
                 console.error(err);
                 setError("Failed to fetch data.");
             });
-    }, [name, category]);
+    }, [name, category, priceRange, currentPage, limit]);
 
     const addToCart = async (dish: any) => {
         const quantity = 1;
@@ -134,25 +136,8 @@ function SearchResult() {
         }
     };
 
-    const handlePageChange = useCallback((paginatedResult: any[]) => {
-        setCurrentResults(paginatedResult);
-    }, []);
-
-    useEffect(() => {
-        const totalPages = Math.ceil(results.length / itemsPerPage);
-        if (currentPage > totalPages && totalPages > 0) {
-            setCurrentPage(totalPages);
-        } else if (totalPages === 0) {
-            setCurrentPage(1);
-        }
-
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const paginatedItems = results.slice(startIndex, startIndex + itemsPerPage);
-        setCurrentResults(paginatedItems);
-    }, [results, currentPage, itemsPerPage]);
-
     return (
-        <div className='pb-4 md:pb-6 bg-[#EFF4F8]'>
+        <div className='min-h-[500px] pb-4 md:pb-6 bg-[#EFF4F8]'>
             <div className="relative w-full px-4 xl:px-16 py-12 md:py-14 min-h-[323px] bg-[#EFF4F8]">
                 <div className="result">
                     <h2 className="mb-8 text-2xl">Searching result for "{name || 'all'}"</h2>
@@ -160,7 +145,7 @@ function SearchResult() {
                     <div className="w-full flex justify-start gap-5 mb-5">
                         <select
                             className="w-max p-2 border border-[#e1e1e1] rounded bg-white text-[#00405d]"
-                            onChange={(e) => console.log(e.target.value)}
+                            onChange={(e) => setPriceRange(e.target.value)}
                         >
                             <option value="">All Prices</option>
                             <option value="above-1000000">Above 1.000.000₫</option>
@@ -185,7 +170,7 @@ function SearchResult() {
 
                     {results.length > 0 ? (
                         <div className="grid grid-cols-2 gap-7 md:grid-cols-4 md:gap-10 xl:grid-cols-5 xl:gap-14 mb-6">
-                            {currentResults.map((item) => (
+                            {results.map((item) => (
                                 <div key={item._id} className="no-underline text-black">
                                     <div className="bg-[#ECE6DF] p-2 border border-[#ECE6DF] shadow-[4px_4px_0_0_#acacac] mb-4">
                                         <Link to={`/dish/${item._id}`} style={{ cursor: 'pointer' }}>
@@ -209,11 +194,43 @@ function SearchResult() {
                             ))}
                         </div>
                     ) : (
-                        <p className="text-red-500">{error}</p>
+                        <div className='w-full h-[240px] flex justify-center items-center'>
+                            <p className="text-red-500">{error}</p>
+                        </div>
                     )}
                 </div>
 
-                <Pagination items={results} itemsPerPage={10} onPageChange={handlePageChange} />
+                {/* Pagination */}
+                {totalPages > 1 && results.length > 0 && (
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full md:w-full flex justify-center gap-4 order-3">
+                        <button
+                            className="text-base md:text-lg px-2 bg-[#d69c52] border border-[#d69c52] rounded pt-0.5 text-[#00405d] disabled:opacity-50"
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(currentPage - 1)}
+                        >
+                            &lt;
+                        </button>
+                        <ul className="flex gap-2 list-none">
+                            {[...Array(totalPages)].map((_, index) => (
+                                <li
+                                    key={index + 1}
+                                    className={`bg-[#d69c52] px-2 pt-0.5 pb-0.5 border border-[#d69c52] rounded text-[#00405d] cursor-pointer text-[16px] md:text-[18px] ${currentPage === index + 1 ? 'border-[#00405d]' : ''
+                                        }`}
+                                    onClick={() => setCurrentPage(index + 1)}
+                                >
+                                    {index + 1}
+                                </li>
+                            ))}
+                        </ul>
+                        <button
+                            className="text-[16px] md:text-[18px] px-2 bg-[#d69c52] border border-[#d69c52] rounded pt-0.5 text-[#00405d] disabled:opacity-50"
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(currentPage + 1)}
+                        >
+                            &gt;
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
