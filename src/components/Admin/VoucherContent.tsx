@@ -138,7 +138,7 @@ function VoucherContent() {
     <div className="relative w-[1200px] max-w-[1210px] h-[567px] p-5 bg-white rounded-2xl shadow-md">
       {fetching ? (
         <div className='w-full h-[567px] flex justify-center items-center'>
-          <LoadingAnimation className='scale-150' />
+          <LoadingAnimation />
         </div>
       ) : (
         <div>
