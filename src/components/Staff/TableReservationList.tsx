@@ -399,7 +399,7 @@ const TableReservationList = () => {
 
     return (
         <div className={getContainerClass()}>
-            <div className="flex flex-wrap items-center gap-3 mb-2 justify-between">
+            <div className="flex flex-wrap items-center gap-3 mb-5 justify-between">
                 <h3 className="text-2xl font-bold text-gray-800 mb-4">List of Reservation</h3>
                 <div className="flex flex-wrap items-center gap-3">
                     <select
@@ -452,7 +452,7 @@ const TableReservationList = () => {
 
             <div className="relative min-h-[300px] overflow-x-auto scrollbar-hide">
                 {loading && (
-                    <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center relative h-[64vh]">
+                    <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center relative h-[63vh]">
                         <LoadingAnimation />
                     </div>
                 )}
