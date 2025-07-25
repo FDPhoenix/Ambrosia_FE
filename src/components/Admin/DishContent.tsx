@@ -5,7 +5,6 @@ import StatusBadge from './StatusBadge';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import Pagination from '../Pagination';
-import { faL } from '@fortawesome/free-solid-svg-icons';
 import LoadingAnimation from '../LoadingAnimation';
 
 function DishContent() {
