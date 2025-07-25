@@ -175,7 +175,7 @@ function OrderContent() {
 
   return (
     <div className={getContainerClass()}>
-      <div className="flex flex-wrap items-center gap-3 mb-2 justify-between">
+      <div className="flex flex-wrap items-center gap-3 mb-4 justify-between">
         <h3 className="text-2xl font-bold text-gray-800 mb-4">List of Order</h3>
         <div className="flex flex-wrap items-center gap-3">
           <select
