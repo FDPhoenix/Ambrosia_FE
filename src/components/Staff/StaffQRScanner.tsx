@@ -14,6 +14,13 @@ interface Dish {
     quantity: number;
 }
 
+interface PaymentInfo {
+    method: string;
+    status: string;
+    amount: number;
+    transactionId?: string | null;
+}
+
 interface Booking {
     _id: string;
     customerName: string;
@@ -30,6 +37,7 @@ interface Booking {
     orderType: string;
     deliveryAddress?: string;
     pickupTime?: string;
+    payment: PaymentInfo;
 }
 
 export default function StaffQRScanner() {
@@ -328,25 +336,26 @@ export default function StaffQRScanner() {
                                 className="text-sm font-medium px-3 py-1 rounded-full capitalize"
                                 style={{
                                     backgroundColor:
-                                        bookingInfo.status === "Confirmed" ? "#d4edda" :
-                                            bookingInfo.status === "Pending" ? "#fff3cd" :
-                                                bookingInfo.status === "Canceled" ? "#fee2e2" :
-                                                    bookingInfo.status === "Cooking" ? "#ffe0b2" :
-                                                        bookingInfo.status === "Ready" ? "#dbeafe" :
-                                                            bookingInfo.status === "Completed" ? "#ffcc80" :
+                                        bookingInfo.status?.toLowerCase() === "confirmed" ? "#d4edda" :
+                                            bookingInfo.status?.toLowerCase() === "pending" ? "#fff3cd" :
+                                                bookingInfo.status?.toLowerCase() === "canceled" ? "#fee2e2" :
+                                                    bookingInfo.status?.toLowerCase() === "cooking" ? "#ffe0b2" :
+                                                        bookingInfo.status?.toLowerCase() === "ready" ? "#dbeafe" :
+                                                            bookingInfo.status?.toLowerCase() === "completed" ? "#ffcc80" :
                                                                 "#eeeeee",
                                     color:
-                                        bookingInfo.status === "Confirmed" ? "#155724" :
-                                            bookingInfo.status === "Pending" ? "#856404" :
-                                                bookingInfo.status === "Canceled" ? "#b91c1c" :
-                                                    bookingInfo.status === "Cooking" ? "#a84300" :
-                                                        bookingInfo.status === "Ready" ? "#0d6efd" :
-                                                            bookingInfo.status === "Completed" ? "#8b4500" :
+                                        bookingInfo.status?.toLowerCase() === "confirmed" ? "#155724" :
+                                            bookingInfo.status?.toLowerCase() === "pending" ? "#856404" :
+                                                bookingInfo.status?.toLowerCase() === "canceled" ? "#b91c1c" :
+                                                    bookingInfo.status?.toLowerCase() === "cooking" ? "#a84300" :
+                                                        bookingInfo.status?.toLowerCase() === "ready" ? "#0d6efd" :
+                                                            bookingInfo.status?.toLowerCase() === "completed" ? "#8b4500" :
                                                                 "#444"
                                 }}
                             >
                                 {bookingInfo.status}
                             </span>
+
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-base text-gray-800">
@@ -354,36 +363,49 @@ export default function StaffQRScanner() {
                                 <span className="font-semibold">Customer Name:</span>{" "}
                                 {bookingInfo.customerName !== "Guest" ? bookingInfo.customerName : "Unknown"}
                             </div>
-
+                            <div>
+                                <span className="font-semibold">Phone Number:</span> {bookingInfo.contactPhone}
+                            </div>
                             <div>
                                 <span className="font-semibold">Email:</span> {bookingInfo.customerEmail}
                             </div>
 
-
                             <div>
-                                <span className="font-semibold">Phone Number:</span> {bookingInfo.contactPhone}
+                                <span className="font-semibold">Table: </span>{" "}
+                                {bookingInfo.tableNumber && bookingInfo.tableNumber !== "Unknown" ? (
+                                    <>
+                                        {bookingInfo.tableNumber}{" "}
+                                        <span className="text-gray-600">
+                                            (Capacity: {bookingInfo.tableCapability || 0})
+                                        </span>
+                                    </>
+                                ) : (
+                                    <span className="italic text-gray-600"> Waiting for table assignment</span>
+                                )}
                             </div>
-
-                            <div>
-                                <span className="font-semibold">Table Capability:</span> {bookingInfo.tableCapability} people
-                            </div>
-
                             <div>
                                 <span className="font-semibold">Date:</span>{" "}
                                 {new Date(bookingInfo.bookingDate).toLocaleDateString()}
                             </div>
 
                             <div>
-                                <span className="font-semibold">Table Number:</span> {bookingInfo.tableNumber}
-                            </div>
-
-                            <div>
                                 <span className="font-semibold">Time:</span> {bookingInfo.time}
                             </div>
 
+
                             <div>
-                                <span className="font-semibold">Order Type:</span> {bookingInfo.orderType}
+                                <span className="font-semibold">Payment Method:</span> {bookingInfo.payment.method}
                             </div>
+
+
+
+                            <div>
+                                <span className="font-semibold">Payment Status: </span>{" "}
+                                <span>
+                                    {bookingInfo.payment.status || "N/A"}
+                                </span>
+                            </div>
+
 
                             {bookingInfo.deliveryAddress && (
                                 <div className="sm:col-span-2">
@@ -409,23 +431,25 @@ export default function StaffQRScanner() {
 
                         </div>
 
-
-
                         <div className="">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                                <h4 className="text-base font-semibold text-gray-700 whitespace-nowrap">Ordered Dishes</h4>
-
-                                {bookingInfo.dishes.length > 0 ? (
+                            {bookingInfo.dishes.length > 0 ? (
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-base font-semibold text-gray-700">Ordered Dishes</h4>
                                     <button
                                         onClick={() => setIsDishModalOpen(true)}
                                         className="flex items-center gap-2 px-4 py-2 rounded-lg hover:scale-110 hover:text-[#f09c42] transition duration-200 whitespace-nowrap"
                                     >
                                         <FaInfoCircle className="text-sm" /> View Details
                                     </button>
-                                ) : (
-                                    <p className="text-gray-500 italic">Customer will order at the restaurant.</p>
-                                )}
-                            </div>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                    <h4 className="text-base font-semibold text-gray-700">Ordered Dishes</h4>
+                                    <p className="text-gray-500 italic w-full sm:w-auto mt-2 sm:mt-0">
+                                        Customer will order at the restaurant.
+                                    </p>
+                                </div>
+                            )}
 
                             <Modal
                                 isOpen={isDishModalOpen}

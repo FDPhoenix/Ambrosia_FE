@@ -24,6 +24,14 @@ interface Booking {
         quantity: number;
     }[];
     guest?: { name: string; contactPhone: string, email: string };
+    order?: {
+        _id: string;
+        totalAmount: number;
+        prepaidAmount: number;
+        paymentMethod?: string;
+        paymentStatus?: string;
+        createdAt: string;
+    } | null;
     notes?: string;
     deliveryAddress?: string;
 }
@@ -523,7 +531,14 @@ const BookingOrderManagement = () => {
                                     </span>
                                 </div>
 
-                                {selectedBooking.tableId ? (
+                                {selectedBooking.orderType?.toLowerCase() === "delivery" ? (
+                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                        <strong>Delivery Address:</strong>
+                                        <span className="text-right break-words max-w-[50%]">
+                                            {selectedBooking.deliveryAddress || "N/A"}
+                                        </span>
+                                    </div>
+                                ) : (
                                     <>
                                         <div className="flex justify-between border-b border-dashed py-2 text-base">
                                             <strong>Start Time:</strong>
@@ -535,17 +550,42 @@ const BookingOrderManagement = () => {
                                         </div>
                                         <div className="flex justify-between border-b border-dashed py-2 text-base">
                                             <strong>Table Name:</strong>
-                                            <span>{selectedBooking.tableId.tableNumber}</span>
+                                            <span
+                                                className={
+                                                    selectedBooking.tableId
+                                                        ? "text-black"
+                                                        : "text-yellow-500 font-medium"
+                                                }
+                                            >
+                                                {selectedBooking.tableId?.tableNumber || "Waiting for table assignment"}
+                                            </span>
                                         </div>
+                                        {selectedBooking.tableId && (
+                                            <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                                <strong>Capacity:</strong>
+                                                <span className="text-gray-700">{selectedBooking.tableId.capacity}</span>
+                                            </div>
+                                        )}
                                     </>
-                                ) : (
-                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
-                                        <strong>Delivery Address:</strong>
-                                        <span className="text-right break-words max-w-[50%]">{selectedBooking.deliveryAddress || "N/A"}</span>
-                                    </div>
                                 )}
-                            </div>
 
+                            </div>
+                            {selectedBooking.order && (
+                                <>
+                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                        <strong>Payment Method:</strong>
+                                        <span>{selectedBooking.order?.paymentMethod || "N/A"}</span>
+                                    </div>
+
+                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                        <strong>Payment Status:</strong>
+                                        <span className="font-bold tracking-wide">
+                                            {selectedBooking.order.paymentStatus || "N/A"}
+                                        </span>
+                                    </div>
+
+                                </>
+                            )}
                             {/* Dishes */}
                             <h5 className="text-base font-semibold mt-3">Ordered Dishes List:</h5>
                             {Array.isArray(selectedBooking.dishes) && selectedBooking.dishes.length > 0 ? (
@@ -609,7 +649,7 @@ const BookingOrderManagement = () => {
                             </div>
                         </>
                     ) : (
-                        <p className="text-center">Loading...</p>
+                        <p className="text-center"><LoadingAnimation /></p>
                     )}
                 </div>
             </Modal>

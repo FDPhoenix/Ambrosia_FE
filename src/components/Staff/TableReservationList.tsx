@@ -22,6 +22,14 @@ interface Booking {
     status: string;
     dishes?: { dishId: { name: string; price: number }; quantity: number }[];
     guest?: { name: string; contactPhone: string, email: string };
+    order?: {
+        _id: string;
+        totalAmount: number;
+        prepaidAmount: number;
+        paymentMethod?: string;
+        paymentStatus?: string;
+        createdAt: string;
+    } | null;
     notes?: string;
     deliveryAddress?: string;
 }
@@ -366,11 +374,16 @@ const TableReservationList = () => {
     };
 
     const getSelectedCapacity = () => {
-        if (!newTableId) return selectedBooking?.tableId?.capacity ?? "N/A";
+        if (!newTableId) {
+            const cap = selectedBooking?.tableId?.capacity;
+            return cap !== undefined && cap !== null ? cap : null;
+        }
 
         const found = availableTables.find(t => t._id === newTableId);
-        return found?.capacity ?? selectedBooking?.tableId?.capacity ?? "N/A";
+        const cap = found?.capacity ?? selectedBooking?.tableId?.capacity;
+        return cap !== undefined && cap !== null ? cap : null;
     };
+
 
     const getContainerClass = () => {
         if (location.pathname.startsWith("/staff")) {
@@ -726,10 +739,13 @@ const TableReservationList = () => {
 
                                                 )}
                                             </div>
-                                            <div className="flex justify-between border-b border-dashed py-2 text-base">
-                                                <strong>Capacity:</strong>
-                                                <span>{getSelectedCapacity()}</span>
-                                            </div>
+                                            {getSelectedCapacity() !== null && (
+                                                <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                                    <strong>Capacity:</strong>
+                                                    <span>{getSelectedCapacity()} </span>
+                                                </div>
+                                            )}
+
                                         </>
                                     ) : (
                                         <div className="flex justify-between border-b border-dashed py-2 text-base">
@@ -740,7 +756,23 @@ const TableReservationList = () => {
                                 </>
 
                             </div>
+                            {selectedBooking.order && (
+                                <>
+                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                        <strong>Payment Method:</strong>
+                                        <span>{selectedBooking.order?.paymentMethod || "N/A"}</span>
+                                    </div>
 
+                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                        <strong>Payment Status:</strong>
+                                        <span className="font-bold tracking-wide">
+                                            {selectedBooking.order.paymentStatus || "N/A"}
+                                        </span>
+
+                                    </div>
+
+                                </>
+                            )}
                             <h5 className="text-base font-semibold">Ordered Dishes List:</h5>
                             {selectedBooking.dishes && selectedBooking.dishes.length > 0 ? (
                                 <table className="w-full border border-gray-200 my-3 text-base">
@@ -840,7 +872,7 @@ const TableReservationList = () => {
                             </div>
                         </>
                     ) : (
-                        <p>Loading...</p>
+                        <p><LoadingAnimation /></p>
                     )}
                 </div>
             </Modal>
