@@ -257,7 +257,7 @@ function UserContent() {
 
       <div className="max-h-[430px] overflow-y-auto pr-2.5">
         {loading ? (
-          <div className="flex justify-center items-center h-[300px]">
+          <div className="flex justify-center items-center h-[400px]">
             <LoadingAnimation />
           </div>
         ) : (

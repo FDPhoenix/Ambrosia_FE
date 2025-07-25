@@ -228,7 +228,9 @@ function IngredientContent() {
   return (
     <div className="relative h-[567px] max-w-8xl mx-auto bg-white p-6 rounded-xl shadow-md">
       {loading ? (
-        <LoadingAnimation />
+        <div className="w-full h-full flex justify-center items-center">
+          <LoadingAnimation />
+        </div>
       ) : error ? (
         <div className="text-red-400">{error}</div>
       ) : (
