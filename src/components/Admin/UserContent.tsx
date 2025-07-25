@@ -4,6 +4,7 @@ import StatusBadge from './StatusBadge';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import Pagination from '../Pagination';
+import LoadingAnimation from '../LoadingAnimation';
 // Định nghĩa các interface cần thiết
 interface User {
   id: string;
@@ -60,6 +61,7 @@ const ConfirmModal = ({ message, onConfirm, onCancel }: { message: string; onCon
 
 function UserContent() {
   const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
@@ -92,6 +94,7 @@ function UserContent() {
 
   const fetchUsers = async () => {
     try {
+      setLoading(true);
       const response = await fetch(`${backendApiUrl}/user/all`, {
         method: 'GET',
         headers: {
@@ -107,6 +110,8 @@ function UserContent() {
       }
     } catch (error) {
       console.error("Error fetching users:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -251,56 +256,62 @@ function UserContent() {
       </div>
 
       <div className="max-h-[430px] overflow-y-auto pr-2.5">
-        <table className="w-full border-collapse text-left">
-          <thead>
-            <tr>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">No</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Image</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Full Name</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Email</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Phone Number</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Status</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Rank</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentUsers.map((user: any, index) => (
-              <tr key={user.id}>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
-                  <img src={user.profileImage || "/placeholder.svg"} alt={user.fullname} className="w-[70px] h-[70px] rounded-lg object-cover mx-auto" />
-                </td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.fullname}</td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.email}</td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.phoneNumber}</td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
-                  <div className="w-[106px] mx-auto">
-                    <StatusBadge status={user.isActive} caseTrue={"Active"} caseFalse={"Banned"} />
-                  </div>
-                </td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.rank.rankName}</td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
-                  <div className="flex justify-center">
-                    <button
-                      className="border-none bg-transparent text-xl cursor-pointer mx-2 transition-all duration-300 hover:scale-[1.3] hover:text-[#f0924c]"
-                      style={{ marginRight: '10px' }}
-                      onClick={() => handleEditUser(user)}
-                    >
-                      <FaUserEdit />
-                    </button>
-                    <button
-                      className="border-none bg-transparent text-xl cursor-pointer mx-2 transition-all duration-300 hover:scale-[1.3] hover:text-[#f0924c]"
-                      onClick={() => handleHideUser(user.id)}
-                    >
-                      {user.isActive === true ? <FaLock /> : <FaUnlock />}
-                    </button>
-                  </div>
-                </td>
+        {loading ? (
+          <div className="flex justify-center items-center h-[300px]">
+            <LoadingAnimation />
+          </div>
+        ) : (
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">No</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Image</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Full Name</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Email</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Phone Number</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Status</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Rank</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentUsers.map((user: any, index) => (
+                <tr key={user.id}>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
+                    <img src={user.profileImage || "/placeholder.svg"} alt={user.fullname} className="w-[70px] h-[70px] rounded-lg object-cover mx-auto" />
+                  </td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.fullname}</td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.email}</td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.phoneNumber}</td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
+                    <div className="w-[106px] mx-auto">
+                      <StatusBadge status={user.isActive} caseTrue={"Active"} caseFalse={"Banned"} />
+                    </div>
+                  </td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.rank.rankName}</td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
+                    <div className="flex justify-center">
+                      <button
+                        className="border-none bg-transparent text-xl cursor-pointer mx-2 transition-all duration-300 hover:scale-[1.3] hover:text-[#f0924c]"
+                        style={{ marginRight: '10px' }}
+                        onClick={() => handleEditUser(user)}
+                      >
+                        <FaUserEdit />
+                      </button>
+                      <button
+                        className="border-none bg-transparent text-xl cursor-pointer mx-2 transition-all duration-300 hover:scale-[1.3] hover:text-[#f0924c]"
+                        onClick={() => handleHideUser(user.id)}
+                      >
+                        {user.isActive === true ? <FaLock /> : <FaUnlock />}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       <Pagination items={users} itemsPerPage={itemsPerPage} onPageChange={handlePageChange} />
