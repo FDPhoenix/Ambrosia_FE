@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Modal from "react-modal";
 import axios from "axios";
 import { FaInfoCircle } from 'react-icons/fa';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useLocation } from "react-router";
+import LoadingAnimation from "../LoadingAnimation";
 
 interface Booking {
     _id: string;
@@ -20,6 +22,14 @@ interface Booking {
     status: string;
     dishes?: { dishId: { name: string; price: number }; quantity: number }[];
     guest?: { name: string; contactPhone: string, email: string };
+    order?: {
+        _id: string;
+        totalAmount: number;
+        prepaidAmount: number;
+        paymentMethod?: string;
+        paymentStatus?: string;
+        createdAt: string;
+    } | null;
     notes?: string;
     deliveryAddress?: string;
 }
@@ -38,6 +48,7 @@ const TableReservationList = () => {
         searchText: "",
     });
     const [noResultsFound, setNoResultsFound] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
     const [pendingStatusChange, setPendingStatusChange] = useState<{ id: string, status: string } | null>(null);
     const [isEditingTable, setIsEditingTable] = useState(false);
@@ -48,11 +59,11 @@ const TableReservationList = () => {
         capacity: number;
         status: string;
     }[]>([]);
+    const location = useLocation();
     const [newTableId, setNewTableId] = useState<string>("");
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState<number>(1);
     const limit = 6;
-
     const [appliedFilters, setAppliedFilters] = useState({
         dateRange: "",
         fromDate: "",
@@ -61,6 +72,7 @@ const TableReservationList = () => {
         status: "",
         searchText: "",
     });
+    const firstLoad = useRef(true);
 
     useEffect(() => {
         const hasApplied =
@@ -71,15 +83,19 @@ const TableReservationList = () => {
             appliedFilters.status ||
             appliedFilters.searchText.trim();
 
+        const showLoading = firstLoad.current;
+        firstLoad.current = false;
+
         if (hasApplied) {
-            handleApplyFilter(currentPage, appliedFilters);
+            handleApplyFilter(currentPage, appliedFilters, showLoading);
         } else {
-            fetchTables(currentPage);
+            fetchTables(currentPage, showLoading);
         }
     }, [currentPage]);
 
-    const fetchTables = async (page = 1) => {
+    const fetchTables = async (page = 1, showLoading = true) => {
         try {
+            if (showLoading) setLoading(true);
             const response = await axios.get(`${backendApiUrl}/reservation?page=${page}&limit=${limit}`);
             const { data, totalPages } = response.data;
 
@@ -93,11 +109,18 @@ const TableReservationList = () => {
         } catch (error) {
             console.error("Error fetching bookings:", error);
             setBookings([]);
+        } finally {
+            if (showLoading) setLoading(false);
         }
     };
 
-    const handleApplyFilter = async (page = 1, customFilters = filters) => {
+    const handleApplyFilter = async (
+        page = 1,
+        customFilters = filters,
+        showLoading = true
+    ) => {
         try {
+            if (showLoading) setLoading(false);
             setAppliedFilters(customFilters);
 
             const queryParams = new URLSearchParams();
@@ -121,6 +144,8 @@ const TableReservationList = () => {
             setFilterModalOpen(false);
         } catch (error) {
             console.error("Error filtering reservations:", error);
+        } finally {
+            if (showLoading) setLoading(false);
         }
     };
 
@@ -349,16 +374,33 @@ const TableReservationList = () => {
     };
 
     const getSelectedCapacity = () => {
-        if (!newTableId) return selectedBooking?.tableId?.capacity ?? "N/A";
+        if (!newTableId) {
+            const cap = selectedBooking?.tableId?.capacity;
+            return cap !== undefined && cap !== null ? cap : null;
+        }
 
         const found = availableTables.find(t => t._id === newTableId);
-        return found?.capacity ?? selectedBooking?.tableId?.capacity ?? "N/A";
+        const cap = found?.capacity ?? selectedBooking?.tableId?.capacity;
+        return cap !== undefined && cap !== null ? cap : null;
+    };
+
+
+    const getContainerClass = () => {
+        if (location.pathname.startsWith("/staff")) {
+            return "mx-auto bg-white px-7 pt-6 pb-4 rounded-lg shadow-md flex flex-col min-h-[79vh]";
+        }
+        switch (location.pathname) {
+            case "/manage":
+                return "relative w-[1200px] h-[570px] p-6 max-w-[1210px] bg-white rounded-2xl shadow-md";
+            default:
+                return "bg-white p-5 rounded-2xl shadow-md";
+        }
     };
 
     return (
-        <div className="mx-auto bg-white px-7 pt-6 pb-4 rounded-lg shadow-md flex flex-col min-h-[82vh]">
-            <div className="flex flex-wrap items-center gap-3 mb-2 flex justify-between">
-                <h3 className="text-2xl font-bold text-gray-800 mb-1">List of Reservation</h3>
+        <div className={getContainerClass()}>
+            <div className="flex flex-wrap items-center gap-3 mb-2 justify-between">
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">List of Reservation</h3>
                 <div className="flex flex-wrap items-center gap-3">
                     <select
                         className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-orange-400 cursor-pointer transition"
@@ -408,17 +450,23 @@ const TableReservationList = () => {
                 </div>
             </div>
 
-            <div className="overflow-x-auto scrollbar-hide">{/*  max-h-[62vh]  */}
-                {noResultsFound ? (
-                    <div className="flex items-center justify-center h-[62vh]">
+            <div className="relative min-h-[300px] overflow-x-auto scrollbar-hide">
+                {loading && (
+                    <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center relative h-[64vh]">
+                        <LoadingAnimation />
+                    </div>
+                )}
+
+                {!loading && noResultsFound ? (
+                    <div className="flex items-center justify-center h-[52vh] sm:h-[62vh]">
                         <div className="text-center text-red-500 font-semibold text-[18px]">
                             No results found
                         </div>
                     </div>
-                ) : (
+                ) : !loading && (
                     <>
                         {/* Desktop Table */}
-                        <table className="hidden md:table w-full min-w-[800px] table-auto border-gray-200 text-base">
+                        <table className="hidden md:table w-full min-w-[800px] table-auto border-gray-200 text-base py-1">
                             <thead className="bg-gray-100">
                                 <tr>
                                     <th className="p-4 font-bold">Reservation Number</th>
@@ -432,11 +480,11 @@ const TableReservationList = () => {
                             <tbody>
                                 {Array.isArray(bookings) && bookings.map((booking, index) => (
                                     <tr key={booking._id} className="text-center border-y hover:bg-gray-100 transition duration-200">
-                                        <td className="p-5">  {(currentPage - 1) * limit + index + 1}</td>
-                                        <td className="p-5">{booking.userId?.fullname || booking.guest?.name || "Unknown"}</td>
-                                        <td className="p-5">{new Date(booking.bookingDate).toLocaleDateString()}</td>
+                                        <td className="p-4">  {(currentPage - 1) * limit + index + 1}</td>
+                                        <td className="p-4">{booking.userId?.fullname || booking.guest?.name || "Unknown"}</td>
+                                        <td className="p-4">{new Date(booking.bookingDate).toLocaleDateString()}</td>
                                         <td
-                                            className={`p-5 capitalize font-semibold ${booking.orderType.toLowerCase() === 'delivery'
+                                            className={`p-4 capitalize font-semibold ${booking.orderType.toLowerCase() === 'delivery'
                                                 ? 'text-blue-900'
                                                 : booking.orderType.toLowerCase() === 'dine-in'
                                                     ? 'text-green-700'
@@ -445,7 +493,7 @@ const TableReservationList = () => {
                                             {booking.orderType}
                                         </td>
 
-                                        <td className="p-5">
+                                        <td className="p-4">
                                             {renderStatusComponent(
                                                 booking.status,
                                                 (newStatus) => {
@@ -455,7 +503,7 @@ const TableReservationList = () => {
                                                 booking._id
                                             )}
                                         </td>
-                                        <td className="p-5 whitespace-nowrap">
+                                        <td className="p-4 whitespace-nowrap">
                                             <button className=" flex items-center gap-1 hover:scale-110 hover:text-[#f0924c] bg-none pl-5" onClick={() => {
                                                 setSelectedBooking(booking);
                                                 setIsModalOpen(true);
@@ -521,7 +569,6 @@ const TableReservationList = () => {
                             ))}
                         </div>
                     </>
-
                 )}
             </div>
 
@@ -530,7 +577,7 @@ const TableReservationList = () => {
                     <button
                         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
-                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
+                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50 text-sm md:text-base"
                     >
                         &laquo; Prev
                     </button>
@@ -558,7 +605,7 @@ const TableReservationList = () => {
                     <button
                         onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                         disabled={currentPage === totalPages}
-                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
+                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50 text-sm md:text-base"
                     >
                         Next &raquo;
                     </button>
@@ -692,10 +739,13 @@ const TableReservationList = () => {
 
                                                 )}
                                             </div>
-                                            <div className="flex justify-between border-b border-dashed py-2 text-base">
-                                                <strong>Capacity:</strong>
-                                                <span>{getSelectedCapacity()}</span>
-                                            </div>
+                                            {getSelectedCapacity() !== null && (
+                                                <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                                    <strong>Capacity:</strong>
+                                                    <span>{getSelectedCapacity()} </span>
+                                                </div>
+                                            )}
+
                                         </>
                                     ) : (
                                         <div className="flex justify-between border-b border-dashed py-2 text-base">
@@ -706,7 +756,23 @@ const TableReservationList = () => {
                                 </>
 
                             </div>
+                            {selectedBooking.order && (
+                                <>
+                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                        <strong>Payment Method:</strong>
+                                        <span>{selectedBooking.order?.paymentMethod || "N/A"}</span>
+                                    </div>
 
+                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                        <strong>Payment Status:</strong>
+                                        <span className="font-bold tracking-wide">
+                                            {selectedBooking.order.paymentStatus || "N/A"}
+                                        </span>
+
+                                    </div>
+
+                                </>
+                            )}
                             <h5 className="text-base font-semibold">Ordered Dishes List:</h5>
                             {selectedBooking.dishes && selectedBooking.dishes.length > 0 ? (
                                 <table className="w-full border border-gray-200 my-3 text-base">
@@ -806,7 +872,7 @@ const TableReservationList = () => {
                             </div>
                         </>
                     ) : (
-                        <p>Loading...</p>
+                        <p><LoadingAnimation /></p>
                     )}
                 </div>
             </Modal>

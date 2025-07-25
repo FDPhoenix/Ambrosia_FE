@@ -6,6 +6,7 @@ import { FaInfoCircle, FaStar } from 'react-icons/fa';
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from 'react-toastify';
 import Pagination from "../Pagination";
+import LoadingAnimation from '../LoadingAnimation';
 
 interface Review {
   id: string;
@@ -30,7 +31,7 @@ interface Review {
 function SystemReviewContent() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
+  const [, setError] = useState<string>("");
   const [modalIsOpen, setModalIsOpen] = useState<boolean>(false);
   const [replyModalOpen, setReplyModalOpen] = useState<boolean>(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
@@ -192,16 +193,13 @@ function SystemReviewContent() {
     setIsLoading(false);
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
   return (
     // <div className="w-[1200px] h-[567px] mx-auto bg-white p-8 rounded-lg shadow-md">
     <div className="relative w-[1200px] h-[567px] p-5 max-w-[1210px] bg-white rounded-2xl shadow-md">
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="text-white text-center">
-            <div className="animate-spin h-12 w-12 border-4 border-gray-200 border-t-gray-600 rounded-full mx-auto"></div>
-            <p className="mt-4">Sending feedback...</p>
+            <LoadingAnimation />
           </div>
         </div>
       )}
@@ -243,50 +241,56 @@ function SystemReviewContent() {
       </div>
 
       <div className="overflow-y-auto max-h-[425px] h-[451px]">
-        <table className="w-full border border-collapse text-base">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border px-4 py-3 text-center">No</th>
-              <th className="border px-4 py-3 text-center">User Name</th>
-              <th className="border px-4 py-3 text-center">Rating</th>
-              <th className="border px-4 py-3 w-[30%] text-center">Feedback</th>
-              <th className="border px-4 py-3 text-center">Status</th>
-              <th className="border px-4 py-3 text-center">Detail</th>
-              <th className="border px-4 py-3 text-center">Reply</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentReviews.length > 0 ? (
-              currentReviews.map((review, index) => (
-                <tr key={review.id} className="hover:bg-gray-100">
-                  <td className="border px-4 py-5 text-center">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                  <td className="border px-4 py-5 text-center">{review.userId ? review.userId.fullname : review.guestId?.name || "Unknown"}</td>
-                  <td className="border px-4 py-5 text-center">{renderStars(review.rating)}</td>
-                  <td className="border px-4 py-5 text-center">{review.comment}</td>
-                  <td className="border px-4 py-5 text-center">
-                    <StatusBadge status={review.isReplied} caseTrue="Replied" caseFalse="No Replied" />
-                  </td>
-                  <td className="border px-4 py-5 text-center">
-                    <button onClick={() => openModal(review)} className="bg-none border-none text-sm flex items-center justify-center hover:scale-110 hover:text-[#f0924c] transition pl-4">
-                      <FaInfoCircle /> <span className="ml-1">View Details</span>
-                    </button>
-                  </td>
-                  <td className="border px-4 py-2 text-center">
-                    <button onClick={() => openReplyModal(review)} className="bg-orange-400 text-white px-3 py-2 rounded hover:bg-orange-500">
-                      →
-                    </button>
+        {loading ? (
+          <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
+            <LoadingAnimation />
+          </div>
+        ) : (
+          <table className="w-full border border-collapse text-base">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-4 py-3 text-center">No</th>
+                <th className="border px-4 py-3 text-center">User Name</th>
+                <th className="border px-4 py-3 text-center">Rating</th>
+                <th className="border px-4 py-3 w-[30%] text-center">Feedback</th>
+                <th className="border px-4 py-3 text-center">Status</th>
+                <th className="border px-4 py-3 text-center">Detail</th>
+                <th className="border px-4 py-3 text-center">Reply</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentReviews.length > 0 ? (
+                currentReviews.map((review, index) => (
+                  <tr key={review.id} className="hover:bg-gray-100">
+                    <td className="border px-4 py-5 text-center">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                    <td className="border px-4 py-5 text-center">{review.userId ? review.userId.fullname : review.guestId?.name || "Unknown"}</td>
+                    <td className="border px-4 py-5 text-center">{renderStars(review.rating)}</td>
+                    <td className="border px-4 py-5 text-center">{review.comment}</td>
+                    <td className="border px-4 py-5 text-center">
+                      <StatusBadge status={review.isReplied} caseTrue="Replied" caseFalse="No Replied" />
+                    </td>
+                    <td className="border px-4 py-5 text-center">
+                      <button onClick={() => openModal(review)} className="bg-none border-none text-sm flex items-center justify-center hover:scale-110 hover:text-[#f0924c] transition pl-4">
+                        <FaInfoCircle /> <span className="ml-1">View Details</span>
+                      </button>
+                    </td>
+                    <td className="border px-4 py-2 text-center">
+                      <button onClick={() => openReplyModal(review)} className="bg-orange-400 text-white px-3 py-2 rounded hover:bg-orange-500">
+                        →
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="text-center p-6 text-red-500 font-semibold h-[371px]">
+                    No results found.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={7} className="text-center p-6 text-red-500 font-semibold h-[371px]">
-                  No results found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Reply Modal */}
@@ -333,7 +337,7 @@ function SystemReviewContent() {
                 </div>
               </div>
             </div>
-            
+
             {/* Show existing reply if already replied */}
             {selectedReview.isReplied && selectedReview.replyContent && (
               <div className="mt-4">
@@ -408,7 +412,7 @@ function SystemReviewContent() {
                   <p className="text-gray-700 italic break-words">"{selectedReview.comment || "No comment"}"</p>
                 </div>
               </div>
-              
+
               {/* Reply Section */}
               {selectedReview.isReplied && selectedReview.replyContent && (
                 <div className="flex flex-col border-b border-dashed border-gray-300 py-3 px-2 text-base">
@@ -423,7 +427,7 @@ function SystemReviewContent() {
                   </div>
                 </div>
               )}
-              
+
               {!selectedReview.isReplied && (
                 <div className="flex flex-col py-3 px-2 text-base">
                   <strong className="text-[#222] mb-2">Reply Status:</strong>

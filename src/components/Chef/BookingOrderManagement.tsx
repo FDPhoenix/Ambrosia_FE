@@ -4,6 +4,7 @@ import axios from "axios";
 import { FaInfoCircle } from 'react-icons/fa';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import LoadingAnimation from "../LoadingAnimation";
 
 interface Booking {
     _id: string;
@@ -23,6 +24,14 @@ interface Booking {
         quantity: number;
     }[];
     guest?: { name: string; contactPhone: string, email: string };
+    order?: {
+        _id: string;
+        totalAmount: number;
+        prepaidAmount: number;
+        paymentMethod?: string;
+        paymentStatus?: string;
+        createdAt: string;
+    } | null;
     notes?: string;
     deliveryAddress?: string;
 }
@@ -31,6 +40,7 @@ const BookingOrderManagement = () => {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const [, setFilterModalOpen] = useState(false);
     const [filters, setFilters] = useState({
         dateRange: "",
@@ -57,26 +67,11 @@ const BookingOrderManagement = () => {
     const limit = 6;
     const [pendingStatusChange, setPendingStatusChange] = useState<{ id: string; status: string } | null>(null);
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
 
-
-    useEffect(() => {
-        const hasApplied =
-            appliedFilters.dateRange ||
-            appliedFilters.fromDate ||
-            appliedFilters.toDate ||
-            appliedFilters.orderType ||
-            appliedFilters.status ||
-            appliedFilters.searchText.trim();
-
-        if (hasApplied) {
-            handleApplyFilter(currentPage, appliedFilters);
-        } else {
-            fetchTables(currentPage);
-        }
-    }, [currentPage]);
-
-    const fetchTables = async (page = 1) => {
+    const fetchTables = async (page = 1, showLoading = true) => {
         try {
+            if (showLoading) setLoading(true);
             const response = await axios.get(`${backendApiUrl}/reservation/staff?page=${page}&limit=${limit}`);
             const { data, totalPages } = response.data;
 
@@ -84,6 +79,11 @@ const BookingOrderManagement = () => {
             setTotalPages(totalPages || 1);
         } catch (error) {
             console.error("Error fetching tables:", error);
+        } finally {
+            if (showLoading) {
+                setLoading(false);
+                setInitialLoading(false);
+            }
         }
     };
 
@@ -116,19 +116,20 @@ const BookingOrderManagement = () => {
     };
 
     useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            if (filters.searchText.trim() === "") {
-                fetchTables(1);
-                setCurrentPage(1);
-                setNoResultsFound(false);
-            } else {
-                handleApplyFilter(1, filters);
-                setCurrentPage(1);
-            }
-        }, 500);
+        const hasApplied =
+            appliedFilters.dateRange ||
+            appliedFilters.fromDate ||
+            appliedFilters.toDate ||
+            appliedFilters.orderType ||
+            appliedFilters.status ||
+            appliedFilters.searchText.trim();
 
-        return () => clearTimeout(delayDebounceFn);
-    }, [filters.searchText]);
+        if (hasApplied) {
+            handleApplyFilter(currentPage, appliedFilters);
+        } else {
+            fetchTables(currentPage, initialLoading);
+        }
+    }, [currentPage]);
 
     const handleViewDetails = (booking: Booking) => {
         setSelectedBooking(booking);
@@ -139,11 +140,18 @@ const BookingOrderManagement = () => {
         try {
             await axios.put(`${backendApiUrl}/reservation/${id}/status`, { status: newStatus });
 
-            setBookings(prevBookings =>
-                prevBookings.map(booking =>
-                    booking._id === id ? { ...booking, status: newStatus } : booking
-                )
-            );
+            const hasApplied =
+                appliedFilters.dateRange ||
+                appliedFilters.fromDate ||
+                appliedFilters.toDate ||
+                appliedFilters.orderType ||
+                appliedFilters.status ||
+                appliedFilters.searchText.trim();
+            if (hasApplied) {
+                await handleApplyFilter(currentPage, appliedFilters);
+            } else {
+                await fetchTables(currentPage, false);
+            }
 
             toast.success("Status updated successfully!");
         } catch (error: unknown) {
@@ -201,9 +209,9 @@ const BookingOrderManagement = () => {
 
 
     return (
-        <div className="mx-auto bg-white px-6 pt-5 pb-5 rounded-xl shadow-md min-h-[82vh]">
+        <div className="mx-auto bg-white p-7 rounded-xl shadow-md min-h-[76vh]">
             <div className="flex flex-wrap items-center gap-3 mb-2 flex justify-between">
-                <h3 className="text-2xl font-bold text-gray-800 mb-1">List of Reservation</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">List of Reservation</h3>
                 <div className="flex flex-wrap items-center gap-3">
                     <select
                         className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-orange-400 cursor-pointer transition"
@@ -252,14 +260,19 @@ const BookingOrderManagement = () => {
                 </div>
             </div>
 
-            <div className="overflow-x-auto scrollbar-hide">{/*  max-h-[62vh]  */}
-                {noResultsFound ? (
-                    <div className="flex items-center justify-center h-[62vh]">
+            <div className="relative min-h-[300px] overflow-x-auto scrollbar-hide">
+                {loading && (
+                    <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center relative h-[64vh]">
+                        <LoadingAnimation />
+                    </div>
+                )}
+                {!loading && noResultsFound ? (
+                    <div className="flex items-center justify-center h-[52vh] sm:h-[62vh]">
                         <div className="text-center text-red-500 font-semibold text-[18px]">
                             No results found
                         </div>
                     </div>
-                ) : (
+                ) : !loading && (
                     <>
                         {/* Desktop Table */}
                         <table className="hidden md:table w-full border-collapse rounded-md text-center">
@@ -276,12 +289,12 @@ const BookingOrderManagement = () => {
                             <tbody>
                                 {bookings.map((booking, index) => (
                                     <tr key={booking._id} className="border-b">
-                                        <td className="p-5 bg-white whitespace-nowrap">
+                                        <td className="p-4 bg-white whitespace-nowrap">
                                             {(currentPage - 1) * limit + index + 1}
                                         </td>
-                                        <td className="p-5 bg-white whitespace-nowrap">{booking.userId?.fullname || booking.guest?.name || "Unknown"}</td>
-                                        <td className="p-5 bg-white whitespace-nowrap">{new Date(booking.bookingDate).toLocaleDateString()}</td>
-                                        <td className="p-5">
+                                        <td className="p-4 bg-white whitespace-nowrap">{booking.userId?.fullname || booking.guest?.name || "Unknown"}</td>
+                                        <td className="p-4 bg-white whitespace-nowrap">{new Date(booking.bookingDate).toLocaleDateString()}</td>
+                                        <td className="p-4">
                                             <span className={`inline-block px-3 py-1 rounded-full font-bold text-sm capitalize min-w-[90px] text-center ${booking.orderType.toLowerCase() === 'dine-in' ? 'text-green-700' :
                                                 booking.orderType.toLowerCase() === 'delivery' ? 'text-blue-800' :
                                                     'text-gray-600'
@@ -289,7 +302,7 @@ const BookingOrderManagement = () => {
                                                 {booking.orderType}
                                             </span>
                                         </td>
-                                        <td className="p-5 whitespace-nowrap">
+                                        <td className="p-4 whitespace-nowrap">
                                             {isStatusLocked(booking.status) ? (
                                                 <span
                                                     className="w-[121px] inline-flex items-center gap-2 px-4 py-[4px] rounded-full font-bold text-sm justify-center"
@@ -352,7 +365,7 @@ const BookingOrderManagement = () => {
                                             )}
                                         </td>
 
-                                        <td className="p-5 whitespace-nowrap">
+                                        <td className="p-4 whitespace-nowrap">
                                             <button
                                                 onClick={() => handleViewDetails(booking)}
                                                 className="flex items-center gap-1 hover:scale-110 hover:text-[#f0924c] bg-none pl-5"
@@ -518,7 +531,14 @@ const BookingOrderManagement = () => {
                                     </span>
                                 </div>
 
-                                {selectedBooking.tableId ? (
+                                {selectedBooking.orderType?.toLowerCase() === "delivery" ? (
+                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                        <strong>Delivery Address:</strong>
+                                        <span className="text-right break-words max-w-[50%]">
+                                            {selectedBooking.deliveryAddress || "N/A"}
+                                        </span>
+                                    </div>
+                                ) : (
                                     <>
                                         <div className="flex justify-between border-b border-dashed py-2 text-base">
                                             <strong>Start Time:</strong>
@@ -530,17 +550,42 @@ const BookingOrderManagement = () => {
                                         </div>
                                         <div className="flex justify-between border-b border-dashed py-2 text-base">
                                             <strong>Table Name:</strong>
-                                            <span>{selectedBooking.tableId.tableNumber}</span>
+                                            <span
+                                                className={
+                                                    selectedBooking.tableId
+                                                        ? "text-black"
+                                                        : "text-yellow-500 font-medium"
+                                                }
+                                            >
+                                                {selectedBooking.tableId?.tableNumber || "Waiting for table assignment"}
+                                            </span>
                                         </div>
+                                        {selectedBooking.tableId && (
+                                            <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                                <strong>Capacity:</strong>
+                                                <span className="text-gray-700">{selectedBooking.tableId.capacity}</span>
+                                            </div>
+                                        )}
                                     </>
-                                ) : (
-                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
-                                        <strong>Delivery Address:</strong>
-                                        <span className="text-right break-words max-w-[50%]">{selectedBooking.deliveryAddress || "N/A"}</span>
-                                    </div>
                                 )}
-                            </div>
 
+                            </div>
+                            {selectedBooking.order && (
+                                <>
+                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                        <strong>Payment Method:</strong>
+                                        <span>{selectedBooking.order?.paymentMethod || "N/A"}</span>
+                                    </div>
+
+                                    <div className="flex justify-between border-b border-dashed py-2 text-base">
+                                        <strong>Payment Status:</strong>
+                                        <span className="font-bold tracking-wide">
+                                            {selectedBooking.order.paymentStatus || "N/A"}
+                                        </span>
+                                    </div>
+
+                                </>
+                            )}
                             {/* Dishes */}
                             <h5 className="text-base font-semibold mt-3">Ordered Dishes List:</h5>
                             {Array.isArray(selectedBooking.dishes) && selectedBooking.dishes.length > 0 ? (
@@ -575,7 +620,13 @@ const BookingOrderManagement = () => {
                             )}
                             <div className="flex justify-between border-b border-dashed py-2 text-base">
                                 <strong>Notes:</strong>
-                                <span>{selectedBooking.notes || "N/A"}</span>
+                                <span>
+                                    {selectedBooking.notes ? (
+                                        selectedBooking.notes
+                                    ) : (
+                                        <em style={{ color: "#888" }}>No notes provided by the customer</em>
+                                    )}
+                                </span>
                             </div>
                             <div className="flex justify-between border-b border-dashed py-2 text-base">
                                 <strong>Status:</strong>
@@ -598,7 +649,7 @@ const BookingOrderManagement = () => {
                             </div>
                         </>
                     ) : (
-                        <p className="text-center">Loading...</p>
+                        <p className="text-center"><LoadingAnimation /></p>
                     )}
                 </div>
             </Modal>
