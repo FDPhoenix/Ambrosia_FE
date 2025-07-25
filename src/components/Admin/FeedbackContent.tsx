@@ -178,7 +178,7 @@ const FeedbackContent: React.FC = () => {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 overflow-y-auto pr-2 scrollbar-hide">
         {(loadingDishes || loadingCategories) ? (
-          <div className="col-span-full flex justify-center items-center h-[200px]">
+          <div className="col-span-full flex justify-center items-center h-[440px]">
             <LoadingAnimation />
           </div>
         ) : (
@@ -244,8 +244,9 @@ const FeedbackContent: React.FC = () => {
               </div>
 
               {loadingFeedback ? (
-                // <p className="text-center text-sm sm:text-base text-blue-500 mt-5">Loading...</p>
-                <LoadingAnimation />
+                <div className="w-full h-full flex justify-center items-center">
+                  <LoadingAnimation />
+                </div>
               ) : filteredFeedbacks.length > 0 ? (
                 <>
                   <div className="overflow-x-auto">

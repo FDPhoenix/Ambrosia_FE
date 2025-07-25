@@ -197,9 +197,9 @@ const CategoryContent: React.FC = () => {
 
       <div className="mt-5 max-h-[440px] overflow-y-auto">
         {loading ? (
-          <div className="flex justify-center items-center h-[300px]">
-            <LoadingAnimation />
-          </div>
+          <div className='w-full h-[400px] flex justify-center items-center'>
+          <LoadingAnimation />
+        </div>
         ) : (
           <table className="w-full border-collapse">
             <thead className="bg-[#f4f4f4]">
