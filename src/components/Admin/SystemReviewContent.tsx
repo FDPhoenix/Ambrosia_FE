@@ -31,7 +31,7 @@ interface Review {
 function SystemReviewContent() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
+  const [, setError] = useState<string>("");
   const [modalIsOpen, setModalIsOpen] = useState<boolean>(false);
   const [replyModalOpen, setReplyModalOpen] = useState<boolean>(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
