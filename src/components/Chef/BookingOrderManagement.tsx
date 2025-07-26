@@ -209,9 +209,9 @@ const BookingOrderManagement = () => {
 
 
     return (
-        <div className="mx-auto bg-white p-7 rounded-xl shadow-md min-h-[76vh]">
+        <div className="mx-auto bg-white p-6 rounded-lg shadow-md flex flex-col min-h-[568px]">
             <div className="flex flex-wrap items-center gap-3 mb-2 flex justify-between">
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">List of Reservation</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">List of Reservation</h3>
                 <div className="flex flex-wrap items-center gap-3">
                     <select
                         className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-orange-400 cursor-pointer transition"
@@ -260,9 +260,9 @@ const BookingOrderManagement = () => {
                 </div>
             </div>
 
-            <div className="relative min-h-[300px] overflow-x-auto scrollbar-hide">
+            <div className="relative overflow-x-auto scrollbar-hide">
                 {loading && (
-                    <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center relative h-[64vh]">
+                    <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center relative h-[63vh]">
                         <LoadingAnimation />
                     </div>
                 )}

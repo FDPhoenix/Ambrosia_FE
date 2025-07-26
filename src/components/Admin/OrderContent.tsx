@@ -163,11 +163,15 @@ function OrderContent() {
 
   const getContainerClass = () => {
     if (location.pathname.startsWith("/staff")) {
-      return "mx-auto bg-white px-7 pt-6 pb-4 rounded-lg shadow-md flex flex-col min-h-[80vh]";
+      return "mx-auto bg-white px-7 pt-6 pb-4 rounded-lg shadow-md flex flex-col min-h-[567px]";
     }
     switch (location.pathname) {
-      case "/manage":
-        return "relative w-[1200px] h-[570px] p-5 max-w-[1210px] bg-white rounded-2xl shadow-md";
+      case "/manage/order":
+        return "relative w-[1200px] h-[567px] p-6 max-w-[1210px] bg-white rounded-2xl shadow-md";
+      case "/staff/order":
+        return "mx-auto bg-white p-6 rounded-lg shadow-md flex flex-col min-h-[567px]";
+      case "/chef/order":
+        return "mx-auto bg-white p-6 rounded-lg shadow-md flex flex-col min-h-[567px]";
       default:
         return "bg-white p-5 rounded-2xl shadow-md";
     }
@@ -175,7 +179,7 @@ function OrderContent() {
 
   return (
     <div className={getContainerClass()}>
-      <div className="flex flex-wrap items-center gap-3 mb-4 justify-between">
+      <div className="flex flex-wrap items-center gap-3 mb-2 justify-between">
         <h3 className="text-2xl font-bold text-gray-800 mb-4">List of Order</h3>
         <div className="flex flex-wrap items-center gap-3">
           <select
@@ -224,18 +228,18 @@ function OrderContent() {
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block overflow-x-auto">
+      <div className="relative hidden md:block overflow-x-auto">
         <table className="w-full border-collapse">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-3 border-b">Order ID</th>
-              <th className="p-3 border-b">Customer Name</th>
-              <th className="p-3 border-b">Order Type</th>
-              <th className="p-3 border-b">Payment Method</th>
-              <th className="p-3 border-b">Status</th>
-              <th className="p-3 border-b">Total Amount</th>
-              <th className="p-3 border-b">Created Date</th>
-              <th className="p-3 border-b">Actions</th>
+              <th className="p-3 border-b align-middle">Order ID</th>
+              <th className="p-3 border-b align-middle">Customer Name</th>
+              <th className="p-3 border-b align-middle">Order Type</th>
+              <th className="p-3 border-b align-middle">Payment Method</th>
+              <th className="p-3 border-b align-middle">Status</th>
+              <th className="p-3 border-b align-middle">Total Amount</th>
+              <th className="p-3 border-b align-middle">Created Date</th>
+              <th className="p-3 border-b align-middle">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -248,12 +252,12 @@ function OrderContent() {
             ) : (
               orders.map((order) => (
                 <tr key={order._id} className="hover:bg-gray-50 text-center">
-                  <td className="p-4 border-b whitespace-nowrap">{order._id.slice(-4)}</td>
-                  <td className="p-4 border-b whitespace-nowrap">
+                  <td className="p-4 border-b whitespace-nowrap align-middle leading-tight">{order._id.slice(-4)}</td>
+                  <td className="p-4 border-b whitespace-nowrap align-middle leading-tight">
                     {order.customerInfo?.name || "Guest"}
                   </td>
                   <td
-                    className={`p-4 border-b whitespace-nowrap capitalize font-semibold ${order.bookingId?.orderType === "dine-in"
+                    className={`p-4 border-b whitespace-nowrap align-middle leading-tight capitalize font-semibold ${order.bookingId?.orderType === "dine-in"
                       ? "text-green-700"
                       : order.bookingId?.orderType === "delivery"
                         ? "text-blue-900"
@@ -265,8 +269,8 @@ function OrderContent() {
                       order.bookingId.orderType.slice(1)
                       : "N/A"}
                   </td>
-                  <td className="p-4 border-b whitespace-nowrap">{order.paymentMethod}</td>
-                  <td className="p-4 border-b whitespace-nowrap">
+                  <td className="p-4 border-b whitespace-nowrap align-middle leading-tight">{order.paymentMethod}</td>
+                  <td className="p-4 border-b whitespace-nowrap align-middle leading-tight">
                     {order.paymentStatus === "Deposited" ? (
                       <select
                         value={order.paymentStatus}
