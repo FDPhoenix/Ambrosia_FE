@@ -3,6 +3,7 @@ import axios from "axios"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts"
 import OrdersList from "../OrdersList"
 import LoadingAnimation from "../LoadingAnimation"
+
 function RevenueContent() {
   const [year, setYear] = useState(new Date().getFullYear())
   const [month, setMonth] = useState(new Date().getMonth() + 1)

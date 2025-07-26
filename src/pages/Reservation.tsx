@@ -13,7 +13,7 @@ import Header from "../components/Header";
 import Contact from "../components/Contact";
 import Footer from "../components/Footer";
 import { BsClock } from "react-icons/bs";
-import styles from '../css/PageCss/ContactPage.module.css'
+import styles from '../css/PageCss/MenuPage.module.css'
 import CartSidebar from '../components/CartSideBar';
 import { toast, ToastContainer } from 'react-toastify';
 

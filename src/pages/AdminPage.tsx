@@ -2,7 +2,6 @@ import { useLocation, useNavigate } from "react-router";
 import AdminHeader from "../components/Admin/AdminHeader";
 import AdminSidebar from "../components/Admin/AdminSidebar";
 import DashboardContent from "../components/Admin/DashboardContent";
-import styles from '../css/AdminCss/AdminPage.module.css';
 import UserContent from "../components/Admin/UserContent";
 import EmployeeContent from "../components/Admin/EmployeeContent";
 import TableContent from "../components/Admin/TableContent";
@@ -104,10 +103,10 @@ function AdminPage() {
 
   return (
     token && decodedToken.roleId == '67ac64afe072694cafa16e76' ? (
-      <div className={styles.pageContainer}>
+      <div className="bg-[#EFF4F8] w-full h-full p-5 flex justify-between">
         <AdminSidebar setShowLogoutModal={setShowLogoutModal}/>
 
-        <div className={styles.rightSide}>
+        <div className="ml-[296px]">
           <AdminHeader title={getTitle()} />
           {getContentComponent()}
           <ToastContainer theme="colored" />
