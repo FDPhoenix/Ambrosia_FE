@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'react-router';
-// import { BiUserPlus } from 'react-icons/bi';
 import UserIcon from '../../assets/user.png';
 import EmployeeIcon from '../../assets/employees.png';
 import DishIcon from '../../assets/dish.png';
