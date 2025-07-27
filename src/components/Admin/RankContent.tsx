@@ -4,6 +4,7 @@ import { FaEdit } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Pagination from "../Pagination";
+import LoadingAnimation from "../LoadingAnimation";
 
 interface Rank {
     _id: string;
@@ -22,6 +23,7 @@ const ManageRank: React.FC = () => {
     const [currentRanks, setCurrentRanks] = useState<Rank[]>([]);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const itemsPerPage = 7;
+    const [loading, setLoading] = useState<boolean>(false);
     const [formData, setFormData] = useState<{
         rankName: string;
         minSpending: number | null;
@@ -49,11 +51,14 @@ const ManageRank: React.FC = () => {
 
     const fetchRanks = async () => {
         try {
+            setLoading(true);
             const response = await axios.get<Rank[]>(`${backendApiUrl}/rank/all`);
             setRanks(response.data);
         } catch (error: any) {
             console.error("Error fetching ranks", error);
             toast.error("Error loading ranks. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -100,6 +105,7 @@ const ManageRank: React.FC = () => {
         }
 
         try {
+            setLoading(true);
             const dataToSend = {
                 ...formData,
                 minSpending: formData.minSpending === null ? 0 : formData.minSpending
@@ -116,7 +122,6 @@ const ManageRank: React.FC = () => {
             } else {
                 const response = await axios.post(`${backendApiUrl}/rank/add`, dataToSend);
                 toast.success("Rank created successfully!");
-
                 setRanks([...ranks, response.data.rank]);
             }
             setModalOpen(false);
@@ -127,11 +132,20 @@ const ManageRank: React.FC = () => {
             } else {
                 toast.error("An error occurred while saving the rank");
             }
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className=" relative w-[1200px] h-[567px] max-w-[1210px] bg-white p-6 rounded-[15px] shadow-md flex flex-col items-center justify-start">
+        <div className="relative w-[1200px] h-[567px] max-w-[1210px] bg-white p-6 rounded-[15px] shadow-md flex flex-col items-center justify-start">
+            {loading && (
+                <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
+                    <LoadingAnimation />
+                </div>
+            )}
+
+
             <div className="w-full flex justify-between items-center mb-4">
                 <h3 className="text-xl font-semibold text-[#2e2422]">List of Rank</h3>
                 <button
@@ -161,7 +175,7 @@ const ManageRank: React.FC = () => {
                             <td className="p-3 border-b text-center text-[#2e2422]">{rank.benefits}</td>
                             <td className="p-3 border-b text-center">
                                 <FaEdit
-                                    className="text-[20px] cursor-pointer transition-transform hover:scale-110 hover:text-[#F0924C]"
+                                    className="ml-7 text-[20px] cursor-pointer transition-transform hover:scale-110 hover:text-[#F0924C]"
                                     onClick={() => openModal(rank)}
                                 />
                             </td>
