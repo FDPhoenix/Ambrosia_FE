@@ -38,7 +38,7 @@ function IngredientContent() {
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || '${backendApiUrl}';
   const [currentIngredients, setCurrentIngredients] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
-    const itemsPerPage = 4;
+    const itemsPerPage = 6;
     const handlePageChange = useCallback((paginatedDishes: any[], page: number) => {
       setCurrentIngredients(paginatedDishes);
       setCurrentPage(page);
