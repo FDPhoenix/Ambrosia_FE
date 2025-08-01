@@ -165,44 +165,48 @@ function UserContent() {
 
   const handleAddOrUpdateUser = async () => {
     if (!editingUser) return;
-    const confirmChange = window.confirm("Do you want to change user information?");
-    if (confirmChange) {
-      const formData = new FormData();
-      if (newUser.fullname !== editingUser.fullname) formData.append('fullname', newUser.fullname);
-      if (newUser.email !== editingUser.email) formData.append('email', newUser.email);
-      if (newUser.phoneNumber !== editingUser.phoneNumber) formData.append('phoneNumber', newUser.phoneNumber);
-      if (newUser.file) {
-        formData.append('profileImage', newUser.file);
+  
+    const formData = new FormData();
+    if (newUser.fullname !== editingUser.fullname) formData.append('fullname', newUser.fullname);
+    if (newUser.email !== editingUser.email) formData.append('email', newUser.email);
+    if (newUser.phoneNumber !== editingUser.phoneNumber) formData.append('phoneNumber', newUser.phoneNumber);
+    if (newUser.file) {
+      formData.append('profileImage', newUser.file);
+    }
+  
+    if (formData.entries().next().done) {
+      toast.info("No changes to update.");
+      return;
+    }
+  
+    try {
+      const response = await fetch(`${backendApiUrl}/user/edit/${editingUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to update user: ${response.status}`);
       }
-      if (formData.entries().next().done) {
-        alert("No changes to update.");
-        return;
+  
+      const data = await response.json();
+      if (data.success) {
+        toast.success("User updated successfully!");
+        setShowForm(false);
+        fetchUsers();
+      } else {
+        toast.error(data.message);
       }
-      try {
-        const response = await fetch(`${backendApiUrl}/user/edit/${editingUser.id}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-          body: formData,
-        });
-        if (!response.ok) {
-          throw new Error(`Failed to update user: ${response.status}`);
-        }
-        const data = await response.json();
-        if (data.success) {
-          toast.success("User updated successfully!");
-          setShowForm(false);
-          fetchUsers();
-        } else {
-          alert(data.message);
-        }
-      } catch (error) {
-        console.error("Error saving user:", error);
-        alert("There was an error updating the user. Please try again.");
-      }
+    } catch (error) {
+      console.error("Error saving user:", error);
+      toast.error("There was an error updating the user. Please try again.");
     }
   };
+  
+  
   useEffect(() => {
     const totalPages = Math.ceil(users.length / itemsPerPage);
     if (currentPage > totalPages && totalPages > 0) {
