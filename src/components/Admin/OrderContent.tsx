@@ -187,7 +187,7 @@ function OrderContent() {
   };
 
   return (
-    <div className="relative bg-white rounded-[15px] shadow-md p-6 overflow-hidden min-h-[80vh]">
+    <div>
       {loading && (
         <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
           <LoadingAnimation />
