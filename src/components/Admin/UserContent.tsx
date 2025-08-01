@@ -28,13 +28,6 @@ interface NewUser {
   file?: File;
 }
 
-interface ConfirmData {
-  isVisible: boolean;
-  message: string;
-  onConfirm: (() => void) | null;
-  onCancel: (() => void) | null;
-}
-
 function UserContent() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
