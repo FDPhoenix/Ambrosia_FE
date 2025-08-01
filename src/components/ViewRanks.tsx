@@ -29,7 +29,7 @@ const ViewRanks: React.FC = () => {
     const [totalSpending, setTotalSpending] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [showBanner, setShowBanner] = useState<boolean>(false);
+
     const [voucher, setVoucher] = useState<VoucherData | string>("No available voucher");
 
     const fetchUserRank = async () => {
@@ -55,7 +55,7 @@ const ViewRanks: React.FC = () => {
                 setVoucher(data.voucher);
 
                 if (data.rank && data.rank.rankName !== previousRank) {
-                    setShowBanner(true);
+
                     Cookies.set("previousRank", data.rank.rankName);
                 }
             } else {
