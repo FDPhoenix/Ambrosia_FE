@@ -170,21 +170,7 @@ function OrderContent() {
     }
   };
 
-  const getContainerClass = () => {
-    if (location.pathname.startsWith("/staff")) {
-      return "mx-auto bg-white px-7 pt-6 pb-4 rounded-lg shadow-md flex flex-col min-h-[567px]";
-    }
-    switch (location.pathname) {
-      case "/manage/order":
-        return "relative w-[1200px] h-[567px] p-6 max-w-[1210px] bg-white rounded-2xl shadow-md";
-      case "/staff/order":
-        return "mx-auto bg-white p-6 rounded-lg shadow-md flex flex-col min-h-[567px]";
-      case "/chef/order":
-        return "mx-auto bg-white p-6 rounded-lg shadow-md flex flex-col min-h-[567px]";
-      default:
-        return "bg-white p-5 rounded-2xl shadow-md";
-    }
-  };
+
 
   return (
     <div className="relative bg-white rounded-[15px] shadow-md p-6 overflow-hidden min-h-[80vh]">
