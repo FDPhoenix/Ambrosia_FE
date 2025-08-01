@@ -303,7 +303,6 @@ function UserContent() {
               </button>
             </div>
             <div className="flex flex-col md:flex-row gap-7">
-              {/* Click toàn bộ khung là chọn ảnh */}
               <div className="flex items-center justify-center md:block md:w-[180px] w-full">
                 <label className="w-[180px] h-[180px] flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 cursor-pointer relative transition text-center">
                   {newUser.image ? (
