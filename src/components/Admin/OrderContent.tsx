@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { FaInfoCircle } from "react-icons/fa";
-import { useLocation } from "react-router";
 import LoadingAnimation from "../LoadingAnimation";
 
 interface CustomerInfo {
@@ -74,7 +73,6 @@ function OrderContent() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const location = useLocation();
   const limit = 6;
   const [filters, setFilters] = useState({
     dateRange: "",
