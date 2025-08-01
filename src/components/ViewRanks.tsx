@@ -76,8 +76,8 @@ const ViewRanks: React.FC = () => {
     if (error) return <div className="text-center text-red-600">Error: {error}</div>;
 
     return (
-        <div className="w-full bg-[#f8f5f2] rounded-lg p-4 md:p-6">
-            {showBanner && rank && (
+        <div className="w-full bg-[#fff] rounded-lg p-2">
+            {/* {showBanner && rank && (
                 <div className="bg-yellow-300 text-[#333] p-3 text-center rounded-md mb-4 font-bold text-sm relative">
                     🎉 Congratulations! You have just reached the rank of <strong>{rank.rankName}</strong> 🎉
                     <button
@@ -101,39 +101,39 @@ const ViewRanks: React.FC = () => {
 
                     </button>
                 </div>
-            )}
+            )} */}
 
+            {/* 
+            <h2 className="text-center text-[#5a3e2b] text-xl font-bold mb-4">Your Rank</h2> */}
 
-            <h2 className="text-center text-[#5a3e2b] text-xl font-bold mb-4">Your Rank</h2>
-
-            <div className="flex flex-col gap-3 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <div className="flex justify-between border-b border-gray-100 pb-2">
-                    <span className="font-semibold text-[#5a3e2b] text-sm">Rank Name:</span>
-                    <span className="text-right text-sm text-gray-800">{rank ? rank.rankName : "No Rank"}</span>
-                </div>
-                <div className="flex justify-between border-b border-gray-100 pb-2">
-                    <span className="font-semibold text-[#5a3e2b] text-sm">Min Spending:</span>
-                    <span className="text-right text-sm text-gray-800">{rank ? rank.minSpending : "N/A"}</span>
-                </div>
-                <div className="flex justify-between border-b border-gray-100 pb-2">
+            {/* <div className="flex flex-col gap-3  rounded-lg border  shadow-sm"> */}
+            <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="font-semibold text-[#5a3e2b] text-sm">Rank Name:</span>
+                <span className="text-right text-sm text-gray-800">{rank ? rank.rankName : "No Rank"}</span>
+            </div>
+            <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="font-semibold text-[#5a3e2b] text-sm">Min Spending:</span>
+                <span className="text-right text-sm text-gray-800">{rank ? rank.minSpending : "N/A"}</span>
+            </div>
+            {/* <div className="flex justify-between border-b border-gray-100 pb-2">
                     <span className="font-semibold text-[#5a3e2b] text-sm">Benefits:</span>
                     <span className="text-right text-sm text-gray-800">{rank?.benefits || "None"}</span>
-                </div>
-                <div className="flex justify-between border-b border-gray-100 pb-2">
-                    <span className="font-semibold text-[#5a3e2b] text-sm">Total Spending:</span>
-                    <span className="text-right text-sm text-gray-800">{totalSpending.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                    <span className="font-semibold text-[#5a3e2b] text-sm">Voucher:</span>
-                    <span className="text-right text-sm text-gray-800">
-                        {typeof voucher === "string"
-                            ? voucher
-                            : `${voucher.code}: -${voucher.discount}%`}
-
-                    </span>
+                </div> */}
+            <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="font-semibold text-[#5a3e2b] text-sm">Total Spending:</span>
+                <span className="text-right text-sm text-gray-800">{totalSpending.toLocaleString()}</span>
+            </div>
+            <div className="flex-col">
+                <div className="font-semibold text-[#5a3e2b] text-sm">Voucher:</div>
+                <div className="text-[13px] text-gray-800">
+                    {typeof voucher === "string"
+                        ? voucher
+                        : `${voucher.code}(-${voucher.discount}%)`}
                 </div>
             </div>
+
         </div>
+        // </div>
     );
 };
 
