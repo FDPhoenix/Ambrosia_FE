@@ -187,7 +187,7 @@ function OrderContent() {
   };
 
   return (
-    <div>
+    <div >
       {loading && (
         <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
           <LoadingAnimation />
