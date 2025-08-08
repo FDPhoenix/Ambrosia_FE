@@ -2,7 +2,7 @@ import React from "react";
 
 interface ModalProps {
   isOpen: boolean;
-  message: string;
+  message: React.ReactNode; 
   onConfirm: () => void;
   onCancel: () => void;
 }
