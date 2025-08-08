@@ -77,7 +77,10 @@ const BookingPage = () => {
 
     const [form, setForm] = useState({ name: "", phone: "", email: "" });
     const [errors, setErrors] = useState({ name: "", phone: "", email: "" });
-    const [selectedDate, setSelectedDate] = useState("");
+    const [selectedDate, setSelectedDate] = useState(() => {
+        const today = new Date();
+        return today.toISOString().split("T")[0];
+    });
     const [selectedTime, setSelectedTime] = useState("");
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [availableTables, setAvailableTables] = useState<Table[]>([]);
