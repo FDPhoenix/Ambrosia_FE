@@ -6,7 +6,7 @@ import LinkRoute from "../components/LinkRoute"
 import SearchResult from "../components/SearchResult"
 import { useState } from "react"
 import CartSidebar from "../components/CartSideBar"
-import styles from '../css/PageCss/ContactPage.module.css'
+import styles from '../css/PageCss/MenuPage.module.css'
 import { ToastContainer } from "react-toastify"
 
 function SearchPage() {

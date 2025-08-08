@@ -5,7 +5,7 @@ import TermsOfService from '../components/TermsOfService'
 import Contact from '../components/Contact'
 import Footer from '../components/Footer'
 import CartSidebar from '../components/CartSideBar'
-import styles from '../css/PageCss/ContactPage.module.css'
+import styles from '../css/PageCss/MenuPage.module.css'
 
 
 function TermsOfServicePage() {

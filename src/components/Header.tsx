@@ -470,7 +470,7 @@ function Header({ fixed = false, inheritBackground = false, onCartToggle }: Head
           >
             <FaCartShopping className={`w-6 h-6 hover:scale-110 ${inheritBackground && !isScrolled
               ? "text-white"
-              : "text-black hover:scale-125 transition"
+              : "text-black hover:scale-[1.15] transition"
               }`} />
           </button>
           {userToken ? (

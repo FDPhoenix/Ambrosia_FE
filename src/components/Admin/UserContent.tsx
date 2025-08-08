@@ -4,6 +4,8 @@ import StatusBadge from './StatusBadge';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import Pagination from '../Pagination';
+import LoadingAnimation from '../LoadingAnimation';
+import Modal from '../Modal';
 // Định nghĩa các interface cần thiết
 interface User {
   id: string;
@@ -26,40 +28,9 @@ interface NewUser {
   file?: File;
 }
 
-interface ConfirmData {
-  isVisible: boolean;
-  message: string;
-  onConfirm: (() => void) | null;
-  onCancel: (() => void) | null;
-}
-
-// Khai báo kiểu cho ConfirmModal
-const ConfirmModal = ({ message, onConfirm, onCancel }: { message: string; onConfirm: (() => void) | null; onCancel: (() => void) | null }) => {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-      <div className="bg-white p-8 rounded-xl shadow-xl max-w-[500px] w-[90%] text-center">
-        <p className="text-lg text-gray-800 mb-5">{message}</p>
-        <div className="flex justify-center gap-5">
-          <button
-            onClick={onConfirm || undefined}
-            className="py-3 px-8 text-base font-medium bg-green-600 text-white rounded-md transition-colors duration-300 hover:bg-green-700"
-          >
-            OK
-          </button>
-          <button
-            onClick={onCancel || undefined}
-            className="py-3 px-8 text-base font-medium bg-red-600 text-white rounded-md transition-colors duration-300 hover:bg-red-700"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 function UserContent() {
   const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
@@ -81,17 +52,15 @@ function UserContent() {
     file: undefined,
   });
 
-  const [confirmData, setConfirmData] = useState<ConfirmData>({
-    isVisible: false,
-    message: '',
-    onConfirm: null,
-    onCancel: null,
-  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalOnConfirm, setModalOnConfirm] = useState<(() => void) | null>(null);
 
   const hasTooManySpaces = (str: string) => /\s{2,}/.test(str);
 
   const fetchUsers = async () => {
     try {
+      setLoading(true);
       const response = await fetch(`${backendApiUrl}/user/all`, {
         method: 'GET',
         headers: {
@@ -107,6 +76,8 @@ function UserContent() {
       }
     } catch (error) {
       console.error("Error fetching users:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -135,38 +106,33 @@ function UserContent() {
       ? "Do you want to Ban this user?"
       : "Do you want to Unban this user?";
 
-    setConfirmData({
-      isVisible: true,
-      message: confirmMessage || '',
-      onConfirm: async () => {
-        setConfirmData(prev => ({ ...prev, isVisible: false }));
-        try {
-          const response = await fetch(`${backendApiUrl}/user/ban/${id}`, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${Cookies.get('token')}`,
-              'Content-Type': 'application/json',
-            },
-          });
+    setModalMessage(confirmMessage || '');
+    setModalOnConfirm(() => async () => {
+      setIsModalOpen(false);
+      try {
+        const response = await fetch(`${backendApiUrl}/user/ban/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${Cookies.get('token')}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
-          const data = await response.json();
-          if (response.ok) {
-            toast.success(data.message);
-            fetchUsers();
-            setUsers(users.map((user) =>
-              user.id === id ? { ...user, status: user.status === "Ban" ? "UnBan" : "Ban" } : user
-            ));
-          } else {
-            alert(data.message);
-          }
-        } catch (error) {
-          console.error("Error toggling user status:", error);
+        const data = await response.json();
+        if (response.ok) {
+          toast.success(data.message);
+          fetchUsers();
+          setUsers(users.map((user) =>
+            user.id === id ? { ...user, status: user.status === "Ban" ? "UnBan" : "Ban" } : user
+          ));
+        } else {
+          alert(data.message);
         }
-      },
-      onCancel: () => {
-        setConfirmData(prev => ({ ...prev, isVisible: false }));
+      } catch (error) {
+        console.error("Error toggling user status:", error);
       }
     });
+    setIsModalOpen(true);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,44 +158,48 @@ function UserContent() {
 
   const handleAddOrUpdateUser = async () => {
     if (!editingUser) return;
-    const confirmChange = window.confirm("Do you want to change user information?");
-    if (confirmChange) {
-      const formData = new FormData();
-      if (newUser.fullname !== editingUser.fullname) formData.append('fullname', newUser.fullname);
-      if (newUser.email !== editingUser.email) formData.append('email', newUser.email);
-      if (newUser.phoneNumber !== editingUser.phoneNumber) formData.append('phoneNumber', newUser.phoneNumber);
-      if (newUser.file) {
-        formData.append('profileImage', newUser.file);
+  
+    const formData = new FormData();
+    if (newUser.fullname !== editingUser.fullname) formData.append('fullname', newUser.fullname);
+    if (newUser.email !== editingUser.email) formData.append('email', newUser.email);
+    if (newUser.phoneNumber !== editingUser.phoneNumber) formData.append('phoneNumber', newUser.phoneNumber);
+    if (newUser.file) {
+      formData.append('profileImage', newUser.file);
+    }
+  
+    if (formData.entries().next().done) {
+      toast.info("No changes to update.");
+      return;
+    }
+  
+    try {
+      const response = await fetch(`${backendApiUrl}/user/edit/${editingUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to update user: ${response.status}`);
       }
-      if (formData.entries().next().done) {
-        alert("No changes to update.");
-        return;
+  
+      const data = await response.json();
+      if (data.success) {
+        toast.success("User updated successfully!");
+        setShowForm(false);
+        fetchUsers();
+      } else {
+        toast.error(data.message);
       }
-      try {
-        const response = await fetch(`${backendApiUrl}/user/edit/${editingUser.id}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-          body: formData,
-        });
-        if (!response.ok) {
-          throw new Error(`Failed to update user: ${response.status}`);
-        }
-        const data = await response.json();
-        if (data.success) {
-          toast.success("User updated successfully!");
-          setShowForm(false);
-          fetchUsers();
-        } else {
-          alert(data.message);
-        }
-      } catch (error) {
-        console.error("Error saving user:", error);
-        alert("There was an error updating the user. Please try again.");
-      }
+    } catch (error) {
+      console.error("Error saving user:", error);
+      toast.error("There was an error updating the user. Please try again.");
     }
   };
+  
+  
   useEffect(() => {
     const totalPages = Math.ceil(users.length / itemsPerPage);
     if (currentPage > totalPages && totalPages > 0) {
@@ -251,56 +221,62 @@ function UserContent() {
       </div>
 
       <div className="max-h-[430px] overflow-y-auto pr-2.5">
-        <table className="w-full border-collapse text-left">
-          <thead>
-            <tr>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">No</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Image</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Full Name</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Email</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Phone Number</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Status</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Rank</th>
-              <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentUsers.map((user: any, index) => (
-              <tr key={user.id}>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
-                  <img src={user.profileImage || "/placeholder.svg"} alt={user.fullname} className="w-[70px] h-[70px] rounded-lg object-cover mx-auto" />
-                </td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.fullname}</td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.email}</td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.phoneNumber}</td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
-                  <div className="w-[106px] mx-auto">
-                    <StatusBadge status={user.isActive} caseTrue={"Active"} caseFalse={"Banned"} />
-                  </div>
-                </td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.rank.rankName}</td>
-                <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
-                  <div className="flex justify-center">
-                    <button
-                      className="border-none bg-transparent text-xl cursor-pointer mx-2 transition-all duration-300 hover:scale-[1.3] hover:text-[#f0924c]"
-                      style={{ marginRight: '10px' }}
-                      onClick={() => handleEditUser(user)}
-                    >
-                      <FaUserEdit />
-                    </button>
-                    <button
-                      className="border-none bg-transparent text-xl cursor-pointer mx-2 transition-all duration-300 hover:scale-[1.3] hover:text-[#f0924c]"
-                      onClick={() => handleHideUser(user.id)}
-                    >
-                      {user.isActive === true ? <FaLock /> : <FaUnlock />}
-                    </button>
-                  </div>
-                </td>
+        {loading ? (
+          <div className="flex justify-center items-center h-[400px]">
+            <LoadingAnimation />
+          </div>
+        ) : (
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">No</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Image</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Full Name</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Email</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Phone Number</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Status</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Rank</th>
+                <th className="p-3.5 border-b border-gray-200 bg-gray-100 font-bold text-center text-base text-gray-800">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentUsers.map((user: any, index) => (
+                <tr key={user.id}>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
+                    <img src={user.profileImage || "/placeholder.svg"} alt={user.fullname} className="w-[70px] h-[70px] rounded-lg object-cover mx-auto" />
+                  </td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.fullname}</td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.email}</td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.phoneNumber}</td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
+                    <div className="w-[106px] mx-auto">
+                      <StatusBadge status={user.isActive} caseTrue={"Active"} caseFalse={"Banned"} />
+                    </div>
+                  </td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">{user.rank.rankName}</td>
+                  <td className="p-3.5 border-b border-gray-200 text-center text-base text-gray-800">
+                    <div className="flex justify-center">
+                      <button
+                        className="border-none bg-transparent text-xl cursor-pointer mx-2 transition-all duration-300 hover:scale-[1.3] hover:text-[#f0924c]"
+                        style={{ marginRight: '10px' }}
+                        onClick={() => handleEditUser(user)}
+                      >
+                        <FaUserEdit />
+                      </button>
+                      <button
+                        className="border-none bg-transparent text-xl cursor-pointer mx-2 transition-all duration-300 hover:scale-[1.3] hover:text-[#f0924c]"
+                        onClick={() => handleHideUser(user.id)}
+                      >
+                        {user.isActive === true ? <FaLock /> : <FaUnlock />}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       <Pagination items={users} itemsPerPage={itemsPerPage} onPageChange={handlePageChange} />
@@ -327,7 +303,6 @@ function UserContent() {
               </button>
             </div>
             <div className="flex flex-col md:flex-row gap-7">
-              {/* Click toàn bộ khung là chọn ảnh */}
               <div className="flex items-center justify-center md:block md:w-[180px] w-full">
                 <label className="w-[180px] h-[180px] flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 cursor-pointer relative transition text-center">
                   {newUser.image ? (
@@ -448,11 +423,12 @@ function UserContent() {
         </div>
       )}
 
-      {confirmData.isVisible && (
-        <ConfirmModal
-          message={confirmData.message}
-          onConfirm={confirmData.onConfirm}
-          onCancel={confirmData.onCancel}
+      {isModalOpen && modalOnConfirm && (
+        <Modal
+          isOpen={isModalOpen}
+          message={modalMessage}
+          onConfirm={modalOnConfirm}
+          onCancel={() => setIsModalOpen(false)}
         />
       )}
     </div>

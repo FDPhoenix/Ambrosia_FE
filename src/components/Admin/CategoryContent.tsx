@@ -6,6 +6,7 @@ import StatusBadge from "./StatusBadge"
 import { toast } from "react-toastify"
 import Pagination from "../Pagination"
 import Cookies from 'js-cookie';
+import LoadingAnimation from "../LoadingAnimation"
 interface Category {
   _id: string
   name: string
@@ -26,6 +27,7 @@ const CategoryContent: React.FC = () => {
   const [currentCategories, setCurrentCategories] = useState<Category[]>([])
   const [currentPage, setCurrentPage] = useState<number>(1)
   const itemsPerPage = 6
+  const [loading, setLoading] = useState<boolean>(false)
 
   const resetForm = () => {
     setName("")
@@ -39,6 +41,7 @@ const CategoryContent: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
+      setLoading(true)
       const res = await fetch(`${API_BASE}/admin/all`, {
         method: "GET",
         credentials: "include",
@@ -56,6 +59,8 @@ const CategoryContent: React.FC = () => {
     } catch (error) {
       console.error("Error fetching categories:", error)
       toast.error("Failed to fetch category!")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -181,7 +186,7 @@ const CategoryContent: React.FC = () => {
   return (
     <div className="relative w-[1200px] h-[567px] p-[20px_30px] max-w-[1210px] bg-white rounded-[15px] shadow-[0_4px_8px_rgba(0,0,0,0.1)]">
       <div className="flex justify-between">
-        <h3 className="text-xl font-bold my-auto">List of category</h3>
+        <h3 className="text-xl font-bold my-auto">List of Category</h3>
         <button
           className="font-medium border border-[#ccc] py-[7px] px-[12px] rounded-md cursor-pointer transition-colors duration-200 bg-[rgb(240,240,240)] hover:bg-[#F09C42] text-black"
           onClick={() => setModalIsOpen(true)}
@@ -191,43 +196,49 @@ const CategoryContent: React.FC = () => {
       </div>
 
       <div className="mt-5 max-h-[440px] overflow-y-auto">
-        <table className="w-full border-collapse">
-          <thead className="bg-[#f4f4f4]">
-            <tr>
-              <th className="p-[14px] text-center border-b border-[#ddd] font-bold">No</th>
-              <th className="p-[14px] text-center border-b border-[#ddd] font-bold">Name</th>
-              <th className="p-[14px] text-center border-b border-[#ddd] font-bold">Description</th>
-              <th className="p-[14px] text-center border-b border-[#ddd] font-bold">Status</th>
-              <th className="p-[14px] text-center border-b border-[#ddd] font-bold">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentCategories.map((category, index) => (
-              <tr key={category._id} className="last:border-b-0">
-                <td className="p-[14px] text-center border-b border-[#ddd]">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                <td className="p-[14px] text-center border-b border-[#ddd]">{category.name}</td>
-                <td className="p-[14px] text-center border-b border-[#ddd]">{category.description || "-"}</td>
-                <td className="p-[14px] text-center border-b border-[#ddd]">
-                  <StatusBadge status={!category.isHidden} caseTrue="Available" caseFalse="Unavailable" />
-                </td>
-                <td className="p-[14px] text-center border-b border-[#ddd]">
-                  <button
-                    className="bg-transparent border-none cursor-pointer mr-5 text-xl text-black transition-transform duration-200 hover:scale-[1.2] hover:bg-[#F09C42] rounded-md p-1.5"
-                    onClick={() => setEditCategory(category)}
-                  >
-                    <FaEdit />
-                  </button>
-                  <button
-                    className="bg-transparent border-none cursor-pointer text-xl text-black transition-transform duration-200 hover:scale-[1.2] hover:bg-[#F09C42] rounded-md p-1.5"
-                    onClick={() => handleToggleHide(category._id)}
-                  >
-                    {category.isHidden ? <FaEye title='Show'/> : <FaEyeSlash title='Hide'/>}
-                  </button>
-                </td>
+        {loading ? (
+          <div className='w-full h-[400px] flex justify-center items-center'>
+          <LoadingAnimation />
+        </div>
+        ) : (
+          <table className="w-full border-collapse">
+            <thead className="bg-[#f4f4f4]">
+              <tr>
+                <th className="p-[14px] text-center border-b border-[#ddd] font-bold">No</th>
+                <th className="p-[14px] text-center border-b border-[#ddd] font-bold">Name</th>
+                <th className="p-[14px] text-center border-b border-[#ddd] font-bold">Description</th>
+                <th className="p-[14px] text-center border-b border-[#ddd] font-bold">Status</th>
+                <th className="p-[14px] text-center border-b border-[#ddd] font-bold">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentCategories.map((category, index) => (
+                <tr key={category._id} className="last:border-b-0">
+                  <td className="p-[14px] text-center border-b border-[#ddd]">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                  <td className="p-[14px] text-center border-b border-[#ddd]">{category.name}</td>
+                  <td className="p-[14px] text-center border-b border-[#ddd]">{category.description || "-"}</td>
+                  <td className="p-[14px] text-center border-b border-[#ddd]">
+                    <StatusBadge status={!category.isHidden} caseTrue="Available" caseFalse="Unavailable" />
+                  </td>
+                  <td className="p-[14px] text-center border-b border-[#ddd]">
+                    <button
+                      className="bg-transparent border-none cursor-pointer mr-5 text-xl text-black transition-transform duration-200 hover:scale-[1.2] hover:bg-[#F09C42] rounded-md p-1.5"
+                      onClick={() => setEditCategory(category)}
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      className="bg-transparent border-none cursor-pointer text-xl text-black transition-transform duration-200 hover:scale-[1.2] hover:bg-[#F09C42] rounded-md p-1.5"
+                      onClick={() => handleToggleHide(category._id)}
+                    >
+                      {category.isHidden ? <FaEye title='Show'/> : <FaEyeSlash title='Hide'/>}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       <Pagination items={categories} itemsPerPage={itemsPerPage} onPageChange={handlePageChange} />

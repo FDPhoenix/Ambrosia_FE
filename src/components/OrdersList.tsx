@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { HiX } from "react-icons/hi";
 import { Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
 
 const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'
 
@@ -135,10 +136,10 @@ const OrdersList: React.FC<OrdersListProps> = ({
         name,
         fields: selectedFields,
       });
-      alert("Saved successfully!");
+      toast.success("Saved successfully!");
       loadTemplates();
     } catch (error) {
-      alert("Error!");
+      toast.error("Error!");
     }
   };
 
@@ -150,12 +151,12 @@ const OrdersList: React.FC<OrdersListProps> = ({
       await axios.delete(
         `${backendApiUrl}/api/revenue/deleteTemplate/${name}`
       );
-      alert("Deleted!");
+      toast.success("Deleted!");
       setSelectedTemplate(null);
       await loadTemplates();
       setSelectedFields(allFields.map((f) => f.key));
     } catch (error) {
-      alert("Error!");
+      toast.error("Error!");
     }
   };
 
@@ -192,14 +193,14 @@ const OrdersList: React.FC<OrdersListProps> = ({
       printWindow?.document.write(response.data);
       printWindow?.document.close();
     } catch (error) {
-      alert("Error!");
+      toast.error("Error!");
     }
     setPrinting(false);
   };
   return (
-    <div className="mx-auto w-[90%] max-w-[1200px] my-5">
+    <div className=" max-w-[1200px]">
       <button
-        className="bg-amber-200 hover:bg-amber-400 transition-colors duration-200 py-2 px-3 rounded-lg cursor-pointer"
+        className="bg-[rgb(240,240,240)] hover:bg-[#F09C42] transition-colors duration-200 py-2 px-3 rounded-lg cursor-pointer"
         onClick={goBack}
       >
         Back
@@ -211,19 +212,19 @@ const OrdersList: React.FC<OrdersListProps> = ({
         <table className="w-full border-collapse bg-white rounded-lg overflow-hidden shadow-md mt-5">
           <thead>
             <tr>
-              <th className="bg-amber-200 text-black font-bold p-2.5 border border-gray-300 text-center">
+              <th className="bg-gray-100 text-black font-bold p-2.5 border border-gray-300 text-center">
                 Order ID
               </th>
-              <th className="bg-amber-200 text-black font-bold p-2.5 border border-gray-300 text-center">
+              <th className="bg-gray-100 text-black font-bold p-2.5 border border-gray-300 text-center">
                 Customer
               </th>
-              <th className="bg-amber-200 text-black font-bold p-2.5 border border-gray-300 text-center">
+              <th className="bg-gray-100 text-black font-bold p-2.5 border border-gray-300 text-center">
                 Order Date
               </th>
-              <th className="bg-amber-200 text-black font-bold p-2.5 border border-gray-300 text-center">
+              <th className="bg-gray-100 text-black font-bold p-2.5 border border-gray-300 text-center">
                 Total Amount
               </th>
-              <th className="bg-amber-200 text-black font-bold p-2.5 border border-gray-300 text-center">
+              <th className="bg-gray-100 text-black font-bold p-2.5 border border-gray-300 text-center">
                 Details
               </th>
             </tr>
@@ -235,7 +236,7 @@ const OrdersList: React.FC<OrdersListProps> = ({
                   {order._id}
                 </td>
                 <td className="bg-white p-2.5 border border-gray-300 text-center">
-                  {order.userId?.fullname}
+                  {order.userId?.fullname || 'Guest Dine-in'}
                 </td>
                 <td className="bg-white p-2.5 border border-gray-300 text-center">
                   {new Date(order.createdAt).toLocaleDateString()}
@@ -245,7 +246,7 @@ const OrdersList: React.FC<OrdersListProps> = ({
                 </td>
                 <td className="bg-white p-2.5 border border-gray-300 text-center">
                   <button
-                    className="bg-amber-200 hover:bg-amber-400 transition-colors duration-200 py-2 px-3 rounded-lg"
+                    className="bg-[rgb(240,240,240)] hover:bg-[#F09C42] transition-colors duration-200 py-2 px-3 rounded-lg"
                     onClick={() => fetchOrderDetail(order._id)}
                   >
                     View
@@ -277,7 +278,7 @@ const OrdersList: React.FC<OrdersListProps> = ({
                 <strong>Order ID:</strong> {selectedOrder._id}
               </p>
               <p>
-                <strong>Customer:</strong> {selectedOrder.userId?.fullname}
+                <strong>Customer:</strong> {selectedOrder.userId?.fullname || 'Guest Dine-in'}
               </p>
 
               {allFields.map((field) => {
@@ -337,19 +338,19 @@ const OrdersList: React.FC<OrdersListProps> = ({
             <table className="w-full border-collapse mt-2.5">
               <thead>
                 <tr>
-                  <th className="bg-amber-200 text-black font-bold p-2.5 border border-gray-300 text-center">
+                  <th className="bg-gray-100 text-black font-bold p-2.5 border border-gray-300 text-center">
                     #
                   </th>
-                  <th className="bg-amber-200 text-black font-bold p-2.5 border border-gray-300 text-center">
+                  <th className="bg-gray-100 text-black font-bold p-2.5 border border-gray-300 text-center">
                     Dish
                   </th>
-                  <th className="bg-amber-200 text-black font-bold p-2.5 border border-gray-300 text-center">
+                  <th className="bg-gray-100 text-black font-bold p-2.5 border border-gray-300 text-center">
                     Qty
                   </th>
-                  <th className="bg-amber-200 text-black font-bold p-2.5 border border-gray-300 text-center">
+                  <th className="bg-gray-100 text-black font-bold p-2.5 border border-gray-300 text-center">
                     Unit Price
                   </th>
-                  <th className="bg-amber-200 text-black font-bold p-2.5 border border-gray-300 text-center">
+                  <th className="bg-gray-100 text-black font-bold p-2.5 border border-gray-300 text-center">
                     Subtotal
                   </th>
                 </tr>
@@ -398,13 +399,13 @@ const OrdersList: React.FC<OrdersListProps> = ({
               </div>
 
               <button
-                className="flex-1 bg-amber-200 text-black  hover:bg-amber-400  py-2.5 px-4 rounded-lg text-base transition"
+                className="flex-1 text-black  bg-[rgb(245,204,144)] hover:bg-[#F09C42]  py-2.5 px-4 rounded-lg text-base transition"
                 onClick={handleSaveTemplate}
               >
                 💾 Save template
               </button>
               <button
-                className="flex-1 bg-amber-200 text-black  hover:bg-amber-400 py-2.5 px-4 rounded-lg text-base transition disabled:opacity-50"
+                className="flex-1 text-black bg-[rgb(245,204,144)] hover:bg-[#F09C42] py-2.5 px-4 rounded-lg text-base transition disabled:opacity-50"
                 onClick={handlePrintInvoice}
                 disabled={printing}
               >

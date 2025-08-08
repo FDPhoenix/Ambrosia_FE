@@ -2,7 +2,6 @@ import { useLocation, useNavigate } from "react-router";
 import AdminHeader from "../components/Admin/AdminHeader";
 import AdminSidebar from "../components/Admin/AdminSidebar";
 import DashboardContent from "../components/Admin/DashboardContent";
-import styles from '../css/AdminCss/AdminPage.module.css';
 import UserContent from "../components/Admin/UserContent";
 import EmployeeContent from "../components/Admin/EmployeeContent";
 import TableContent from "../components/Admin/TableContent";
@@ -19,6 +18,7 @@ import { ToastContainer } from "react-toastify";
 import VoucherContent from "../components/Admin/VoucherContent";
 import NewsContent from "../components/Admin/NewsContent";
 import { useState } from "react";
+import TableReservationList from "../components/Staff/TableReservationList";
 
 function AdminPage() {
   const location = useLocation();
@@ -34,6 +34,9 @@ function AdminPage() {
   };
 
   const getTitle = () => {
+    if (location.pathname.startsWith("/manage/reservation")) {
+      return "Reservation Management";
+    }
     switch (location.pathname) {
       case "/manage/user":
         return "User Management";
@@ -65,6 +68,9 @@ function AdminPage() {
   };
 
   const getContentComponent = () => {
+    if (location.pathname.startsWith("/manage/reservation")) {
+      return <TableReservationList />;
+    }
     switch (location.pathname) {
       case "/manage/user":
         return <UserContent />;
@@ -97,10 +103,10 @@ function AdminPage() {
 
   return (
     token && decodedToken.roleId == '67ac64afe072694cafa16e76' ? (
-      <div className={styles.pageContainer}>
+      <div className="bg-[#EFF4F8] w-full h-full p-5 flex justify-between">
         <AdminSidebar setShowLogoutModal={setShowLogoutModal}/>
 
-        <div className={styles.rightSide}>
+        <div className="ml-[296px]">
           <AdminHeader title={getTitle()} />
           {getContentComponent()}
           <ToastContainer theme="colored" />
@@ -109,7 +115,7 @@ function AdminPage() {
         {showLogoutModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-[9999]">
             <div className="bg-white rounded-2xl p-7 w-[360px] max-w-[90%] text-center shadow-2xl animate-fade-in">
-              <h3 className="text-xl font-semibold mb-2 text-gray-900">Confirm Log Out</h3>
+              <h3 className="text-xl font-semibold mb-2 text-gray-900">Logout</h3>
               <p className="text-gray-600 mb-6">Are you sure you want to log out?</p>
               <div className="flex justify-center gap-4">
                 <button

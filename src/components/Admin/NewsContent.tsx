@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import StatusBadge from "./StatusBadge";
+import LoadingAnimation from "../LoadingAnimation";
 
 interface NewsItem {
     _id: string;
@@ -25,6 +26,10 @@ function NewsContent() {
     const [isPublished, setIsPublished] = useState(false);
     const [filterCategory, setFilterCategory] = useState("");
     const [newsToDelete, setNewsToDelete] = useState<NewsItem | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+
 
     useEffect(() => {
         fetchNews();
@@ -32,6 +37,7 @@ function NewsContent() {
 
     const fetchNews = async () => {
         try {
+            setLoading(true);
             let url = `${backendApiUrl}/news/all`;
             if (filterCategory) url += `?category=${filterCategory}`;
             const response = await fetch(url);
@@ -39,6 +45,8 @@ function NewsContent() {
             setNews(data.news);
         } catch (error) {
             console.error("Error fetching news:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -81,6 +89,9 @@ function NewsContent() {
     };
 
     const handleSubmit = async () => {
+        if (isSubmitting) return; // Ngăn submit nhiều lần
+        setIsSubmitting(true);
+
         const method = editingNews ? "PUT" : "POST";
         const url = editingNews
             ? `${backendApiUrl}/news/${editingNews._id}`
@@ -107,11 +118,20 @@ function NewsContent() {
             setModalOpen(false);
         } catch (error) {
             console.error("Error saving news:", error);
+        } finally {
+            setIsSubmitting(false); // Reset trạng thái
         }
     };
 
     return (
-        <div className="w-[1200px] h-[567px] bg-white p-6 rounded-xl shadow-md">
+        <div className="relative w-[1200px] min-h-[567px] bg-white p-6 rounded-xl shadow-md">
+            {loading && (
+                <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
+                    <LoadingAnimation />
+                </div>
+            )}
+
+
             <div className="flex justify-between items-center mb-5">
                 <h3 className="text-xl font-semibold text-gray-800">List of News</h3>
                 <div className="flex items-center gap-3">
@@ -128,7 +148,7 @@ function NewsContent() {
                     </select>
                     <button
                         onClick={openAddModal}
-                        className="bg-[#f0924c] text-white px-4 py-2 rounded hover:opacity-90 transition"
+                        className="px-4 py-[7px] text-sm rounded border border-gray-300 bg-[#f0f0f0] hover:bg-[#F0924C] hover:text-white transition duration-200 shadow-sm"
                     >
                         Add new
                     </button>
@@ -200,13 +220,13 @@ function NewsContent() {
                         </h3>
                         <input
                             type="text"
-                            placeholder="Updated News Title"
+                            placeholder={editingNews ? "Updated News Title" : "Enter News Title"}
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             className="w-full mb-3 px-3 py-2 border rounded text-sm"
                         />
                         <textarea
-                            placeholder="Updated Content"
+                            placeholder={editingNews ? "Updated Content" : "Enter News Content"}
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             className="w-full mb-3 px-3 py-2 border rounded text-sm min-h-[100px]"
@@ -251,10 +271,13 @@ function NewsContent() {
                         <div className="flex justify-center gap-3 mt-4">
                             <button
                                 onClick={handleSubmit}
-                                className="bg-[#f0924c] text-white px-4 py-2 rounded hover:opacity-90 transition"
+                                disabled={isSubmitting}
+                                className={`bg-[#f0924c] text-white px-4 py-2 rounded transition ${isSubmitting ? "opacity-60 cursor-not-allowed" : "hover:opacity-90"
+                                    }`}
                             >
                                 {editingNews ? "Update" : "Add"}
                             </button>
+
                             <button
                                 onClick={() => setModalOpen(false)}
                                 className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition"
@@ -265,6 +288,7 @@ function NewsContent() {
                     </div>
                 </div>
             )}
+
 
             {/* Modal Confirm Delete */}
             {newsToDelete && (
@@ -292,8 +316,10 @@ function NewsContent() {
                     </div>
                 </div>
             )}
+
         </div>
     );
 }
+
 
 export default NewsContent;

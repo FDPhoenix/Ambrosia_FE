@@ -3,6 +3,8 @@ import { FaEdit, FaEye, FaEyeSlash, FaTimes } from 'react-icons/fa';
 import StatusBadge from './StatusBadge';
 import { toast } from 'react-toastify';
 import Pagination from '../Pagination';
+import LoadingAnimation from '../LoadingAnimation';
+
 interface Ingredient {
   _id: string;
   dishId: { _id: string; name: string };
@@ -36,7 +38,7 @@ function IngredientContent() {
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || '${backendApiUrl}';
   const [currentIngredients, setCurrentIngredients] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
-    const itemsPerPage = 4;
+    const itemsPerPage = 6;
     const handlePageChange = useCallback((paginatedDishes: any[], page: number) => {
       setCurrentIngredients(paginatedDishes);
       setCurrentPage(page);
@@ -226,7 +228,9 @@ function IngredientContent() {
   return (
     <div className="relative h-[567px] max-w-8xl mx-auto bg-white p-6 rounded-xl shadow-md">
       {loading ? (
-        <div className="text-center">Loading...</div>
+        <div className="w-full h-full flex justify-center items-center">
+          <LoadingAnimation />
+        </div>
       ) : error ? (
         <div className="text-red-400">{error}</div>
       ) : (

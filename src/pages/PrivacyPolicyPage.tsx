@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import Contact from "../components/Contact";
 import Footer from "../components/Footer";
 import CartSidebar from "../components/CartSideBar";
-import styles from '../css/PageCss/ContactPage.module.css'
+import styles from '../css/PageCss/MenuPage.module.css'
 import LinkRoute from "../components/LinkRoute";
 import PrivacyPolicy from "../components/PrivacyPolicy";
 

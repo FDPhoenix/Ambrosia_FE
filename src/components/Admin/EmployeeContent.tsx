@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import axios from "axios";
-import Modal from "react-modal";
 import { FaUserEdit, FaLock, FaUnlock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import StatusBadge from "./StatusBadge";
 import { AxiosError } from 'axios';
 import Pagination from "../Pagination";
+import LoadingAnimation from '../LoadingAnimation';
+import Modal from "../Modal";
 
 interface Employee {
   _id: string;
@@ -218,7 +219,9 @@ export default function EmployeeContext() {
       {/* List of employees */}
       <div className="max-h-[424px] overflow-y-auto scrollbar-hide px-4">
         {loading ? (
-          <div className="flex items-center justify-center h-[457px] text-gray-500 text-lg">Loading...</div>
+          <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
+            <LoadingAnimation />
+          </div>
         ) : employees.length > 0 ? (
           <table className="table-auto w-full text-center border-collapse">
             <thead className="bg-gray-100 text-base">
@@ -278,198 +281,175 @@ export default function EmployeeContext() {
       {confirmModal && (
         <Modal
           isOpen={true}
-          onRequestClose={() => setConfirmModal(null)}
-          shouldCloseOnOverlayClick={false}
-          className="bg-white p-6 rounded-lg w-full max-w-sm mx-auto outline-none animate-fadeInModal"
-          overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 animate-fadeInOverlay"
-        >
-          <h3 className="text-lg font-semibold mb-4 text-center">
-            {confirmModal.isActive
-              ? "Do you want to Ban this employee?"
-              : "Do you want to Unban this employee?"}
-          </h3>
-          <div className="flex justify-center gap-4 mt-6">
-            <button
-              className="px-4 py-2 rounded bg-[#f0924c] hover:bg-[#d87c3b] text-white"
-              onClick={() => {
-                toggleBanUnban(confirmModal.id, confirmModal.isActive);
-                setConfirmModal(null);
-              }}
-            >
-              Confirm
-            </button>
-            <button
-              className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-black"
-              onClick={() => setConfirmModal(null)}
-            >
-              Cancel
-            </button>
-          </div>
-        </Modal>
+          message={confirmModal.isActive
+            ? "Do you want to Ban this employee?"
+            : "Do you want to Unban this employee?"}
+          onConfirm={() => {
+            toggleBanUnban(confirmModal.id, confirmModal.isActive);
+            setConfirmModal(null);
+          }}
+          onCancel={() => setConfirmModal(null)}
+        />
       )}
 
       {/* Modal Add Employee */}
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={() => setModalIsOpen(false)}
-        shouldCloseOnOverlayClick={false}
-        className="bg-white p-6 rounded-lg w-full max-w-md mx-auto mt-20 outline-none animate-fadeInModal"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 animate-fadeInOverlay"
-      >
-        <h3 className="text-lg font-bold mb-4 text-center text-[23px] ">
-          Add {activeTab === "staff" ? "Staff" : "Chef"}
-        </h3>
-        <div className="space-y-4">
-          <input
-            type="text"
-            placeholder="Full Name"
-            className="w-full border p-2 rounded"
-            value={newEmployee.fullname}
-            onChange={(e) =>
-              setNewEmployee({ ...newEmployee, fullname: e.target.value })
-            }
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full border p-2 rounded"
-            value={newEmployee.email}
-            onChange={(e) =>
-              setNewEmployee({ ...newEmployee, email: e.target.value })
-            }
-          />
-          <input
-            type="text"
-            placeholder="Phone Number"
-            className="w-full border p-2 rounded"
-            value={newEmployee.phoneNumber}
-            onChange={(e) =>
-              setNewEmployee({ ...newEmployee, phoneNumber: e.target.value })
-            }
-          />
+      {modalIsOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md mx-auto mt-20 outline-none animate-fadeInModal">
+            <h3 className="text-lg font-bold mb-4 text-center text-[23px] ">
+              Add {activeTab === "staff" ? "Staff" : "Chef"}
+            </h3>
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Full Name"
+                className="w-full border p-2 rounded"
+                value={newEmployee.fullname}
+                onChange={(e) =>
+                  setNewEmployee({ ...newEmployee, fullname: e.target.value })
+                }
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                className="w-full border p-2 rounded"
+                value={newEmployee.email}
+                onChange={(e) =>
+                  setNewEmployee({ ...newEmployee, email: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="Phone Number"
+                className="w-full border p-2 rounded"
+                value={newEmployee.phoneNumber}
+                onChange={(e) =>
+                  setNewEmployee({ ...newEmployee, phoneNumber: e.target.value })
+                }
+              />
 
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              className="w-full border p-2 rounded pr-10"
-              value={newEmployee.password}
-              onChange={(e) =>
-                setNewEmployee({ ...newEmployee, password: e.target.value })
-              }
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </button>
-          </div>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  className="w-full border p-2 rounded pr-10"
+                  value={newEmployee.password}
+                  onChange={(e) =>
+                    setNewEmployee({ ...newEmployee, password: e.target.value })
+                  }
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
 
-          <div className="relative">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm Password"
-              className="w-full border p-2 rounded pr-10"
-              value={newEmployee.confirmPassword}
-              onChange={(e) =>
-                setNewEmployee({
-                  ...newEmployee,
-                  confirmPassword: e.target.value,
-                })
-              }
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-            </button>
-          </div>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm Password"
+                  className="w-full border p-2 rounded pr-10"
+                  value={newEmployee.confirmPassword}
+                  onChange={(e) =>
+                    setNewEmployee({
+                      ...newEmployee,
+                      confirmPassword: e.target.value,
+                    })
+                  }
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
 
-          <div className="flex gap-4 mt-4">
-            <button
-              className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full transition duration-200"
-              onClick={handleAddEmployee}
-            >
-              Create
-            </button>
-            <button
-              className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full transition duration-200"
-              onClick={() => setModalIsOpen(false)}
-            >
-              Cancel
-            </button>
+              <div className="flex gap-4 mt-4">
+                <button
+                  className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full transition duration-200"
+                  onClick={handleAddEmployee}
+                >
+                  Create
+                </button>
+                <button
+                  className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full transition duration-200"
+                  onClick={() => setModalIsOpen(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </Modal>
+      )}
 
       {/* Modal Edit Employee */}
-      <Modal
-        isOpen={isEditModalOpen}
-        onRequestClose={() => setIsEditModalOpen(false)}
-        shouldCloseOnOverlayClick={false}
-        className="bg-white p-6 rounded-lg w-full max-w-md mx-auto mt-20 outline-none animate-fadeInModal"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 animate-fadeInOverlay"
-      >
-        <h3 className="text-lg font-bold mb-4 text-center text-[23px] ">
-          Edit {activeTab === "staff" ? "Staff" : "Chef"}
-        </h3>
-        <div className="space-y-4">
-          <input
-            type="text"
-            placeholder="Full Name"
-            className="w-full border p-2 rounded"
-            value={editingEmployee?.fullname || ""}
-            onChange={(e) =>
-              setEditingEmployee({
-                ...editingEmployee!,
-                fullname: e.target.value,
-              })
-            }
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full border p-2 rounded"
-            value={editingEmployee?.email || ""}
-            onChange={(e) =>
-              setEditingEmployee({
-                ...editingEmployee!,
-                email: e.target.value,
-              })
-            }
-          />
-          <input
-            type="text"
-            placeholder="Phone Number"
-            className="w-full border p-2 rounded"
-            value={editingEmployee?.phoneNumber || ""}
-            onChange={(e) =>
-              setEditingEmployee({
-                ...editingEmployee!,
-                phoneNumber: e.target.value,
-              })
-            }
-          />
-          <div className="flex gap-4 mt-8">
-            <button
-              className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full"
-              onClick={handleSaveChanges}
-            >
-              Save Changes
-            </button>
-            <button
-              className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full"
-              onClick={() => setIsEditModalOpen(false)}
-            >
-              Cancel
-            </button>
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md mx-auto mt-20 outline-none animate-fadeInModal">
+            <h3 className="text-lg font-bold mb-4 text-center text-[23px] ">
+              Edit {activeTab === "staff" ? "Staff" : "Chef"}
+            </h3>
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Full Name"
+                className="w-full border p-2 rounded"
+                value={editingEmployee?.fullname || ""}
+                onChange={(e) =>
+                  setEditingEmployee({
+                    ...editingEmployee!,
+                    fullname: e.target.value,
+                  })
+                }
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                className="w-full border p-2 rounded"
+                value={editingEmployee?.email || ""}
+                onChange={(e) =>
+                  setEditingEmployee({
+                    ...editingEmployee!,
+                    email: e.target.value,
+                  })
+                }
+              />
+              <input
+                type="text"
+                placeholder="Phone Number"
+                className="w-full border p-2 rounded"
+                value={editingEmployee?.phoneNumber || ""}
+                onChange={(e) =>
+                  setEditingEmployee({
+                    ...editingEmployee!,
+                    phoneNumber: e.target.value,
+                  })
+                }
+              />
+              <div className="flex gap-4 mt-8">
+                <button
+                  className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full"
+                  onClick={handleSaveChanges}
+                >
+                  Save Changes
+                </button>
+                <button
+                  className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full"
+                  onClick={() => setIsEditModalOpen(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </Modal>
+      )}
 
       <Pagination
         key={`${activeTab}-${employees.length}`}

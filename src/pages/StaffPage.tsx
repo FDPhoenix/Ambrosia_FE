@@ -127,7 +127,7 @@ function StaffPage() {
                                         className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-orange-200 transition ${["/staff", "/staff/reservation"].includes(location.pathname) ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
                                     >
                                         <img src={StaffReservation} className="w-6 h-6" alt="Reservation" />
-                                        <span>Reservation Order</span>
+                                        <span>Reservation</span>
                                     </button>
                                 </li>
                                 {[{ path: "/staff/passcode", icon: passcode, label: "Passcode" }, { path: "/staff/order", icon: OrderIcon, label: "Order" }, { path: "/staff/feedback", icon: FeedbackIcon, label: "Feedback" }, { path: "/staff/ingredient", icon: IngredientIcon, label: "Ingredient" }].map(({ path, icon, label }) => (

@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import { FaEdit, FaTimes } from 'react-icons/fa';
 import StatusBadge from './StatusBadge';
 import Pagination from '../Pagination';
+import LoadingAnimation from '../LoadingAnimation';
 
 function VoucherContent() {
   const [voucher, setVoucher] = useState<any[]>([]);
@@ -10,6 +11,7 @@ function VoucherContent() {
   const [showForm, setShowForm] = useState(false);
   const [editVoucher, setEditVoucher] = useState<any | null>(null);
   const [currentVoucher, setCurrentVoucher] = useState<any[]>([]);
+  const [fetching, isFetching] = useState(false);
   const itemsPerPage = 6;
   const [currentPage, setCurrentPage] = useState<number>(1);
   const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
@@ -22,6 +24,8 @@ function VoucherContent() {
   });
 
   const fetchVoucher = () => {
+    isFetching(true); // Bật trạng thái fetching
+
     fetch(`${backendApiUrl}/vouchers`)
       .then((res) => res.json())
       .then((response) => {
@@ -32,9 +36,14 @@ function VoucherContent() {
         }
       })
       .catch((err) => {
-        console.error("Error fetching voucher:", err);
+        console.error('Error fetching voucher:', err);
+        toast.error('Error fetching vouchers!');
+      })
+      .finally(() => {
+        isFetching(false);
       });
-  }
+
+  };
 
   useEffect(() => {
     fetchVoucher();
@@ -121,62 +130,70 @@ function VoucherContent() {
   };
 
   const handlePageChange = useCallback((paginatedVoucher: any[], page: number) => {
-      setCurrentVoucher(paginatedVoucher);
-      setCurrentPage(page);
-    }, []);
+    setCurrentVoucher(paginatedVoucher);
+    setCurrentPage(page);
+  }, []);
 
   return (
     <div className="relative w-[1200px] max-w-[1210px] h-[567px] p-5 bg-white rounded-2xl shadow-md">
-      <div className="flex justify-between mb-4">
-        <h3 className="my-auto text-xl font-semibold">List of Voucher</h3>
-        <button
-          onClick={() => setShowForm(true)}
-          className="py-2 px-3 border border-gray-300 rounded-md hover:bg-[#F0924C] hover:border-[#F0924C] transition-colors duration-200"
-        >
-          Add voucher
-        </button>
-      </div>
+      {fetching ? (
+        <div className='w-full h-[567px] flex justify-center items-center'>
+          <LoadingAnimation />
+        </div>
+      ) : (
+        <div>
+          <div className="flex justify-between mb-4">
+            <h3 className="my-auto text-xl font-semibold">List of Voucher</h3>
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-4 py-[7px] text-sm rounded border border-gray-300 bg-[#f0f0f0] hover:bg-[#F0924C] hover:text-white transition duration-200 shadow-sm"
+            >
+              Add voucher
+            </button>
+          </div>
 
-      <div className="max-h-[475px] overflow-y-auto [&::-webkit-scrollbar]:w-0">
-        <table className="w-full border-collapse text-left">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-4 text-center">No</th>
-              <th className="p-4 text-center">Code</th>
-              <th className="p-4 text-center">Discount (%)</th>
-              <th className="p-4 text-center">Expires Time</th>
-              <th className="p-4 text-center">Status</th>
-              <th className="p-4 text-center">Action</th>
-            </tr>
-          </thead>
+          <div className="max-h-[475px] overflow-y-auto [&::-webkit-scrollbar]:w-0">
+            <table className="w-full border-collapse text-left">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-4 text-center">No</th>
+                  <th className="p-4 text-center">Code</th>
+                  <th className="p-4 text-center">Discount (%)</th>
+                  <th className="p-4 text-center">Expires Time</th>
+                  <th className="p-4 text-center">Status</th>
+                  <th className="p-4 text-center">Action</th>
+                </tr>
+              </thead>
 
-          <tbody>
-            {currentVoucher.map((voucher, index) => (
-              <tr key={voucher._id} className="border-b border-gray-200 last:border-b-0">
-                <td className="p-4 text-center">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                <td className="p-4 text-center">{voucher.code}</td>
-                <td className="p-4 text-center">{voucher.discount}</td>
-                <td className="p-4 text-center">{new Date(voucher.expiresAt).toISOString().split('T')[0]}</td>
-                <td className="p-4 text-center">
-                  <div className="w-[106px] mx-auto">
-                    <StatusBadge status={!voucher.isUsed} caseTrue={"Available"} caseFalse={"Unavailable"} />
-                  </div>
-                </td>
-                <td className="p-4 text-center">
-                  <button
-                    className="text-xl bg-none border-none cursor-pointer mr-2.5 hover:scale-110 hover:text-[#F0924C] transition-transform duration-200"
-                    onClick={() => handleEdit(voucher)}
-                  >
-                    <FaEdit />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              <tbody>
+                {currentVoucher.map((voucher, index) => (
+                  <tr key={voucher._id} className="border-b border-gray-200 last:border-b-0">
+                    <td className="p-4 text-center">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                    <td className="p-4 text-center">{voucher.code}</td>
+                    <td className="p-4 text-center">{voucher.discount}</td>
+                    <td className="p-4 text-center">{new Date(voucher.expiresAt).toISOString().split('T')[0]}</td>
+                    <td className="p-4 text-center">
+                      <div className="w-[106px] mx-auto">
+                        <StatusBadge status={!voucher.isUsed} caseTrue={"Available"} caseFalse={"Unavailable"} />
+                      </div>
+                    </td>
+                    <td className="p-4 text-center">
+                      <button
+                        className="text-xl bg-none border-none cursor-pointer mr-2.5 hover:scale-110 hover:text-[#F0924C] transition-transform duration-200"
+                        onClick={() => handleEdit(voucher)}
+                      >
+                        <FaEdit />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-      <Pagination items={voucher} itemsPerPage={itemsPerPage} onPageChange={handlePageChange}/>
+          <Pagination items={voucher} itemsPerPage={itemsPerPage} onPageChange={handlePageChange} />
+        </div>
+      )}
 
       {showForm && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center">
@@ -236,6 +253,7 @@ function VoucherContent() {
                     id="expiresAt"
                     value={formData.expiresAt}
                     onChange={handleInputChange}
+                    min={new Date().toISOString().split("T")[0]}
                     className="w-full p-3 border border-gray-300 rounded-md mt-1 mb-4"
                   />
 

@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import Modal from "react-modal";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import Pagination from "../Pagination";
+import LoadingAnimation from "../LoadingAnimation";
+import Modal from "../Modal";
 
 interface Table {
   tableNumber: string;
@@ -25,6 +26,7 @@ const TableContent: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = useState<{ tableNumber: string | null }>({ tableNumber: null });
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [currentTables, setCurrentTables] = useState<Table[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const itemsPerPage = 5;
   useEffect(() => {
     const sorted = [...tables].sort((a, b) => {
@@ -62,12 +64,15 @@ const TableContent: React.FC = () => {
 
   const fetchTables = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(`${backendApiUrl}/api/tables`);
       if (response.data.success) {
         setTables(response.data.tables);
       }
     } catch (error) {
       console.error("Error fetching tables:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -104,8 +109,21 @@ const TableContent: React.FC = () => {
       return toast.warn("Please fill in all required fields!");
     }
 
-    if (customTable && (customTable.length < 1 || customTable.length > 10)) {
-      return toast.error("Table name must be between 1 and 10 characters!");
+    const isValidFormat = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+$/.test(finalTableNumber);
+    if (!isValidFormat) {
+      return toast.error("Table name must contain at least one letter and one number, with no special characters.");
+    }
+
+    if (finalTableNumber.length > 10) {
+      return toast.error("Table name must not exceed 10 characters!");
+    }
+
+    const isDuplicate = tables.some(
+      (t) => t.tableNumber.trim().toLowerCase() === finalTableNumber.toLowerCase()
+    );
+    if (isDuplicate) {
+      toast.error("Table name already exists!");
+      return;
     }
 
     try {
@@ -189,303 +207,300 @@ const TableContent: React.FC = () => {
       </div>
 
       <div className="max-h-[425px] overflow-y-auto scrollbar-hide">
-        <table className="w-full border-collapse text-center">
-          <thead className="bg-gray-100 font-bold">
-            <tr>
-              <th className="p-5">No</th>
-              <th className="p-5 cursor-pointer" onClick={() => handleSort("tableNumber")}>Table Name </th>
-              <th className="p-5 cursor-pointer" onClick={() => handleSort("capacity")}>Number of seats </th>
-              <th className="p-5">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentTables.map((table, index) => (
-              <tr key={table.tableNumber} className="hover:bg-[rgba(186,163,146,0.205)] border-b">
-                <td className="p-5">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                <td className="p-5">{table.tableNumber}</td>
-                <td className="p-5">{table.capacity}</td>
-                <td className="py-6 px-5">
-                  <div className="flex justify-center items-center gap-5 text-xl text-gray-700">
-                    <button onClick={() => { setSelectedTable(table); setIsUpdateModalOpen(true); }} title="Edit">
-                      <FaEdit className="transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]" />
-                    </button>
-
-                    <button
-                      onClick={() => setConfirmDelete({ tableNumber: table.tableNumber })}
-                      title="Delete"
-                    >
-                      <FaTrash className="transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]" />
-                    </button>
-                  </div>
-                </td>
+        {loading ? (
+          <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
+            <LoadingAnimation />
+          </div>
+        ) : (
+          <table className="w-full border-collapse text-center">
+            <thead className="bg-gray-100 font-bold">
+              <tr>
+                <th className="p-5">No</th>
+                <th className="p-5 cursor-pointer" onClick={() => handleSort("tableNumber")}>Table Name </th>
+                <th className="p-5 cursor-pointer" onClick={() => handleSort("capacity")}>Number of seats </th>
+                <th className="p-5">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentTables.map((table, index) => (
+                <tr key={table.tableNumber} className="hover:bg-[rgba(186,163,146,0.205)] border-b">
+                  <td className="p-5">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                  <td className="p-5">{table.tableNumber}</td>
+                  <td className="p-5">{table.capacity}</td>
+                  <td className="py-6 px-5">
+                    <div className="flex justify-center items-center gap-5 text-xl text-gray-700">
+                      <button onClick={() => { setSelectedTable(table); setIsUpdateModalOpen(true); }} title="Edit">
+                        <FaEdit className="transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]" />
+                      </button>
+
+                      <button
+                        onClick={() => setConfirmDelete({ tableNumber: table.tableNumber })}
+                        title="Delete"
+                      >
+                        <FaTrash className="transition-transform duration-200 hover:scale-125 hover:text-[#f0924c]" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Modal Add Table */}
-      <Modal
-        isOpen={isAddModalOpen}
-        onRequestClose={handleCloseAddModal}
-        shouldCloseOnOverlayClick={false}
-        className="bg-white p-6 rounded-lg w-full max-w-md mx-auto mt-20 outline-none animate-fadeInModal"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 animate-fadeInOverlay"
-      >
-        <h3 className="text-lg font-bold mb-4 text-center text-[24px]">Add Table</h3>
-        <div className="space-y-3">
-          {/* Dropdown select */}
-          <select
-            className={`w-full border p-2 rounded transition ${customTable !== "" ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
-            value={tableNumber}
-            onChange={(e) => setTableNumber(e.target.value)}
-            disabled={customTable !== ""}
-          >
-            <option value="">-- Select a table --</option>
-            {availableTables.map((num) => (
-              <option key={num} value={num}>{num}</option>
-            ))}
-          </select>
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md mx-auto mt-20 outline-none animate-fadeInModal">
+            <h3 className="text-lg font-bold mb-4 text-center text-[24px]">Add Table</h3>
+            <div className="space-y-3">
+              {/* Dropdown select */}
+              <select
+                className={`w-full border p-2 rounded transition ${customTable !== "" ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+                value={tableNumber}
+                onChange={(e) => setTableNumber(e.target.value)}
+                disabled={customTable !== ""}
+              >
+                <option value="">-- Select a table --</option>
+                {availableTables.map((num) => (
+                  <option key={num} value={num}>{num}</option>
+                ))}
+              </select>
 
-          {/* Custom table input */}
-          <input
-            className={`w-full border p-2 rounded transition ${tableNumber !== "" ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
-            type="text"
-            placeholder="Or enter table number"
-            value={customTable}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (value.length > 10) {
-                toast.error("Table name cannot exceed 10 characters!");
-                return;
-              }
-              setCustomTable(value);
-            }}
-            disabled={tableNumber !== ""}
-          />
+              {/* Custom table input */}
+              <input
+                className={`w-full border p-2 rounded transition ${tableNumber !== "" ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+                type="text"
+                placeholder="Or enter table number"
+                value={customTable}
+                onChange={(e) => {
+                  const raw = e.target.value;
 
-          {/* Number of seats with increment/decrement buttons */}
-          <div className="relative flex items-center">
-            <button
-              type="button"
-              className="absolute left-2 text-xl font-bold text-gray-600 hover:text-[#f0924c]"
-              onClick={() => {
-                const newValue = Number(capacity) - 1;
-                if (newValue < 1) {
-                  toast.warn("Minimum number of seats is 1!");
-                  return;
-                }
-                setCapacity(newValue);
-              }}
-            >
-              –
-            </button>
+                  const trimmed = raw.trim();
 
-            <input
-              className="w-full border p-2 rounded text-center px-10"
-              type="text"
-              placeholder="Number of seats"
-              value={capacity === "" ? "" : capacity}
-              onChange={(e) => {
-                const value = e.target.value.trim();
+                  if (raw.length > 0 && trimmed === "") {
+                    toast.error("Table name cannot be just spaces!");
+                    return;
+                  }
 
-                if (value === "") {
-                  setCapacity("");
-                  return;
-                }
+                  if (/\s/.test(raw)) {
+                    toast.error("Table name cannot contain spaces!");
+                    return;
+                  }
 
-                if (!/^\d+$/.test(value)) {
-                  toast.error("Only numbers are allowed!");
-                  return;
-                }
+                  if (raw.length > 10) {
+                    toast.error("Table name cannot exceed 10 characters!");
+                    return;
+                  }
 
-                if (/^0\d+/.test(value)) {
-                  toast.error("Number of seats cannot start with 0!");
-                  return;
-                }
+                  setCustomTable(raw);
+                }}
+                disabled={tableNumber !== ""}
+              />
 
-                const num = Number(value);
-                if (num < 1) {
-                  toast.warn("Minimum number of seats is 1!");
-                  setCapacity(1);
-                } else if (num > 20) {
-                  toast.warn("Maximum number of seats is 20!");
-                  setCapacity(20);
-                } else {
-                  setCapacity(num);
-                }
-              }}
-            />
+              {/* Number of seats with increment/decrement buttons */}
+              <div className="relative flex items-center">
+                <button
+                  type="button"
+                  className="absolute left-2 text-xl font-bold text-gray-600 hover:text-[#f0924c]"
+                  onClick={() => {
+                    const newValue = Number(capacity) - 1;
+                    if (newValue < 1) {
+                      toast.warn("Minimum number of seats is 1!");
+                      return;
+                    }
+                    setCapacity(newValue);
+                  }}
+                >
+                  –
+                </button>
 
-            <button
-              type="button"
-              className="absolute right-2 text-xl font-bold text-gray-600 hover:text-[#f0924c]"
-              onClick={() => {
-                const newValue = Number(capacity) + 1;
-                if (newValue > 20) {
-                  toast.warn("Maximum number of seats is 20!");
-                  return;
-                }
-                setCapacity(newValue);
-              }}
-            >
-              +
-            </button>
-          </div>
+                <input
+                  className="w-full border p-2 rounded text-center px-10"
+                  type="text"
+                  placeholder="Number of seats"
+                  value={capacity === "" ? "" : capacity}
+                  onChange={(e) => {
+                    const value = e.target.value.trim();
 
-          <div className="flex gap-4">
-            <button
-              className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full transition duration-200"
-              onClick={handleAddTable}
-            >
-              Create
-            </button>
-            <button
-              className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full transition duration-200"
-              onClick={handleCloseAddModal}
-            >
-              Cancel
-            </button>
+                    if (value === "") {
+                      setCapacity("");
+                      return;
+                    }
+
+                    if (!/^\d+$/.test(value)) {
+                      toast.error("Only numbers are allowed!");
+                      return;
+                    }
+
+                    if (/^0\d+/.test(value)) {
+                      toast.error("Number of seats cannot start with 0!");
+                      return;
+                    }
+
+                    const num = Number(value);
+                    if (num < 1) {
+                      toast.warn("Minimum number of seats is 1!");
+                      setCapacity(1);
+                    } else if (num > 20) {
+                      toast.warn("Maximum number of seats is 20!");
+                      setCapacity(20);
+                    } else {
+                      setCapacity(num);
+                    }
+                  }}
+                />
+
+                <button
+                  type="button"
+                  className="absolute right-2 text-xl font-bold text-gray-600 hover:text-[#f0924c]"
+                  onClick={() => {
+                    const newValue = Number(capacity) + 1;
+                    if (newValue > 20) {
+                      toast.warn("Maximum number of seats is 20!");
+                      return;
+                    }
+                    setCapacity(newValue);
+                  }}
+                >
+                  +
+                </button>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full transition duration-200"
+                  onClick={handleAddTable}
+                >
+                  Create
+                </button>
+                <button
+                  className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full transition duration-200"
+                  onClick={handleCloseAddModal}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </Modal>
+      )}
 
       {/* Modal Update Table */}
-      <Modal
-        isOpen={isUpdateModalOpen}
-        onRequestClose={handleCloseUpdateModal}
-        shouldCloseOnOverlayClick={false}
-        className="bg-white p-6 rounded-lg w-full max-w-md mx-auto mt-20 outline-none animate-fadeInModal"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 animate-fadeInOverlay"
-      >
-        <h3 className="text-lg font-bold mb-4 text-center text-[23px]">
-          Update Table {selectedTable?.tableNumber}
-        </h3>
+      {isUpdateModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md mx-auto mt-20 outline-none animate-fadeInModal">
+            <h3 className="text-lg font-bold mb-4 text-center text-[23px]">
+              Update Table {selectedTable?.tableNumber}
+            </h3>
 
-        <div className="space-y-4">
-          <div className="relative flex items-center">
-            {/* Decrease button */}
-            <button
-              type="button"
-              className="absolute left-2 text-xl font-bold text-gray-600 hover:text-[#f0924c]"
-              onClick={() => {
-                if (!selectedTable) return;
-                const newCapacity = Number(selectedTable.capacity) - 1;
-                if (newCapacity < 1) {
-                  toast.warn("Minimum number of seats is 1!");
-                  return;
-                }
-                setSelectedTable({ ...selectedTable, capacity: newCapacity });
-              }}
-            >
-              –
-            </button>
+            <div className="space-y-4">
+              <div className="relative flex items-center">
+                {/* Decrease button */}
+                <button
+                  type="button"
+                  className="absolute left-2 text-xl font-bold text-gray-600 hover:text-[#f0924c]"
+                  onClick={() => {
+                    if (!selectedTable) return;
+                    const newCapacity = Number(selectedTable.capacity) - 1;
+                    if (newCapacity < 1) {
+                      toast.warn("Minimum number of seats is 1!");
+                      return;
+                    }
+                    setSelectedTable({ ...selectedTable, capacity: newCapacity });
+                  }}
+                >
+                  –
+                </button>
 
-            {/* Center input */}
-            <input
-              className="w-full border p-2 rounded text-center px-10 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              type="text"
-              placeholder="Number of seats"
-              value={selectedTable?.capacity !== undefined ? selectedTable.capacity : ""}
-              onChange={(e) => {
-                if (!selectedTable) return;
-                const value = e.target.value.trim();
+                {/* Center input */}
+                <input
+                  className="w-full border p-2 rounded text-center px-10 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  type="text"
+                  placeholder="Number of seats"
+                  value={selectedTable?.capacity !== undefined ? selectedTable.capacity : ""}
+                  onChange={(e) => {
+                    if (!selectedTable) return;
+                    const value = e.target.value.trim();
 
-                if (value.length > 10) {
-                  toast.error("Maximum 10 digits allowed!");
-                  return;
-                }
+                    if (value.length > 10) {
+                      toast.error("Maximum 10 digits allowed!");
+                      return;
+                    }
 
-                if (!/^\d*$/.test(value)) {
-                  toast.error("Only numbers are allowed!");
-                  return;
-                }
+                    if (!/^\d*$/.test(value)) {
+                      toast.error("Only numbers are allowed!");
+                      return;
+                    }
 
-                if (value === "") {
-                  setSelectedTable({ ...selectedTable, capacity: "" });
-                  return;
-                }
+                    if (value === "") {
+                      setSelectedTable({ ...selectedTable, capacity: "" });
+                      return;
+                    }
 
-                const num = Number(value);
-                if (num < 1) {
-                  toast.warn("Minimum number of seats is 1!");
-                  setSelectedTable({ ...selectedTable, capacity: 1 });
-                } else if (num > 20) {
-                  toast.warn("Maximum number of seats is 20!");
-                  setSelectedTable({ ...selectedTable, capacity: 20 });
-                } else {
-                  setSelectedTable({ ...selectedTable, capacity: num });
-                }
-              }}
-            />
+                    const num = Number(value);
+                    if (num < 1) {
+                      toast.warn("Minimum number of seats is 1!");
+                      setSelectedTable({ ...selectedTable, capacity: 1 });
+                    } else if (num > 20) {
+                      toast.warn("Maximum number of seats is 20!");
+                      setSelectedTable({ ...selectedTable, capacity: 20 });
+                    } else {
+                      setSelectedTable({ ...selectedTable, capacity: num });
+                    }
+                  }}
+                />
 
 
-            {/* Increase button */}
-            <button
-              type="button"
-              className="absolute right-2 text-xl font-bold text-gray-600 hover:text-[#f0924c]"
-              onClick={() => {
-                if (!selectedTable) return;
-                const newCapacity = Number(selectedTable.capacity) + 1;
-                if (newCapacity > 20) {
-                  toast.warn("Maximum number of seats is 20!");
-                  return;
-                }
-                setSelectedTable({ ...selectedTable, capacity: newCapacity });
-              }}
-            >
-              +
-            </button>
-          </div>
+                {/* Increase button */}
+                <button
+                  type="button"
+                  className="absolute right-2 text-xl font-bold text-gray-600 hover:text-[#f0924c]"
+                  onClick={() => {
+                    if (!selectedTable) return;
+                    const newCapacity = Number(selectedTable.capacity) + 1;
+                    if (newCapacity > 20) {
+                      toast.warn("Maximum number of seats is 20!");
+                      return;
+                    }
+                    setSelectedTable({ ...selectedTable, capacity: newCapacity });
+                  }}
+                >
+                  +
+                </button>
+              </div>
 
-          {/* Action buttons */}
-          <div className="flex gap-4 mt-4">
-            <button
-              className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full transition duration-200"
-              onClick={handleUpdateTable}
-            >
-              Update
-            </button>
-            <button
-              className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full transition duration-200"
-              onClick={handleCloseUpdateModal}
-            >
-              Cancel
-            </button>
+              {/* Action buttons */}
+              <div className="flex gap-4 mt-4">
+                <button
+                  className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full transition duration-200"
+                  onClick={handleUpdateTable}
+                >
+                  Update
+                </button>
+                <button
+                  className="bg-[#f0924c] hover:bg-[#d87c3b] text-white px-4 py-2 rounded w-full transition duration-200"
+                  onClick={handleCloseUpdateModal}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </Modal>
+      )}
 
       {/* Modal Confirm Delete Table */}
       {confirmDelete.tableNumber && (
         <Modal
           isOpen={true}
-          onRequestClose={() => setConfirmDelete({ tableNumber: null })}
-          shouldCloseOnOverlayClick={false}
-          className="bg-white p-6 rounded-lg w-full max-w-sm mx-auto outline-none animate-fadeInModal"
-          overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 animate-fadeInOverlay"
-        >
-          <h3 className="text-lg font-semibold mb-4 text-center">
-            Are you sure you want to delete table <span className="font-bold">{confirmDelete.tableNumber}</span>?
-          </h3>
-          <div className="flex justify-center gap-4 mt-6">
-            <button
-              className="px-4 py-2 rounded bg-[#f0924c] hover:bg-[#d87c3b] text-white"
-              onClick={() => {
-                handleDeleteTable(confirmDelete.tableNumber!);
-                setConfirmDelete({ tableNumber: null });
-              }}
-            >
-              Confirm
-            </button>
-            <button
-              className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-black"
-              onClick={() => setConfirmDelete({ tableNumber: null })}
-            >
-              Cancel
-            </button>
-          </div>
-        </Modal>
+          message={`Are you sure you want to delete table ${confirmDelete.tableNumber}?`}
+          onConfirm={() => {
+            handleDeleteTable(confirmDelete.tableNumber!);
+            setConfirmDelete({ tableNumber: null });
+          }}
+          onCancel={() => setConfirmDelete({ tableNumber: null })}
+        />
       )}
 
       <Pagination

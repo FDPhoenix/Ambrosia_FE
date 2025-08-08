@@ -2,6 +2,8 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts"
 import OrdersList from "../OrdersList"
+import LoadingAnimation from "../LoadingAnimation"
+
 function RevenueContent() {
   const [year, setYear] = useState(new Date().getFullYear())
   const [month, setMonth] = useState(new Date().getMonth() + 1)
@@ -94,45 +96,52 @@ function RevenueContent() {
           </div>
 
           <div className="w-full h-[400px]">
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                className="cursor-pointer"
-                data={revenueData}
-                margin={{ top: 20, right: 30, left: 40, bottom: 30 }}
-                onClick={(e) => {
-                  if (e && e.activePayload) {
-                    const clickedData = e.activePayload[0].payload
-                    console.log("Clicked on:", clickedData)
-                    handleBarClick(clickedData)
-                  }
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="day"
-                  label={{
-                    value: "Day",
-                    position: "insideBottom",
-                    offset: -10,
-                  }}
-                />
-                <YAxis
-                  tickFormatter={(value) => value.toLocaleString("vi-VN")}
-                  label={{
-                    value: "Revenue (VND)",
-                    angle: -90,
-                    position: "insideLeft",
-                    offset: -25,
-                  }}
-                />
-                <Tooltip formatter={(value) => `${value.toLocaleString("vi-VN")} VND`} />
-                <Bar dataKey="revenue" fill="#574ef7" barSize={40} minPointSize={10} cursor="pointer" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="mt-1 text-lg text-right font-bold text-gray-800">
-            <strong>Total Revenue:</strong> {totalRevenue.toLocaleString("vi-VN")} VND
+            {loading ? (
+              <div className="flex justify-center items-center h-[400px]">
+                <LoadingAnimation />
+              </div>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart
+                    className="cursor-pointer"
+                    data={revenueData}
+                    margin={{ top: 20, right: 30, left: 40, bottom: 30 }}
+                    onClick={(e) => {
+                      if (e && e.activePayload) {
+                        const clickedData = e.activePayload[0].payload
+                        console.log("Clicked on:", clickedData)
+                        handleBarClick(clickedData)
+                      }
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="day"
+                      label={{
+                        value: "Day",
+                        position: "insideBottom",
+                        offset: -10,
+                      }}
+                    />
+                    <YAxis
+                      tickFormatter={(value) => value.toLocaleString("vi-VN")}
+                      label={{
+                        value: "Revenue (VND)",
+                        angle: -90,
+                        position: "insideLeft",
+                        offset: -25,
+                      }}
+                    />
+                    <Tooltip formatter={(value) => `${value.toLocaleString("vi-VN")} VND`} />
+                    <Bar dataKey="revenue" fill="#574ef7" barSize={40} minPointSize={10} cursor="pointer" />
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="mt-1 text-lg text-right font-bold text-gray-800">
+                  <strong>Total Revenue:</strong> {totalRevenue.toLocaleString("vi-VN")} VND
+                </div>
+              </>
+            )}
           </div>
         </>
       ) : (
