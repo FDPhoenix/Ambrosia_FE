@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { FaInfoCircle } from "react-icons/fa";
 import { useLocation } from "react-router";
 import LoadingAnimation from "../LoadingAnimation";
-import Modal from "../Modal";
-import { toast } from "react-toastify";
 
 interface CustomerInfo {
   type: "User" | "Guest" | "Unknown";
@@ -76,12 +74,6 @@ function OrderContent() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  
-  // State cho confirm modal
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [confirmModalMessage, setConfirmModalMessage] = useState("");
-  const [confirmModalOnConfirm, setConfirmModalOnConfirm] = useState<(() => void) | null>(null);
-
   const location = useLocation();
   const limit = 6;
   const [filters, setFilters] = useState({
@@ -155,19 +147,10 @@ function OrderContent() {
 
   const handleChangeStatus = async (orderId: string, newStatus: string) => {
     if (newStatus === "Success") {
-      setConfirmModalMessage("Are you sure you want to mark this order as Paid?");
-      setConfirmModalOnConfirm(() => async () => {
-        setIsConfirmModalOpen(false);
-        await updateOrderStatus(orderId, newStatus);
-      });
-      setIsConfirmModalOpen(true);
-      return;
+      const confirm = window.confirm("Are you sure you want to mark this order as Paid?");
+      if (!confirm) return;
     }
-    
-    await updateOrderStatus(orderId, newStatus);
-  };
 
-  const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
       const response = await fetch(`${backendApiUrl}/${orderId}/status`, {
         method: "PUT",
@@ -177,14 +160,13 @@ function OrderContent() {
 
       const data = await response.json();
       if (data.success) {
-        toast.success(`Order status updated to ${newStatus} successfully!`);
+        alert(`Order status updated to ${newStatus} successfully!`);
         fetchOrders(paymentStatus, currentPage);
       } else {
-        toast.error("Failed to update order status. Please try again.");
+        alert("Failed to update order status. Please try again.");
       }
     } catch (error) {
       console.error("Error updating order status:", error);
-      toast.error("Error updating order status. Please try again.");
     }
   };
 
@@ -205,7 +187,7 @@ function OrderContent() {
   };
 
   return (
-    <div >
+    <div className="relative min-h-[63vh]">
       {loading && (
         <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
           <LoadingAnimation />
@@ -549,16 +531,6 @@ function OrderContent() {
               </button>
             </div>
           </div>
-        )}
-
-        {/* Confirm Modal */}
-        {isConfirmModalOpen && confirmModalOnConfirm && (
-          <Modal
-            isOpen={isConfirmModalOpen}
-            message={confirmModalMessage}
-            onConfirm={confirmModalOnConfirm}
-            onCancel={() => setIsConfirmModalOpen(false)}
-          />
         )}
 
       </div>
