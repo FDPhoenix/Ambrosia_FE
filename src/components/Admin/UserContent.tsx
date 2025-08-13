@@ -103,8 +103,8 @@ function UserContent() {
   const handleHideUser = (id: string) => {
     const currentUser = users.find((user) => user.id === id);
     const confirmMessage = currentUser && currentUser.isActive === true
-      ? "Do you want to Ban this user?"
-      : "Do you want to Unban this user?";
+      ? "Do you want to Ban this customer?"
+      : "Do you want to Unban this customer?";
 
     setModalMessage(confirmMessage || '');
     setModalOnConfirm(() => async () => {
@@ -217,7 +217,7 @@ function UserContent() {
   return (
     <div className="relative w-[1200px] h-[567px] p-[25px_40px] max-w-[1210px] bg-white rounded-[20px] shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-transform duration-300">
       <div className="w-full flex justify-between mb-5">
-        <h3 className="my-auto text-2xl font-semibold text-gray-800">List of User</h3>
+        <h3 className="my-auto text-2xl font-semibold text-gray-800">List of Customer</h3>
       </div>
 
       <div className="max-h-[430px] overflow-y-auto pr-2.5">
@@ -293,7 +293,7 @@ function UserContent() {
           >
             <div className="flex justify-between items-center mb-7">
               <h3 className="text-2xl font-bold text-gray-800">
-                {editingUser ? "Edit User" : "Add New User"}
+                {editingUser ? "Edit Customer" : "Add New Customer"}
               </h3>
               <button
                 onClick={() => setShowForm(false)}
