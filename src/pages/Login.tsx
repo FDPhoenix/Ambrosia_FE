@@ -321,6 +321,7 @@ const Login = () => {
       </div>
 
       <div className="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl overflow-hidden shadow-xl min-h-[600px] md:min-h-[500px]">
+        
         <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center flex-1 space-y-6">
           <h2 className="text-2xl font-bold mb-10 text-gray-800 text-center md:text-left">
             Login
@@ -425,6 +426,7 @@ const Login = () => {
               onClick={() => navigate("/register")}
               className="mt-1 text-[#a68a64] font-medium hover:underline"
             >
+              
               Register
             </button>
           </div>

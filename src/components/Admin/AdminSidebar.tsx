@@ -69,7 +69,7 @@ function AdminSidebar({ setShowLogoutModal }: AdminSidebarProps) {
           <h3 className="text-xs font-semibold text-gray-500 px-3">MANAGEMENT</h3>
           <ul className="list-none p-0 m-0 flex flex-col gap-1">
             {[
-              { path: '/manage/user', icon: UserIcon, label: 'User' },
+              { path: '/manage/user', icon: UserIcon, label: 'Customer' },
               { path: '/manage/employee', icon: EmployeeIcon, label: 'Employee' },
               { path: '/manage/table', icon: TableIcon, label: 'Table' },
               { path: '/manage/dish', icon: DishIcon, label: 'Dish' },
