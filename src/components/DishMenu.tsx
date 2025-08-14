@@ -276,7 +276,7 @@ function DishMenu() {
             </select>
 
             <select
-              className="w-max p-2 border border-[#ddd] rounded bg-white text-[#00405d]"
+              className="w-full p-2 border border-[#ddd] rounded bg-white text-[#00405d]"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
