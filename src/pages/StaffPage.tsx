@@ -4,8 +4,6 @@ import { ToastContainer } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
 import { FiMenu } from "react-icons/fi";
-import { BiUserPlus } from "react-icons/bi";
-
 import StaffReservation from "../assets/Staffreservation.png";
 import IngredientIcon from "../assets/ingredient.png";
 import FeedbackIcon from "../assets/feedback.png";
@@ -146,7 +144,7 @@ function StaffPage() {
                                 ))}
                             </ul>
 
-                            <div className="px-3 mb-8 mt-9">
+                            <div className="px-3 mb-8 mt-10">
                                 <h3 className="text-sm font-semibold text-gray-500">AUTH</h3>
                                 <div className="mt-5 h-px bg-gray-200"></div>
                             </div>
@@ -158,15 +156,6 @@ function StaffPage() {
                                     >
                                         <img src={LogOut} className="w-6 h-6" alt="Log Out" />
                                         <span>Log Out</span>
-                                    </button>
-                                </li>
-                                <li>
-                                    <button
-                                        onClick={() => navigate("/staff/register")}
-                                        className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-orange-200 text-gray-800"
-                                    >
-                                        <BiUserPlus className="w-5 h-5" />
-                                        <span>Other</span>
                                     </button>
                                 </li>
                             </ul>
