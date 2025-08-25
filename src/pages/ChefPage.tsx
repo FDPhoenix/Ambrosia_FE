@@ -4,7 +4,6 @@ import { ToastContainer } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
 import { FiMenu } from "react-icons/fi";
-import { BiUserPlus } from "react-icons/bi";
 import ChefIcon from '../assets/chef.png';
 import ChefReservation from '../assets/reception.png';
 import IngredientIcon from "../assets/ingredient.png";
@@ -113,7 +112,7 @@ function ChefPage() {
                                             navigate("/chef/reservation");
                                             setIsSidebarOpen(false);
                                         }}
-                                        className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-orange-200 transition ${["/chef", "/chef/reservation"].includes(location.pathname) ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
+                                        className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-[#e3912d] transition ${["/chef", "/chef/reservation"].includes(location.pathname) ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
                                     >
                                         <img src={ChefReservation} className="w-6 h-6" alt="Reservation" />
                                         <span>Reservation Order</span>
@@ -126,7 +125,7 @@ function ChefPage() {
                                                 navigate(path);
                                                 setIsSidebarOpen(false);
                                             }}
-                                            className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-orange-200 transition ${location.pathname === path ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
+                                            className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-[#e3912d] transition ${location.pathname === path ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
                                         >
                                             <img src={icon} className="w-6 h-6" alt={label} />
                                             <span>{label}</span>
@@ -135,7 +134,7 @@ function ChefPage() {
                                 ))}
                             </ul>
 
-                            <div className="px-3 mb-8 mt-9">
+                            <div className="px-3 mb-8 mt-10">
                                 <h3 className="text-sm font-semibold text-gray-500">AUTH</h3>
                                 <div className="mt-5 h-px bg-gray-200"></div>
                             </div>
@@ -143,19 +142,10 @@ function ChefPage() {
                                 <li>
                                     <button
                                         onClick={() => setShowLogoutModal(true)}
-                                        className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-orange-200 text-left text-gray-800"
+                                        className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-[#e3912d] text-left text-gray-800"
                                     >
                                         <img src={LogOut} className="w-6 h-6" alt="Log Out" />
                                         <span>Log Out</span>
-                                    </button>
-                                </li>
-                                <li>
-                                    <button
-                                        onClick={() => navigate("/chef/register")}
-                                        className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-orange-200 text-gray-800"
-                                    >
-                                        <BiUserPlus className="w-5 h-5" />
-                                        <span>Other</span>
                                     </button>
                                 </li>
                             </ul>

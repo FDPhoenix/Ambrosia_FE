@@ -104,6 +104,18 @@ const ManageRank: React.FC = () => {
             return;
         }
 
+        // ✅ Check duplicate minSpending
+        const isDuplicate = ranks.some(
+            (rank) =>
+                rank.minSpending === formData.minSpending &&
+                rank._id !== editingRank?._id // bỏ qua rank đang edit
+        );
+
+        if (isDuplicate) {
+            toast.error("Min spending already exists. Please choose another value.");
+            return;
+        }
+
         try {
             setLoading(true);
             const dataToSend = {
@@ -136,7 +148,6 @@ const ManageRank: React.FC = () => {
             setLoading(false);
         }
     };
-
     return (
         <div className="relative w-[1200px] h-[567px] max-w-[1210px] bg-white p-6 rounded-[15px] shadow-md flex flex-col items-center justify-start">
             {loading && (

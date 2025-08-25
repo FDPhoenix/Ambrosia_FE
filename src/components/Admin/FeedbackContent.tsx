@@ -187,7 +187,7 @@ const FeedbackContent: React.FC = () => {
   return (
     <div className="relative w-full max-w-[1200px] h-[567px] mx-auto">
       <select
-        className="w-full max-w-[200px] p-2 mb-5 border border-gray-300 rounded-lg"
+        className="w-full max-w-[200px] p-2 mb-2 border border-gray-300 rounded-lg"
         value={selectedCategory}
         onChange={(e) => setSelectedCategory(e.target.value)}
       >
@@ -199,7 +199,7 @@ const FeedbackContent: React.FC = () => {
         ))}
       </select>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 overflow-y-auto pr-2 scrollbar-hide">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 overflow-y-auto pr-2 scrollbar-hide p-2">
         {(loadingDishes || loadingCategories) ? (
           <div className="col-span-full flex justify-center items-center h-[440px]">
             <LoadingAnimation />
@@ -208,7 +208,7 @@ const FeedbackContent: React.FC = () => {
           currentDishes.map((dish) => (
             <div
               key={dish._id}
-              className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-105"
+              className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-105 hover:z-10"
               onClick={() => handleDishClick(dish)}
             >
               <img
