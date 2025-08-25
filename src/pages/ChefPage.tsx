@@ -112,7 +112,7 @@ function ChefPage() {
                                             navigate("/chef/reservation");
                                             setIsSidebarOpen(false);
                                         }}
-                                        className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-orange-200 transition ${["/chef", "/chef/reservation"].includes(location.pathname) ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
+                                        className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-[#e3912d] transition ${["/chef", "/chef/reservation"].includes(location.pathname) ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
                                     >
                                         <img src={ChefReservation} className="w-6 h-6" alt="Reservation" />
                                         <span>Reservation Order</span>
@@ -125,7 +125,7 @@ function ChefPage() {
                                                 navigate(path);
                                                 setIsSidebarOpen(false);
                                             }}
-                                            className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-orange-200 transition ${location.pathname === path ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
+                                            className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-[#e3912d] transition ${location.pathname === path ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
                                         >
                                             <img src={icon} className="w-6 h-6" alt={label} />
                                             <span>{label}</span>
@@ -142,7 +142,7 @@ function ChefPage() {
                                 <li>
                                     <button
                                         onClick={() => setShowLogoutModal(true)}
-                                        className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-orange-200 text-left text-gray-800"
+                                        className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-[#e3912d] text-left text-gray-800"
                                     >
                                         <img src={LogOut} className="w-6 h-6" alt="Log Out" />
                                         <span>Log Out</span>

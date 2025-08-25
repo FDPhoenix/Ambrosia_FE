@@ -122,7 +122,7 @@ function StaffPage() {
                                             navigate("/staff/reservation");
                                             setIsSidebarOpen(false);
                                         }}
-                                        className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-orange-200 transition ${["/staff", "/staff/reservation"].includes(location.pathname) ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
+                                        className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-[#e3912d] transition ${["/staff", "/staff/reservation"].includes(location.pathname) ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
                                     >
                                         <img src={StaffReservation} className="w-6 h-6" alt="Reservation" />
                                         <span>Reservation</span>
@@ -135,7 +135,7 @@ function StaffPage() {
                                                 navigate(path);
                                                 setIsSidebarOpen(false);
                                             }}
-                                            className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-orange-200 transition ${location.pathname === path ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
+                                            className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-[#e3912d] transition ${location.pathname === path ? "bg-[#f09c42] text-white" : "text-gray-800"}`}
                                         >
                                             <img src={icon} className="w-6 h-6" alt={label} />
                                             <span>{label}</span>
@@ -152,7 +152,7 @@ function StaffPage() {
                                 <li>
                                     <button
                                         onClick={() => setShowLogoutModal(true)}
-                                        className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-orange-200 text-left text-gray-800"
+                                        className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-[#e3912d] text-left text-gray-800"
                                     >
                                         <img src={LogOut} className="w-6 h-6" alt="Log Out" />
                                         <span>Log Out</span>
