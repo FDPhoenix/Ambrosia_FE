@@ -39,7 +39,7 @@ function AdminPage() {
     }
     switch (location.pathname) {
       case "/manage/user":
-        return "User Management";
+        return "Customer Management";
       case "/manage/employee":
         return "Employee Management";
       case "/manage/table":
@@ -103,10 +103,10 @@ function AdminPage() {
 
   return (
     token && decodedToken.roleId == '67ac64afe072694cafa16e76' ? (
-      <div className="bg-[#EFF4F8] w-full h-full p-5 flex justify-between">
+      <div className="bg-[#EFF4F8] w-full min-h-screen p-5 flex justify-between">
         <AdminSidebar setShowLogoutModal={setShowLogoutModal}/>
 
-        <div className="ml-[296px]">
+        <div className="ml-[296px] flex-1">
           <AdminHeader title={getTitle()} />
           {getContentComponent()}
           <ToastContainer theme="colored" />

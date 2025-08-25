@@ -77,7 +77,10 @@ const BookingPage = () => {
 
     const [form, setForm] = useState({ name: "", phone: "", email: "" });
     const [errors, setErrors] = useState({ name: "", phone: "", email: "" });
-    const [selectedDate, setSelectedDate] = useState("");
+    const [selectedDate, setSelectedDate] = useState(() => {
+        const today = new Date();
+        return today.toISOString().split("T")[0];
+    });
     const [selectedTime, setSelectedTime] = useState("");
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [availableTables, setAvailableTables] = useState<Table[]>([]);
@@ -339,7 +342,7 @@ const BookingPage = () => {
                                         min={new Date().toISOString().split("T")[0]}
                                         max={new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split("T")[0]}
                                         inputMode="none"
-                                        className="w-full p-2 py-2 border rounded bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full h-10 px-3 border border-gray-300 rounded appearance-none bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                                 {/* <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={new Date().toISOString().split("T")[0]} className="w-full p-2 border rounded" /> */}
@@ -349,7 +352,7 @@ const BookingPage = () => {
                                         setSelectedTime(e.target.value);
                                         setSelectedTableId(null);
                                     }}
-                                    className="w-full p-2 py-3 border rounded"
+                                    className="w-full h-10 px-3 border border-gray-300 rounded appearance-none bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="">Select time</option>
                                     {filteredTimes.map((time) => (

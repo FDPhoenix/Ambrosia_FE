@@ -1,101 +1,106 @@
-import type React from "react"
-import { useEffect, useState, useCallback } from "react"
-import Pagination from "../Pagination"
+import type React from "react";
+import { useEffect, useState, useCallback } from "react";
+import Pagination from "../Pagination";
 import Cookies from "js-cookie";
-import LoadingAnimation from "../LoadingAnimation"
+import LoadingAnimation from "../LoadingAnimation";
+import { toast } from "react-toastify";
+import Modal from "../Modal"; 
 
 interface Category {
-  _id: string
-  name: string
+  _id: string;
+  name: string;
 }
 
 interface Feedback {
-  _id: string
+  _id: string;
   userId: {
-    fullname: string
-    email: string
-    profileImage?: string
-  }
-  rating: number
-  comment: string
-  isHided: boolean
-  createdAt: string
+    fullname: string;
+    email: string;
+    profileImage?: string;
+  };
+  rating: number;
+  comment: string;
+  isHided: boolean;
+  createdAt: string;
 }
 
 interface Dish {
-  _id: string
-  name: string
-  imageUrl: string
-  price: number
-  category: Category
-  isAvailable: boolean
+  _id: string;
+  name: string;
+  imageUrl: string;
+  price: number;
+  category: Category;
+  isAvailable: boolean;
 }
 
-const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000'
-const BASE_IMAGE_URL = `${backendApiUrl}/uploads/`
+const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
+const BASE_IMAGE_URL = `${backendApiUrl}/uploads/`;
 
 const FeedbackContent: React.FC = () => {
-  const [dishes, setDishes] = useState<Dish[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<string>("")
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
-  const [selectedDish, setSelectedDish] = useState<Dish | null>(null)
-  const [loadingFeedback, setLoadingFeedback] = useState<boolean>(false)
-  const [ratingFilter, setRatingFilter] = useState<number | "">("")
+  const [dishes, setDishes] = useState<Dish[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
+  const [loadingFeedback, setLoadingFeedback] = useState<boolean>(false);
+  const [ratingFilter, setRatingFilter] = useState<number | "">("");
   
-  const [currentDishes, setCurrentDishes] = useState<Dish[]>([])
-  const [currentPage, setCurrentPage] = useState<number>(1)
-  const itemsPerPage = 10
+  const [currentDishes, setCurrentDishes] = useState<Dish[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 10;
 
-  const [currentFeedbacks, setCurrentFeedbacks] = useState<Feedback[]>([])
-  const [currentFeedbackPage, setCurrentFeedbackPage] = useState<number>(1)
-  const feedbacksPerPage = 6
+  const [currentFeedbacks, setCurrentFeedbacks] = useState<Feedback[]>([]);
+  const [currentFeedbackPage, setCurrentFeedbackPage] = useState<number>(1);
+  const feedbacksPerPage = 6;
 
-  const [loadingDishes, setLoadingDishes] = useState<boolean>(false)
-  const [loadingCategories, setLoadingCategories] = useState<boolean>(false)
+  const [loadingDishes, setLoadingDishes] = useState<boolean>(false);
+  const [loadingCategories, setLoadingCategories] = useState<boolean>(false);
 
-  useEffect(() => {
-    fetchDishes()
-    fetchCategories()
-  }, [selectedCategory])
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentFeedbackId, setCurrentFeedbackId] = useState<string | null>(null);
 
   useEffect(() => {
-    const totalPages = Math.ceil(dishes.length / itemsPerPage)
+    fetchDishes();
+    fetchCategories();
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    const totalPages = Math.ceil(dishes.length / itemsPerPage);
     if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(totalPages)
+      setCurrentPage(totalPages);
     } else if (totalPages === 0) {
-      setCurrentPage(1)
+      setCurrentPage(1);
     }
 
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const paginatedItems = dishes.slice(startIndex, startIndex + itemsPerPage)
-    setCurrentDishes(paginatedItems)
-  }, [dishes, currentPage, itemsPerPage])
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedItems = dishes.slice(startIndex, startIndex + itemsPerPage);
+    setCurrentDishes(paginatedItems);
+  }, [dishes, currentPage, itemsPerPage]);
 
   const fetchDishes = () => {
-    setLoadingDishes(true)
+    setLoadingDishes(true);
     const apiUrl = selectedCategory
       ? `${backendApiUrl}/api/feedback/allDishes?categoryId=${selectedCategory}`
-      : `${backendApiUrl}/api/feedback/allDishes`
+      : `${backendApiUrl}/api/feedback/allDishes`;
 
     fetch(apiUrl)
       .then((res) => res.json())
       .then((data) => setDishes(Array.isArray(data) ? data : []))
       .catch((error) => console.error("Error fetching dishes:", error))
-      .finally(() => setLoadingDishes(false))
-  }
+      .finally(() => setLoadingDishes(false));
+  };
 
   const fetchCategories = () => {
-    setLoadingCategories(true)
+    setLoadingCategories(true);
     fetch(`${backendApiUrl}/category/all`)
       .then((res) => res.json())
       .then((data) => setCategories(Array.isArray(data.categories) ? data.categories : []))
       .catch((error) => console.error("Error fetching categories:", error))
-      .finally(() => setLoadingCategories(false))
-  }
+      .finally(() => setLoadingCategories(false));
+  };
 
   const fetchFeedbacks = (dishId: string) => {
-    setLoadingFeedback(true)
+    setLoadingFeedback(true);
     fetch(`${backendApiUrl}/api/feedback/admin/dish/${dishId}`, {
       headers: {
         'Authorization': `Bearer ${Cookies.get('token')}`,
@@ -105,15 +110,15 @@ const FeedbackContent: React.FC = () => {
       .then((res) => res.json())
       .then((data) => setFeedbacks(data.feedbacks || []))
       .catch(() => setFeedbacks([]))
-      .finally(() => setLoadingFeedback(false))
-  }
+      .finally(() => setLoadingFeedback(false));
+  };
 
   const handleDishClick = (dish: Dish) => {
-    setSelectedDish(dish)
-    fetchFeedbacks(dish._id)
-    setRatingFilter("")
-    setCurrentFeedbackPage(1)
-  }
+    setSelectedDish(dish);
+    fetchFeedbacks(dish._id);
+    setRatingFilter("");
+    setCurrentFeedbackPage(1);
+  };
 
   const toggleVisibility = async (id: string) => {
     try {
@@ -121,50 +126,68 @@ const FeedbackContent: React.FC = () => {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-      })
+      });
 
-      if (!response.ok) throw new Error("Error")
+      if (!response.ok) throw new Error("Error");
 
-      const data = await response.json()
+      const data = await response.json();
 
-      setFeedbacks((prev) => prev.map((fb) => (fb._id === id ? { ...fb, isHided: data.feedback.isHided } : fb)))
+      setFeedbacks((prev) => prev.map((fb) => (fb._id === id ? { ...fb, isHided: data.feedback.isHided } : fb)));
 
-      alert(data.feedback.isHided ? "Feedback hidden!" : "Feedback shown!")
+      toast.success(data.feedback.isHided ? "Feedback hidden!" : "Feedback shown!");
     } catch (error) {
-      console.error("Error", error)
-      alert("Update error feedback!")
+      console.error("Error", error);
+      toast.error("Update error feedback!");
     }
-  }
+  };
 
-  const filteredFeedbacks = ratingFilter ? feedbacks.filter((fb) => fb.rating === ratingFilter) : feedbacks
+  const filteredFeedbacks = ratingFilter ? feedbacks.filter((fb) => fb.rating === ratingFilter) : feedbacks;
 
   useEffect(() => {
-    const totalPages = Math.ceil(filteredFeedbacks.length / feedbacksPerPage)
+    const totalPages = Math.ceil(filteredFeedbacks.length / feedbacksPerPage);
     if (currentFeedbackPage > totalPages && totalPages > 0) {
-      setCurrentFeedbackPage(totalPages)
+      setCurrentFeedbackPage(totalPages);
     } else if (totalPages === 0) {
-      setCurrentFeedbackPage(1)
+      setCurrentFeedbackPage(1);
     }
 
-    const startIndex = (currentFeedbackPage - 1) * feedbacksPerPage
-    const paginatedFeedbacks = filteredFeedbacks.slice(startIndex, startIndex + feedbacksPerPage)
-    setCurrentFeedbacks(paginatedFeedbacks)
-  }, [filteredFeedbacks, currentFeedbackPage, feedbacksPerPage])
+    const startIndex = (currentFeedbackPage - 1) * feedbacksPerPage;
+    const paginatedFeedbacks = filteredFeedbacks.slice(startIndex, startIndex + feedbacksPerPage);
+    setCurrentFeedbacks(paginatedFeedbacks);
+  }, [filteredFeedbacks, currentFeedbackPage, feedbacksPerPage]);
 
   const handlePageChange = useCallback((paginatedDishes: Dish[], page: number) => {
-    setCurrentDishes(paginatedDishes)
-    setCurrentPage(page)
-  }, [])
+    setCurrentDishes(paginatedDishes);
+    setCurrentPage(page);
+  }, []);
 
   const handleFeedbackPageChange = useCallback((paginatedFeedbacks: Feedback[], page: number) => {
-    setCurrentFeedbacks(paginatedFeedbacks)
-    setCurrentFeedbackPage(page)
-  }, [])
+    setCurrentFeedbacks(paginatedFeedbacks);
+    setCurrentFeedbackPage(page);
+  }, []);
+
+  const handleToggleVisibility = (id: string) => {
+    setCurrentFeedbackId(id);
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmToggle = async () => {
+    if (currentFeedbackId) {
+      await toggleVisibility(currentFeedbackId);
+      setIsModalOpen(false);
+      setCurrentFeedbackId(null);
+    }
+  };
+
+  const handleCancelToggle = () => {
+    setIsModalOpen(false);
+    setCurrentFeedbackId(null);
+  };
 
   return (
     <div className="relative w-full max-w-[1200px] h-[567px] mx-auto">
       <select
-        className="w-full max-w-[200px] p-2 mb-5 border border-gray-300 rounded-lg"
+        className="w-full max-w-[200px] p-2 mb-2 border border-gray-300 rounded-lg"
         value={selectedCategory}
         onChange={(e) => setSelectedCategory(e.target.value)}
       >
@@ -176,7 +199,7 @@ const FeedbackContent: React.FC = () => {
         ))}
       </select>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 overflow-y-auto pr-2 scrollbar-hide">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 overflow-y-auto pr-2 scrollbar-hide p-2">
         {(loadingDishes || loadingCategories) ? (
           <div className="col-span-full flex justify-center items-center h-[440px]">
             <LoadingAnimation />
@@ -185,7 +208,7 @@ const FeedbackContent: React.FC = () => {
           currentDishes.map((dish) => (
             <div
               key={dish._id}
-              className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-105"
+              className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-105 hover:z-10"
               onClick={() => handleDishClick(dish)}
             >
               <img
@@ -282,11 +305,7 @@ const FeedbackContent: React.FC = () => {
                             <td className="p-2 border border-gray-300 text-center text-xs sm:text-sm">
                               <button
                                 className="text-black py-1 px-2 sm:py-2 sm:px-3 border-none rounded-lg bg-[rgb(240,240,240)] cursor-pointer transition-colors duration-200 hover:bg-[#F09C42]"
-                                onClick={() => {
-                                  if (window.confirm('Are you sure you want to change the status of this feedback?')) {
-                                    toggleVisibility(fb._id)
-                                  }
-                                }}
+                                onClick={() => handleToggleVisibility(fb._id)} // Open modal instead of confirm
                               >
                                 {fb.isHided ? "Show" : "Hide"}
                               </button>
@@ -317,8 +336,15 @@ const FeedbackContent: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
-  )
-}
 
-export default FeedbackContent
+      <Modal
+        isOpen={isModalOpen}
+        message="Are you sure you want to change the status of this feedback?"
+        onConfirm={handleConfirmToggle}
+        onCancel={handleCancelToggle}
+      />
+    </div>
+  );
+};
+
+export default FeedbackContent;

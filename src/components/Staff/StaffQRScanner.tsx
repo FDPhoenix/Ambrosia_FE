@@ -199,7 +199,7 @@ export default function StaffQRScanner() {
     };
 
     return (
-        <div className="mx-auto bg-white p-5 rounded-lg shadow-md flex flex-col min-h-[80vh]">
+        <div className="relative mx-auto bg-white p-5 rounded-lg shadow-md flex flex-col min-h-[80vh]">
             <div className="flex justify-between items-center gap-3 mb-4 w-full">
                 <div className="flex gap-3">
                     <button
@@ -325,7 +325,11 @@ export default function StaffQRScanner() {
                 </div>
             )}
 
-            {loading && <p className="text-[#f0924c] font-medium mt-4"><LoadingAnimation /></p>}
+            {loading && (
+                <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
+                    <LoadingAnimation />
+                </div>
+            )}
 
             {bookingInfo && (
                 <div>

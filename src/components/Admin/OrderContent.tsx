@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { FaInfoCircle } from "react-icons/fa";
 import { useLocation } from "react-router";
 import LoadingAnimation from "../LoadingAnimation";
+import Modal from "../Modal";
+import { toast } from "react-toastify";
 
 interface CustomerInfo {
   type: "User" | "Guest" | "Unknown";
@@ -72,6 +74,10 @@ function OrderContent() {
   const [paymentStatus,] = useState<string>("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  // Confirm modal state
+  const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
+  const [confirmMessage, setConfirmMessage] = useState<string>("");
+  const [pendingAction, setPendingAction] = useState<null | (() => Promise<void>)>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const location = useLocation();
@@ -145,12 +151,7 @@ function OrderContent() {
     }
   };
 
-  const handleChangeStatus = async (orderId: string, newStatus: string) => {
-    if (newStatus === "Success") {
-      const confirm = window.confirm("Are you sure you want to mark this order as Paid?");
-      if (!confirm) return;
-    }
-
+  const performUpdateStatus = async (orderId: string, newStatus: string) => {
     try {
       const response = await fetch(`${backendApiUrl}/${orderId}/status`, {
         method: "PUT",
@@ -160,14 +161,25 @@ function OrderContent() {
 
       const data = await response.json();
       if (data.success) {
-        alert(`Order status updated to ${newStatus} successfully!`);
+        toast.success(`Order status updated to ${newStatus} successfully!`);
         fetchOrders(paymentStatus, currentPage);
       } else {
-        alert("Failed to update order status. Please try again.");
+        toast.error("Failed to update order status. Please try again.");
       }
     } catch (error) {
       console.error("Error updating order status:", error);
+      toast.error("An unexpected error occurred. Please try again later.");
     }
+  };
+
+  const handleChangeStatus = async (orderId: string, newStatus: string) => {
+    if (newStatus === "Success") {
+      setConfirmMessage("Are you sure you want to mark this order as Paid?");
+      setPendingAction(() => () => performUpdateStatus(orderId, newStatus));
+      setIsConfirmOpen(true);
+      return;
+    }
+    await performUpdateStatus(orderId, newStatus);
   };
 
   const getContainerClass = () => {
@@ -187,7 +199,7 @@ function OrderContent() {
   };
 
   return (
-    <div className="relative bg-white rounded-[15px] shadow-md p-6 overflow-hidden min-h-[80vh]">
+    <div className="relative min-h-[63vh]">
       {loading && (
         <div className="absolute inset-0 bg-white bg-opacity-60 z-50 flex items-center justify-center">
           <LoadingAnimation />
@@ -532,6 +544,23 @@ function OrderContent() {
             </div>
           </div>
         )}
+
+        {/* Confirm Modal for status update */}
+        <Modal
+          isOpen={isConfirmOpen}
+          message={confirmMessage}
+          onConfirm={async () => {
+            setIsConfirmOpen(false);
+            if (pendingAction) {
+              await pendingAction();
+              setPendingAction(null);
+            }
+          }}
+          onCancel={() => {
+            setIsConfirmOpen(false);
+            setPendingAction(null);
+          }}
+        />
 
       </div>
     </div>

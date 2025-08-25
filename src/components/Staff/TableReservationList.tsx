@@ -621,37 +621,33 @@ const TableReservationList = () => {
             <Modal
                 isOpen={confirmModalOpen}
                 onRequestClose={() => setConfirmModalOpen(false)}
-                className="bg-white p-6 rounded-lg shadow-lg max-w-[600px] w-[88%] max-h-[82vh] animate-fadeInModal"
-                overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]"
-
+                className="bg-white rounded-2xl p-4 sm:p-7 w-full max-w-[360px] text-center shadow-2xl animate-fade-in"
+                overlayClassName="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-[9999] p-4"
                 ariaHideApp={false}
             >
-                <div className="text-center space-y-4">
-                    <h2 className="text-lg font-semibold">Confirm Status Change</h2>
-                    <p>Are you sure you want to change the status to <span className="font-bold">{pendingStatusChange?.status}</span>?</p>
-                    <div className="flex justify-center gap-4 mt-6">
-                        <button
-                            className="bg-orange-400 text-white px-9 py-2 rounded hover:bg-orange-500"
-                            onClick={() => {
-                                if (pendingStatusChange) {
-                                    handleUpdateStatus(pendingStatusChange.id, pendingStatusChange.status);
-                                }
-                                setConfirmModalOpen(false);
-                                setPendingStatusChange(null);
-                            }}
-                        >
-                            Yes
-                        </button>
-                        <button
-                            className="bg-gray-300 text-black px-6 py-2 rounded hover:bg-gray-400"
-                            onClick={() => {
-                                setConfirmModalOpen(false);
-                                setPendingStatusChange(null);
-                            }}
-                        >
-                            Cancel
-                        </button>
-                    </div>
+                <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Are you sure you want to change the status to <span className="font-bold">{pendingStatusChange?.status}</span>?</p>
+                <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4">
+                    <button
+                        onClick={() => {
+                            if (pendingStatusChange) {
+                                handleUpdateStatus(pendingStatusChange.id, pendingStatusChange.status);
+                            }
+                            setConfirmModalOpen(false);
+                            setPendingStatusChange(null);
+                        }}
+                        className="w-full sm:w-auto bg-[#f09c42] text-white px-6 sm:px-9 py-2 rounded-lg font-semibold text-sm hover:bg-[#e3912d] transition"
+                    >
+                        Yes
+                    </button>
+                    <button
+                        onClick={() => {
+                            setConfirmModalOpen(false);
+                            setPendingStatusChange(null);
+                        }}
+                        className="w-full sm:w-auto border border-gray-300 text-gray-600 px-6 sm:px-5 py-2 rounded-lg font-semibold text-sm hover:bg-gray-100 hover:border-gray-400 transition"
+                    >
+                        Cancel
+                    </button>
                 </div>
             </Modal>
 

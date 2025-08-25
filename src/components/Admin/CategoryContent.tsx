@@ -186,7 +186,7 @@ const CategoryContent: React.FC = () => {
   return (
     <div className="relative w-[1200px] h-[567px] p-[20px_30px] max-w-[1210px] bg-white rounded-[15px] shadow-[0_4px_8px_rgba(0,0,0,0.1)]">
       <div className="flex justify-between">
-        <h3 className="text-xl font-bold my-auto">List of category</h3>
+        <h3 className="text-xl font-bold my-auto">List of Category</h3>
         <button
           className="font-medium border border-[#ccc] py-[7px] px-[12px] rounded-md cursor-pointer transition-colors duration-200 bg-[rgb(240,240,240)] hover:bg-[#F09C42] text-black"
           onClick={() => setModalIsOpen(true)}

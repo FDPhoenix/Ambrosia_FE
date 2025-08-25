@@ -195,12 +195,17 @@ const Register: React.FC = () => {
         theme="light"
       />
 
-      <div className="flex justify-center w-full mt-6 mb-6 md:hidden">
-        <div className="flex justify-content-between align-items-center">
-          <img src={logo} alt="Ambrosia Logo" className="w-[3rem] h-[3rem] mr-3 rounded-full border-4 border-[#a68a64] shadow-lg object-cover" />
-          <p className="text-center my-auto pb-2 text-[2rem] text-[#a68a64] font-serif">Ambrosia</p>
+      <div className="flex justify-center w-full mt-6 mb-6">
+        <div className="flex items-center">  
+          <img
+            src={logo}
+            alt="Ambrosia Logo"
+            className="w-[3rem] h-[3rem] rounded-full border-4 border-[#a68a64] shadow-lg object-cover cursor-pointer bg-[#a68a64]"
+          />
+          <p className="ml-3 text-3xl font-bold text-[#a68a64]">Ambrosia</p>
         </div>
       </div>
+
 
       <div className="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl overflow-hidden shadow-xl min-h-[600px] md:min-h-[500px]">
         <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center flex-1 space-y-6">
