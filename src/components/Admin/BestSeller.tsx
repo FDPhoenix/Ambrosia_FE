@@ -73,7 +73,7 @@ const BestSellers: React.FC = () => {
   return (
     <div className="w-[445px] h-[567px] p-5 md:p-[20px_30px] max-w-[1210px] bg-white rounded-[15px] shadow-md">
       <div className="w-full mb-5">
-        <h3 className="text-center mb-7 font-bold">Bestseller Dishes List</h3>
+        <h4 className="text-center mb-7 text-lg">Bestseller Dishes List</h4>
         <div className="flex gap-5 flex-nowrap items-center">
           <div className="flex items-center gap-1.5 w-max">
             <label htmlFor="limit" className="text-base font-semibold">
