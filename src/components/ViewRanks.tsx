@@ -14,6 +14,8 @@ interface VoucherData {
     code: string;
     discount: number;
     isUsed: boolean;
+    expiresAt?: string;
+    userId?: string;
 }
 
 interface UserRankResponse {
@@ -24,6 +26,12 @@ interface UserRankResponse {
     voucher: VoucherData | string;
 }
 
+interface AvailableVouchersResponse {
+    success: boolean;
+    message: string;
+    vouchers: VoucherData[];
+}
+
 const ViewRanks: React.FC = () => {
     const [rank, setRank] = useState<RankData | null>(null);
     const [totalSpending, setTotalSpending] = useState<number>(0);
@@ -31,6 +39,8 @@ const ViewRanks: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     const [voucher, setVoucher] = useState<VoucherData | string>("No available voucher");
+    const [availableVouchers, setAvailableVouchers] = useState<VoucherData[]>([]);
+    const [loadingVouchers, setLoadingVouchers] = useState<boolean>(false);
 
     const fetchUserRank = async () => {
         try {
@@ -68,8 +78,36 @@ const ViewRanks: React.FC = () => {
         }
     };
 
+    const fetchAvailableVouchers = async () => {
+        try {
+            setLoadingVouchers(true);
+            const token = Cookies.get("token");
+            const response = await fetch(`${backendApiUrl}/vouchers/available`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) throw new Error(`Error fetching vouchers: ${response.statusText}`);
+
+            const data: AvailableVouchersResponse = await response.json();
+            if (data.success) {
+                setAvailableVouchers(data.vouchers || []);
+            } else {
+                console.error("Error fetching vouchers:", data.message);
+            }
+        } catch (err: any) {
+            console.error("Error fetching available vouchers:", err.message);
+        } finally {
+            setLoadingVouchers(false);
+        }
+    };
+
     useEffect(() => {
         fetchUserRank();
+        fetchAvailableVouchers();
     }, []);
 
     if (loading) return <div className="text-center">Loading rank...</div>;
@@ -124,12 +162,32 @@ const ViewRanks: React.FC = () => {
                 <span className="text-right text-sm text-gray-800">{totalSpending.toLocaleString()}</span>
             </div>
             <div className="flex-col">
-                <div className="font-semibold text-[#5a3e2b] text-sm">Voucher:</div>
-                <div className="text-[13px] text-gray-800">
+                <div className="font-semibold text-[#5a3e2b] text-sm mb-2">Rank Voucher:</div>
+                <div className="text-[13px] text-gray-800 mb-3">
                     {typeof voucher === "string"
                         ? voucher
                         : `${voucher.code}(-${voucher.discount}%)`}
                 </div>
+                
+                <div className="font-semibold text-[#5a3e2b] text-sm mb-2">Available Vouchers:</div>
+                {loadingVouchers ? (
+                    <div className="text-[13px] text-gray-500">Loading vouchers...</div>
+                ) : availableVouchers.length > 0 ? (
+                    <div className="space-y-1">
+                        {availableVouchers.map((voucher) => (
+                            <div key={voucher._id} className="text-[13px] text-gray-800 flex justify-between items-center">
+                                <span>{voucher.code} (-{voucher.discount}%)</span>
+                                {voucher.expiresAt && (
+                                    <span className="text-[11px] text-gray-500">
+                                        Expires: {new Date(voucher.expiresAt).toLocaleDateString()}
+                                    </span>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-[13px] text-gray-500">No available vouchers</div>
+                )}
             </div>
 
         </div>
