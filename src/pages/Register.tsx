@@ -35,6 +35,8 @@ const Register: React.FC = () => {
       },
     ],
     submitText: "Verify OTP",
+    cancelText: "Cancel", // Đã có, giữ nguyên
+    disableBackdropClose: true, // Thêm prop để chỉ định không đóng khi nhấp vào backdrop
   };
 
   const onVerifyOtp = async (event: { preventDefault: () => void }) => {
@@ -205,7 +207,6 @@ const Register: React.FC = () => {
           <p className="ml-3 text-3xl font-bold text-[#a68a64]">Ambrosia</p>
         </div>
       </div>
-
 
       <div className="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl overflow-hidden shadow-xl min-h-[600px] md:min-h-[500px]">
         <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center flex-1 space-y-6">

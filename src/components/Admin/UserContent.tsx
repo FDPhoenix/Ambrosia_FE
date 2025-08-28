@@ -187,7 +187,7 @@ function UserContent() {
   
       const data = await response.json();
       if (data.success) {
-        toast.success("User updated successfully!");
+        toast.success("Customer updated successfully!");
         setShowForm(false);
         fetchUsers();
       } else {
