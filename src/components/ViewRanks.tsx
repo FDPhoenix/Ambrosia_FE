@@ -26,7 +26,7 @@ interface UserRankResponse {
     voucher: VoucherData | string;
 }
 
-interface AvailableVouchersResponse {
+interface UserVouchersResponse {
     success: boolean;
     message: string;
     vouchers: VoucherData[];
@@ -37,17 +37,13 @@ const ViewRanks: React.FC = () => {
     const [totalSpending, setTotalSpending] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-
-    const [voucher, setVoucher] = useState<VoucherData | string>("No available voucher");
-    const [availableVouchers, setAvailableVouchers] = useState<VoucherData[]>([]);
-    const [loadingVouchers, setLoadingVouchers] = useState<boolean>(false);
+    const [vouchers, setVouchers] = useState<VoucherData[]>([]);
 
     const fetchUserRank = async () => {
         try {
             setLoading(true);
             const token = Cookies.get("token");
             const response = await fetch(`${backendApiUrl}/rank`, {
-
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -62,10 +58,7 @@ const ViewRanks: React.FC = () => {
                 const previousRank = Cookies.get("previousRank");
                 setRank(data.rank);
                 setTotalSpending(data.totalSpending);
-                setVoucher(data.voucher);
-
                 if (data.rank && data.rank.rankName !== previousRank) {
-
                     Cookies.set("previousRank", data.rank.rankName);
                 }
             } else {
@@ -78,11 +71,10 @@ const ViewRanks: React.FC = () => {
         }
     };
 
-    const fetchAvailableVouchers = async () => {
+    const fetchUserVouchers = async () => {
         try {
-            setLoadingVouchers(true);
             const token = Cookies.get("token");
-            const response = await fetch(`${backendApiUrl}/vouchers/available`, {
+            const response = await fetch(`${backendApiUrl}/vouchers/user`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -92,22 +84,20 @@ const ViewRanks: React.FC = () => {
 
             if (!response.ok) throw new Error(`Error fetching vouchers: ${response.statusText}`);
 
-            const data: AvailableVouchersResponse = await response.json();
+            const data: UserVouchersResponse = await response.json();
             if (data.success) {
-                setAvailableVouchers(data.vouchers || []);
+                setVouchers(data.vouchers || []);
             } else {
-                console.error("Error fetching vouchers:", data.message);
+                throw new Error(data.message);
             }
         } catch (err: any) {
-            console.error("Error fetching available vouchers:", err.message);
-        } finally {
-            setLoadingVouchers(false);
+            console.error("Error fetching user vouchers:", err.message);
         }
     };
 
     useEffect(() => {
         fetchUserRank();
-        fetchAvailableVouchers();
+        fetchUserVouchers();
     }, []);
 
     if (loading) return <div className="text-center">Loading rank...</div>;
@@ -131,12 +121,10 @@ const ViewRanks: React.FC = () => {
                         View Voucher
                     </button>
                     <button
-
                         onClick={() => setShowBanner(false)}
                         className="absolute right-2 top-1/2 -translate-y-1/2 text-base text-[#333] hover:text-black"
                     >
                         ×
-
                     </button>
                 </div>
             )} */}
@@ -151,7 +139,7 @@ const ViewRanks: React.FC = () => {
             </div>
             <div className="flex justify-between border-b border-gray-100 pb-2">
                 <span className="font-semibold text-[#5a3e2b] text-sm">Min Spending:</span>
-                <span className="text-right text-sm text-gray-800">{rank ? rank.minSpending : "N/A"}</span>
+                <span className="text-right text-sm text-gray-800">{rank ? rank.minSpending.toLocaleString() : "N/A"}</span>
             </div>
             {/* <div className="flex justify-between border-b border-gray-100 pb-2">
                     <span className="font-semibold text-[#5a3e2b] text-sm">Benefits:</span>
@@ -163,25 +151,11 @@ const ViewRanks: React.FC = () => {
             </div>
             <div className="flex-col">
                 <div className="font-semibold text-[#5a3e2b] text-sm mb-2">Rank Voucher:</div>
-                <div className="text-[13px] text-gray-800 mb-3">
-                    {typeof voucher === "string"
-                        ? voucher
-                        : `${voucher.code}(-${voucher.discount}%)`}
-                </div>
-                
-                <div className="font-semibold text-[#5a3e2b] text-sm mb-2">Available Vouchers:</div>
-                {loadingVouchers ? (
-                    <div className="text-[13px] text-gray-500">Loading vouchers...</div>
-                ) : availableVouchers.length > 0 ? (
+                {vouchers.length > 0 ? (
                     <div className="space-y-1">
-                        {availableVouchers.map((voucher) => (
-                            <div key={voucher._id} className="text-[13px] text-gray-800 flex justify-between items-center">
+                        {vouchers.map((voucher) => (
+                            <div key={voucher._id} className="text-[12.5px] text-gray-800 flex justify-between items-center">
                                 <span>{voucher.code} (-{voucher.discount}%)</span>
-                                {voucher.expiresAt && (
-                                    <span className="text-[11px] text-gray-500">
-                                        Expires: {new Date(voucher.expiresAt).toLocaleDateString()}
-                                    </span>
-                                )}
                             </div>
                         ))}
                     </div>
@@ -189,7 +163,6 @@ const ViewRanks: React.FC = () => {
                     <div className="text-[13px] text-gray-500">No available vouchers</div>
                 )}
             </div>
-
         </div>
         // </div>
     );
