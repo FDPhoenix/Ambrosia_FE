@@ -78,12 +78,18 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const updateQuantity = async (cartItemId: string, action: "increase" | "decrease") => {
+  const updateQuantity = async (cartItemId: string, action?: "increase" | "decrease", newQuantity?: number) => {
     const item = cart.find((i: any) => i._id === cartItemId);
     if (!item) return;
 
-    const newQuantity = action === "increase" ? item.quantity + 1 : item.quantity - 1;
-    if (newQuantity < 1) return;
+    let updatedQuantity = newQuantity !== undefined ? Number(newQuantity) : item.quantity;
+    if (action === "increase") {
+      updatedQuantity = item.quantity + 1;
+    } else if (action === "decrease" && item.quantity > 1) {
+      updatedQuantity = item.quantity - 1;
+    }
+
+    if (updatedQuantity && updatedQuantity < 1) return;
 
     if (token) {
       try {
@@ -93,13 +99,18 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ cartItemId, action }),
+          body: JSON.stringify({ cartItemId, ...(action ? { action } : { quantity: updatedQuantity }) }),
         });
 
-        if (!response.ok) throw new Error("Failed to update quantity");
+        if (!response.ok) {
+          const result = await response.json();
+          throw new Error(result.message || "Failed to update quantity");
+        }
 
+        const result = await response.json();
+        const updatedCartItem = result.cartItem;
         const updatedCart = cart.map((i: any) =>
-          i._id === cartItemId ? { ...i, quantity: newQuantity } : i
+          i._id === cartItemId ? { ...i, quantity: updatedCartItem.quantity } : i
         );
         setCart(updatedCart);
       } catch (error) {
@@ -107,9 +118,16 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
       }
     } else {
       const updatedCart = cart.map((item: any) =>
-        item._id === cartItemId ? { ...item, quantity: newQuantity } : item
+        item._id === cartItemId ? { ...item, quantity: updatedQuantity } : item
       );
       updateCart(updatedCart);
+    }
+  };
+
+  const handleBlur = (cartItemId: string, value: string) => {
+    const newQuantity = Number(value);
+    if (isNaN(newQuantity) || newQuantity < 1) {
+      updateQuantity(cartItemId, undefined, 1);
     }
   };
 
@@ -117,7 +135,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
 
   const handleCheckout = () => {
     if (cart.length === 0) {
-      toast.error('There are no dish to checkout');
+      toast.error('There are no dishes to checkout');
       return;
     }
 
@@ -169,13 +187,13 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
 
                 {item.isAvailable ? (
                   <div className="flex justify-between mt-3">
-                  <div className="flex items-center gap-2">
-                    <button className="w-[25px] h-[25px] border-none cursor-pointer bg-[#ddd]" onClick={() => updateQuantity(item._id, "decrease")}><Minus className="w-[11px] mx-auto"/></button>
-                    <input type="number" value={item.quantity} className="w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" readOnly/>
-                    <button className="w-[25px] h-[25px] border-none cursor-pointer bg-[#ddd]" onClick={() => updateQuantity(item._id, "increase")}>+</button>
+                    <div className="flex items-center gap-2">
+                      <button className="w-[25px] h-[25px] border-none cursor-pointer bg-[#ddd]" onClick={() => updateQuantity(item._id, "decrease", undefined)}><Minus className="w-[11px] mx-auto" /></button>
+                      <input type="number" value={item.quantity || ""} className="w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min={1} onChange={(e) => updateQuantity(item._id, undefined, Number(e.target.value))} onBlur={(e) => handleBlur(item._id, e.target.value)} />
+                      <button className="w-[25px] h-[25px] border-none cursor-pointer bg-[#ddd]" onClick={() => updateQuantity(item._id, "increase", undefined)}>+</button>
+                    </div>
+                    <p className="font-bold text-red-600">{item.price.toLocaleString()}₫</p>
                   </div>
-                  <p className="font-bold text-red-600">{item.price.toLocaleString()}₫</p>
-                </div>
                 ) : (
                   <div className="w-full h-[25px] flex justify-start items-center mt-3">
                     <div className="px-3 py-[3px] rounded-md text-red-600 font-semibold border border-red-600">Sold out</div>
