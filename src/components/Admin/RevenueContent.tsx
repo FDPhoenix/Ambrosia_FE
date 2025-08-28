@@ -59,7 +59,7 @@ function RevenueContent() {
     <div className="w-[730px] p-5 bg-white shadow-md rounded-[15px] h-[567px]">
       {selectedDay === null ? (
         <>
-          <h2 className="text-center text-2xl text-gray-800 mb-5">Revenue Chart</h2>
+          <h4 className="text-center text-lg mb-5">Revenue Chart</h4>
           <div className="flex justify-between items-center mb-5">
             <div className="flex items-center gap-1.5">
               <label className="flex items-center">

@@ -35,6 +35,8 @@ const Register: React.FC = () => {
       },
     ],
     submitText: "Verify OTP",
+    cancelText: "Cancel", // Đã có, giữ nguyên
+    disableBackdropClose: true, // Thêm prop để chỉ định không đóng khi nhấp vào backdrop
   };
 
   const onVerifyOtp = async (event: { preventDefault: () => void }) => {
@@ -195,10 +197,14 @@ const Register: React.FC = () => {
         theme="light"
       />
 
-      <div className="flex justify-center w-full mt-6 mb-6 md:hidden">
-        <div className="flex justify-content-between align-items-center">
-          <img src={logo} alt="Ambrosia Logo" className="w-[3rem] h-[3rem] mr-3 rounded-full border-4 border-[#a68a64] shadow-lg object-cover" />
-          <p className="text-center my-auto pb-2 text-[2rem] text-[#a68a64] font-serif">Ambrosia</p>
+      <div className="flex justify-center w-full mt-6 mb-6">
+        <div className="flex items-center">  
+          <img
+            src={logo}
+            alt="Ambrosia Logo"
+            className="w-[3rem] h-[3rem] rounded-full border-4 border-[#a68a64] shadow-lg object-cover cursor-pointer bg-[#a68a64]"
+          />
+          <p className="ml-3 text-3xl font-bold text-[#a68a64]">Ambrosia</p>
         </div>
       </div>
 
