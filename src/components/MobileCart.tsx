@@ -77,12 +77,18 @@ function MobileCart() {
     }
   };
 
-  const updateQuantity = async (cartItemId: string, action: "increase" | "decrease") => {
+  const updateQuantity = async (cartItemId: string, action?: "increase" | "decrease", newQuantity?: number) => {
     const item = cartItems.find((i: any) => i._id === cartItemId);
     if (!item) return;
 
-    const newQuantity = action === "increase" ? item.quantity + 1 : item.quantity - 1;
-    if (newQuantity < 1) return;
+    let updatedQuantity = newQuantity !== undefined ? Number(newQuantity) : item.quantity;
+    if (action === "increase") {
+      updatedQuantity = item.quantity + 1;
+    } else if (action === "decrease" && item.quantity > 1) {
+      updatedQuantity = item.quantity - 1;
+    }
+
+    if (updatedQuantity && updatedQuantity < 1) return;
 
     if (token) {
       try {
@@ -92,13 +98,18 @@ function MobileCart() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ cartItemId, action }),
+          body: JSON.stringify({ cartItemId, ...(action ? { action } : { quantity: updatedQuantity }) }),
         });
 
-        if (!response.ok) throw new Error("Failed to update quantity");
+        if (!response.ok) {
+          const result = await response.json();
+          throw new Error(result.message || "Failed to update quantity");
+        }
 
+        const result = await response.json();
+        const updatedCartItem = result.cartItem;
         const updatedCart = cartItems.map((i: any) =>
-          i._id === cartItemId ? { ...i, quantity: newQuantity } : i
+          i._id === cartItemId ? { ...i, quantity: updatedCartItem.quantity } : i
         );
         setCartItems(updatedCart);
       } catch (error) {
@@ -106,9 +117,16 @@ function MobileCart() {
       }
     } else {
       const updatedCart = cartItems.map((item: any) =>
-        item._id === cartItemId ? { ...item, quantity: newQuantity } : item
+        item._id === cartItemId ? { ...item, quantity: updatedQuantity } : item
       );
       updateCart(updatedCart);
+    }
+  };
+
+  const handleBlur = (cartItemId: string, value: string) => {
+    const newQuantity = Number(value);
+    if (isNaN(newQuantity) || newQuantity < 1) {
+      updateQuantity(cartItemId, undefined, 1);
     }
   };
 
@@ -193,7 +211,9 @@ function MobileCart() {
                                 type="number"
                                 value={item.quantity}
                                 className="w-10 sm:w-8 text-center text-sm sm:text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                readOnly
+                                min={1}
+                                onChange={(e) => updateQuantity(item._id, undefined, Number(e.target.value))}
+                                onBlur={(e) => handleBlur(item._id, e.target.value)}
                               />
                               <button
                                 className="w-4 h-4 md:w-6 md:h-6 xl:w-8 xl:h-8 border-none cursor-pointer flex items-center justify-center"
